@@ -1,6 +1,7 @@
 ---
 // layouts/BaseLayout.astro
 
+import Analytics from "@components/page/Analytics.astro";
 import Basehead from "@components/global/Basehead.astro";
 import Footer from "@components/global/Footer.astro";
 import Header from "@components/global/Header.astro";
@@ -22,5 +23,6 @@ const { metaData } = Astro.props;
       <slot />
     </div>
     <Footer />
+    <Analytics />
   </body>
 </html>

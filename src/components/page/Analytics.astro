@@ -1,0 +1,322 @@
+---
+// src/components/Analytics.astro
+// Core Web Vitals tracking only
+// Listens for Astro Page Load event
+// Updated 250907 17:05 - Added debug toggle, clean production mode
+
+const siteId = Astro.site ? new URL(Astro.site).hostname : 'localhost';
+---
+
+<script define:vars={{ siteId }} is:inline>
+  (function () {
+    // Prevent multiple initializations during view transitions
+    if (window.__astro_analytics_initialized) {
+      return;
+    }
+    window.__astro_analytics_initialized = true;
+
+    // Debug toggle - set to false for production
+    const DEBUG = false;
+
+    const log = (...args) => DEBUG && console.log(...args);
+    const warn = (...args) => DEBUG && console.warn(...args);
+    const error = (...args) => DEBUG && console.error(...args);
+
+    log('🚀 Astro-only Analytics loaded');
+
+    if (
+      location.hostname === 'localhost' ||
+      location.hostname === '127.0.0.1'
+    ) {
+      log('🚧 Disabled in development');
+      return;
+    }
+
+    function trackPageCWV() {
+      // Simple session management - one per browser session
+      let sessionId = sessionStorage.getItem('astro_cwv_session');
+      if (!sessionId) {
+        sessionId =
+          'cwv_' +
+          Date.now() +
+          '_' +
+          Math.random().toString(36).substring(2, 11);
+        sessionStorage.setItem('astro_cwv_session', sessionId);
+        log('🆕 New session:', sessionId);
+      }
+
+      const currentPath = location.pathname;
+
+      // Per-page time-based deduplication (60 seconds)
+      const now = Date.now();
+      const lastSentKey = `cwv_sent_${currentPath}`;
+      const lastSent = parseInt(sessionStorage.getItem(lastSentKey) || '0');
+      const timeSinceLastSent = now - lastSent;
+      const cooldown = 60000; // 60s
+
+      if (timeSinceLastSent < cooldown) {
+        log(
+          `⏭️ Skip ${currentPath} - sent ${Math.round(timeSinceLastSent / 1000)}s ago`,
+        );
+        return;
+      }
+
+      // Browser detection
+      const parseBrowser = (ua) => {
+        if (!ua) return 'Unknown';
+        const lower = ua.toLowerCase();
+        if (lower.includes('safari/') && !lower.includes('chrome')) {
+          const version = ua.match(/version\/(\d+)/i);
+          return `Safari ${version ? version[1] : ''}`;
+        } else if (lower.includes('chrome/') && !lower.includes('edg')) {
+          const version = ua.match(/chrome\/(\d+)/i);
+          return `Chrome ${version ? version[1] : ''}`;
+        } else if (lower.includes('firefox/')) {
+          const version = ua.match(/firefox\/(\d+)/i);
+          return `Firefox ${version ? version[1] : ''}`;
+        }
+        return 'Other';
+      };
+
+      const browser = parseBrowser(navigator.userAgent);
+      log('🔍 Browser:', browser, '| Path:', currentPath);
+
+      const metrics = {
+        session_id: sessionId,
+        site_id: siteId,
+        url: location.href,
+        path: currentPath,
+        user_agent: navigator.userAgent,
+        browser: browser,
+        screen_width: window.screen.width,
+        screen_height: window.screen.height,
+        lcp: null,
+        fid: null,
+        cls: 0,
+        fcp: null,
+        ttfb: null,
+        inp: null,
+      };
+
+      const captureStart = performance.now();
+      log('📊 Starting fresh CWV capture at:', captureStart);
+
+      // TTFB - only meaningful for actual navigation, not view transitions
+      const navEntry = performance.getEntriesByType('navigation')[0];
+      if (navEntry && navEntry.responseStart) {
+        metrics.ttfb = navEntry.responseStart;
+        log('✅ TTFB:', metrics.ttfb);
+      }
+
+      // For Astro view transitions, always use buffered observers
+      // View transitions don't trigger new paint events, so we capture the current page's metrics
+      log('🎯 Using buffered observers (Astro view transitions)');
+
+      // Check Performance Observer support
+      const supportedTypes = [];
+      const testTypes = [
+        'largest-contentful-paint',
+        'layout-shift',
+        'first-input',
+        'paint',
+        'event',
+      ];
+      testTypes.forEach((type) => {
+        try {
+          PerformanceObserver.supportedEntryTypes.includes(type) &&
+            supportedTypes.push(type);
+        } catch (e) {}
+      });
+      log('🔧 Supported Performance Observer types:', supportedTypes);
+
+      // LCP - always buffered for Astro
+      log('🔧 Registering LCP observer...');
+      try {
+        new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          log('🔍 LCP Observer fired - entries:', entries.length);
+
+          if (entries.length > 0) {
+            log(
+              '📊 LCP entries:',
+              entries.map((e) => ({
+                renderTime: e.renderTime,
+                loadTime: e.loadTime,
+                startTime: e.startTime,
+                element: e.element?.tagName || 'unknown',
+              })),
+            );
+          } else {
+            warn('⚠️ LCP Observer fired but no entries found');
+          }
+
+          const lastEntry = entries.pop();
+          if (lastEntry) {
+            metrics.lcp =
+              lastEntry.renderTime || lastEntry.loadTime || lastEntry.startTime;
+            log('✅ LCP set to:', metrics.lcp);
+          } else {
+            warn('❌ No LCP entry to process');
+          }
+        }).observe({ type: 'largest-contentful-paint', buffered: true });
+        log('✅ LCP observer registered');
+      } catch (error) {
+        error('❌ LCP observer failed:', error.message);
+      }
+
+      // FCP - always buffered for Astro
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (entry.name === 'first-contentful-paint') {
+            metrics.fcp = entry.startTime;
+            log('✅ FCP:', metrics.fcp);
+          }
+        }
+      }).observe({ type: 'paint', buffered: true });
+
+      // CLS - use buffered for cumulative score
+      log('🔧 Registering CLS observer...');
+      new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        log('🔍 CLS Observer fired - entries:', entries.length);
+
+        for (const entry of entries) {
+          if (!entry.hadRecentInput && entry.value !== undefined) {
+            metrics.cls += entry.value;
+            log('✅ CLS delta:', entry.value, '| Total:', metrics.cls);
+          }
+        }
+
+        if (entries.length === 0) {
+          log('✅ CLS: No layout shifts detected (good performance!)');
+        }
+      }).observe({ type: 'layout-shift', buffered: true });
+      log('✅ CLS observer registered');
+
+      // FID - use buffered for any recorded input delay
+      log('🔧 Registering FID observer...');
+      new PerformanceObserver((list) => {
+        const entries = list.getEntries();
+        log('🔍 FID Observer fired - entries:', entries.length);
+
+        const firstInput = entries[0];
+        if (firstInput && firstInput.processingStart) {
+          metrics.fid = firstInput.processingStart - firstInput.startTime;
+          log('✅ FID:', metrics.fid, 'ms');
+        } else if (entries.length === 0) {
+          log('✅ FID: No input delay recorded (good performance!)');
+        } else {
+          log('⚠️ FID entry exists but no processingStart:', firstInput);
+        }
+      }).observe({ type: 'first-input', buffered: true });
+      log('✅ FID observer registered');
+
+      // INP - Interaction to Next Paint
+      log('🔧 Registering INP observer...');
+      log('🔍 Event Timing API available:', 'PerformanceEventTiming' in window);
+      log(
+        '🔍 Event type supported:',
+        PerformanceObserver.supportedEntryTypes.includes('event'),
+      );
+      try {
+        new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          log('🔍 INP Observer fired - entries:', entries.length);
+
+          let maxDelay = 0;
+          for (const entry of entries) {
+            if (entry.interactionId && entry.duration) {
+              const delay = entry.duration;
+              maxDelay = Math.max(maxDelay, delay);
+              log('📊 INP interaction:', {
+                type: entry.name,
+                delay: delay,
+                interactionId: entry.interactionId,
+                startTime: entry.startTime,
+                processingStart: entry.processingStart,
+                processingEnd: entry.processingEnd,
+                duration: entry.duration,
+              });
+            }
+          }
+
+          if (maxDelay > 0) {
+            metrics.inp = maxDelay;
+            log('✅ INP set to:', metrics.inp, 'ms');
+          } else if (entries.length === 0) {
+            log('✅ INP: No interactions recorded');
+          }
+        }).observe({ type: 'event', buffered: true, durationThreshold: 0 });
+        log('✅ INP observer registered');
+      } catch (error) {
+        error('❌ INP observer failed:', error.message);
+      }
+
+      // Send after delay to capture metrics
+      setTimeout(() => {
+        log('📤 Sending:', {
+          session: metrics.session_id,
+          path: metrics.path,
+          browser: metrics.browser,
+          lcp: metrics.lcp,
+          fcp: metrics.fcp,
+          cls: metrics.cls,
+          fid: metrics.fid,
+          ttfb: metrics.ttfb,
+          inp: metrics.inp,
+        });
+
+        // Debug: Log if all CWV are null
+        if (
+          !metrics.lcp &&
+          !metrics.fcp &&
+          !metrics.fid &&
+          !metrics.inp &&
+          metrics.cls === 0
+        ) {
+          warn('🚨 No CWV captured - all values null/zero');
+        }
+
+        const blob = new Blob([JSON.stringify(metrics)], {
+          type: 'application/json',
+        });
+
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('/.netlify/functions/pandalytics', blob);
+          log('📡 Sent via beacon');
+        } else {
+          fetch('/.netlify/functions/pandalytics', {
+            method: 'POST',
+            body: JSON.stringify(metrics),
+            headers: { 'Content-Type': 'application/json' },
+            keepalive: true,
+          }).catch(() => {});
+          log('📡 Sent via fetch');
+        }
+
+        // Mark as sent
+        sessionStorage.setItem(lastSentKey, now.toString());
+        log('✅ Marked sent:', new Date().toLocaleTimeString());
+      }, 1500);
+    }
+
+    // Listen to astro:page-load (fires for all Astro navigation)
+    document.addEventListener('astro:page-load', () => {
+      log('🎯 astro:page-load fired');
+      trackPageCWV();
+    });
+
+    // Also track initial page load in case astro:page-load doesn't fire
+    if (document.readyState === 'complete') {
+      log('🎯 Document already complete, tracking now');
+      trackPageCWV();
+    } else {
+      window.addEventListener('load', () => {
+        log('🎯 Window load fired');
+        trackPageCWV();
+      }, { once: true });
+    }
+
+    log('✅ Pandalytics ready');
+  })();
+</script>

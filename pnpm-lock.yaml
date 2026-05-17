@@ -45,6 +45,9 @@ importers:
       '@biomejs/biome':
         specifier: 2.4.15
         version: 2.4.15
+      '@netlify/functions':
+        specifier: ^5.2.1
+        version: 5.2.1
       oxfmt:
         specifier: ^0.50.0
         version: 0.50.0
@@ -586,6 +589,14 @@ packages:
     peerDependencies:
       '@emnapi/core': ^1.7.1
       '@emnapi/runtime': ^1.7.1
+
+  '@netlify/functions@5.2.1':
+    resolution: {integrity: sha512-F1CCXeWC/4E/mj8La38WwFJ6oyymTBeIWYO87nyjN0L8mvb0tugcMsu+V6QkUllMtnBezdM0ApCaY+eWGmnj+g==}
+    engines: {node: '>=18.0.0'}
+
+  '@netlify/types@2.6.0':
+    resolution: {integrity: sha512-yD20EizHJDQxajJ66Vo8RTwLwR2jMNVxufPG8MHd2AScX8jW4z0VPnnJHArq2GYPFTFZRHmiAhDrXr5m8zof6w==}
+    engines: {node: ^18.14.0 || >=20}
 
   '@oslojs/encoding@1.1.0':
     resolution: {integrity: sha512-70wQhgYmndg4GCPxPPxPGevRKqTIJ2Nh4OkiMWmDAVYsTQ+Ta7Sq+rPevXyXGdzr30/qZBnyOalCszoMxlyldQ==}
@@ -2478,6 +2489,12 @@ snapshots:
       '@emnapi/runtime': 1.10.0
       '@tybys/wasm-util': 0.10.2
     optional: true
+
+  '@netlify/functions@5.2.1':
+    dependencies:
+      '@netlify/types': 2.6.0
+
+  '@netlify/types@2.6.0': {}
 
   '@oslojs/encoding@1.1.0': {}
 
