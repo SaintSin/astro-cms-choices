@@ -1,0 +1,114 @@
+---
+// src/components/showcase/ShowcaseToolbar.astro
+// 2026-05-17T00:00:00Z
+
+interface Props {
+	starlightCount: number;
+	frameworkCount: number;
+	parkedCount: number;
+	noLongerAstro: number;
+}
+
+const { starlightCount, frameworkCount, parkedCount, noLongerAstro } =
+	Astro.props;
+---
+
+<div class="toolbar">
+  <h2>Sites</h2>
+  <div class="toolbar-controls">
+    {starlightCount > 0 && (
+      <button id="starlight-filter" class="filter-btn filter-btn--starlight" type="button">
+        Starlight ({starlightCount})
+      </button>
+    )}
+    {frameworkCount > 0 && (
+      <button id="framework-filter" class="filter-btn filter-btn--framework" type="button">
+        JS Frameworks ({frameworkCount})
+      </button>
+    )}
+    {parkedCount > 0 && (
+      <button id="parked-filter" class="filter-btn filter-btn--parked" type="button">
+        Parked ({parkedCount})
+      </button>
+    )}
+    <button id="astro-filter" class="filter-btn filter-btn--astro" type="button">
+      Astro not detected ({noLongerAstro})
+    </button>
+    <input
+      id="search"
+      class="search-input"
+      type="search"
+      placeholder="Search title or URL…"
+      aria-label="Search sites"
+    />
+    <button id="clear-filter" class="clear-btn" type="button" hidden>
+      Clear
+    </button>
+  </div>
+</div>
+
+<style>
+  .toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    justify-content: space-between;
+  }
+  .toolbar h2 { font-size: var(--step-1); margin: 0; }
+  .toolbar-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+
+  .filter-btn {
+    padding: var(--space-2xs) var(--space-xs);
+    border-radius: var(--space-3xs);
+    background: none;
+    cursor: pointer;
+    font-size: var(--step--1);
+    white-space: nowrap;
+    border: 1px solid;
+    transition: background 0.12s ease;
+  }
+
+  .filter-btn--starlight { border-color: var(--violet-4); color: var(--violet-7); }
+  .filter-btn--starlight:hover { background: var(--violet-0); }
+  .filter-btn--starlight.active { background: var(--violet-1); border-color: var(--violet-6); font-weight: 600; }
+
+  .filter-btn--framework { border-color: var(--cyan-4); color: var(--cyan-7); }
+  .filter-btn--framework:hover { background: var(--cyan-0); }
+  .filter-btn--framework.active { background: var(--cyan-1); border-color: var(--cyan-6); font-weight: 600; }
+
+  .filter-btn--parked { border-color: var(--yellow-4); color: var(--yellow-8); }
+  .filter-btn--parked:hover { background: var(--yellow-0); }
+  .filter-btn--parked.active { background: var(--yellow-1); border-color: var(--yellow-6); font-weight: 600; }
+
+  .filter-btn--astro { border-color: var(--orange-4); color: var(--orange-7); }
+  .filter-btn--astro:hover { background: var(--orange-0); }
+  .filter-btn--astro.active { background: var(--orange-1); border-color: var(--orange-6); font-weight: 600; }
+
+  .search-input {
+    padding: var(--space-2xs) var(--space-xs);
+    border: 1px solid var(--gray-4);
+    border-radius: var(--space-3xs);
+    font-size: var(--step--1);
+    min-width: 16rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+
+  .clear-btn {
+    padding: var(--space-2xs) var(--space-xs);
+    border: 1px solid var(--gray-4);
+    border-radius: var(--space-3xs);
+    background: none;
+    cursor: pointer;
+    font-size: var(--step--1);
+    color: inherit;
+    transition: background 0.12s ease;
+  }
+  .clear-btn:hover { background: var(--color-surface); }
+</style>

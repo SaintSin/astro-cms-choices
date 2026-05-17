@@ -1,0 +1,91 @@
+---
+// src/components/showcase/ShowcasePagination.astro
+// 2026-05-17T00:00:00Z
+---
+
+<nav id="pagination" class="pagination" aria-label="Pagination"></nav>
+
+<style>
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-s);
+    flex-wrap: wrap;
+    padding-block: var(--space-m);
+  }
+
+  .pagination :global(.page-num) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: var(--space-3xs);
+    font-size: var(--step--1);
+    font-weight: 400;
+    color: var(--color-text-subtle);
+    background: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  }
+
+  .pagination :global(.page-num:hover) {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--gray-3);
+  }
+
+  .pagination :global(.page-num.active) {
+    background: var(--violet-6);
+    color: white;
+    border-color: transparent;
+    font-weight: 600;
+    pointer-events: none;
+  }
+
+  .pagination :global(.page-ellipsis) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    font-size: var(--step--1);
+    color: var(--color-text-subtle);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .pagination :global(.page-prev),
+  .pagination :global(.page-next) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    padding: 0.45em 0.9em;
+    border-radius: var(--space-3xs);
+    border: 1px solid var(--gray-3);
+    font-size: var(--step--2);
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-text-subtle);
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  }
+
+  .pagination :global(.page-prev:hover),
+  .pagination :global(.page-next:hover) {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--gray-4);
+  }
+
+  .pagination :global(.page-prev:disabled),
+  .pagination :global(.page-next:disabled) {
+    opacity: 0.35;
+    pointer-events: none;
+    cursor: default;
+  }
+</style>

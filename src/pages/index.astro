@@ -2,35 +2,19 @@
 // src/pages/index.astro
 // 2026-05-17T00:00:00Z
 
+import ShowcasePagination from "@components/showcase/ShowcasePagination.astro";
+import ShowcaseTable from "@components/showcase/ShowcaseTable.astro";
+import ShowcaseToolbar from "@components/showcase/ShowcaseToolbar.astro";
+import { siteMetadata } from "@config/siteMetadata";
 import Layout from "@layouts/BaseLayout.astro";
+import type { ResultsFile } from "../types/index";
+
+const PAGE_SIZE = siteMetadata.showcasePageSize ?? 50;
 
 const meta = {
 	title: "Astro Showcase — CMS Detector",
 	description: "Which CMS (if any) powers each site in the Astro showcase?",
 };
-
-interface CmsResult {
-	title: string;
-	url: string;
-	cms: string;
-	cmsType: string;
-	confidence: string | null;
-	evidence: string[];
-	categories: string[];
-	astroDetected: boolean;
-	astroVersion: string | null;
-	astroSignals: string[];
-	dateAdded: string;
-	fetchedAt: string;
-	error?: string;
-}
-
-interface ResultsFile {
-	generated: string;
-	sourceDir: string;
-	total: number;
-	results: CmsResult[];
-}
 
 let data: ResultsFile | null = null;
 try {
@@ -40,7 +24,8 @@ try {
 	// data file not yet generated — show empty state
 }
 
-const results: CmsResult[] = data?.results ?? [];
+const results = data?.results ?? [];
+const total = results.length;
 
 const cmsCounts = new Map<string, number>();
 for (const r of results) {
@@ -48,26 +33,18 @@ for (const r of results) {
 	cmsCounts.set(r.cms, (cmsCounts.get(r.cms) ?? 0) + 1);
 }
 const sorted = [...cmsCounts.entries()].sort((a, b) => b[1] - a[1]);
+
 const detected = results.filter(
 	(r) => r.cms !== "Unknown" && r.cms !== "Error" && r.cms !== "Blocked",
 ).length;
 const errors = results.filter((r) => r.cms === "Error").length;
-const unknown = results.filter((r) => r.cms === "Unknown").length;
-const total = results.length;
 const astroConfirmed = results.filter((r) => r.astroDetected).length;
 const noLongerAstro = results.filter(
 	(r) => !r.astroDetected && r.cms !== "Error" && r.cms !== "Blocked",
 ).length;
 const starlightCount = results.filter((r) => r.cms === "Starlight").length;
 const frameworkCount = results.filter((r) => r.cmsType === "framework").length;
-
-const CMS_TYPE_LABELS: Record<string, string> = {
-	"headless-cms": "Headless CMS",
-	"page-builder": "Page Builder",
-	"full-site": "Full-site (no Astro)",
-	framework: "JS Framework",
-	"static-gen": "Static Gen",
-};
+const parkedCount = results.filter((r) => r.cmsType === "parked").length;
 ---
 
 <Layout metaData={meta}>
@@ -103,6 +80,10 @@ const CMS_TYPE_LABELS: Record<string, string> = {
             <span class="stat-value">{detected}</span>
             <span class="stat-label">Sites with CMS detected</span>
           </div>
+          <div class="stat-card stat-card--parked">
+            <span class="stat-value">{parkedCount}</span>
+            <span class="stat-label">Parked / forwarded</span>
+          </div>
           <div class="stat-card stat-card--error">
             <span class="stat-value">{errors}</span>
             <span class="stat-label">Fetch errors</span>
@@ -132,93 +113,19 @@ const CMS_TYPE_LABELS: Record<string, string> = {
         </section>
 
         <section class="results-section flow" aria-label="Site results">
-          <div class="toolbar">
-            <h2>Sites</h2>
-            <div class="toolbar-controls">
-              {starlightCount > 0 && (
-                <button id="starlight-filter" class="starlight-filter-btn" type="button">
-                  Starlight ({starlightCount})
-                </button>
-              )}
-              {frameworkCount > 0 && (
-                <button id="framework-filter" class="framework-filter-btn" type="button">
-                  JS Frameworks ({frameworkCount})
-                </button>
-              )}
-              <button id="astro-filter" class="astro-filter-btn" type="button">
-                Astro not detected ({noLongerAstro})
-              </button>
-              <input
-                id="search"
-                class="search-input"
-                type="search"
-                placeholder="Search title or URL…"
-                aria-label="Search sites"
-              />
-              <button id="clear-filter" class="clear-btn" type="button" hidden>
-                Clear
-              </button>
-            </div>
-          </div>
+          <ShowcaseToolbar
+            starlightCount={starlightCount}
+            frameworkCount={frameworkCount}
+            parkedCount={parkedCount}
+            noLongerAstro={noLongerAstro}
+          />
 
           <p class="results-count" id="results-count" aria-live="polite">
             Showing {total} sites
           </p>
 
-          <div class="table-wrap">
-            <table class="results-table" id="results-table">
-              <thead>
-                <tr>
-                  <th scope="col">Site</th>
-                  <th scope="col">Astro</th>
-                  <th scope="col">CMS</th>
-                  <th scope="col">Type</th>
-                  <th scope="col">Conf.</th>
-                    </tr>
-              </thead>
-              <tbody>
-                {results.map((r) => (
-                  <tr
-                    data-cms={r.cms}
-                    data-cmstype={r.cmsType}
-                    data-title={r.title.toLowerCase()}
-                    data-url={r.url.toLowerCase()}
-                    data-astro={r.astroDetected ? "true" : r.cms === "Error" || r.cms === "Blocked" ? "unknown" : "false"}
-                    class={r.cmsType === "full-site" ? "row--migrated" : ""}
-                  >
-                    <td class="cell-site">
-                      <a href={r.url} target="_blank" rel="noopener noreferrer">
-                        {r.title || r.url}
-                      </a>
-                      <span class="url-hint">{new URL(r.url).hostname}</span>
-                    </td>
-                    <td class="cell-astro">
-                      {r.astroDetected
-                        ? <>
-                            <span class="astro-yes" title={r.astroSignals.join(", ")}>✓</span>
-                            {r.astroVersion && <span class="astro-version">v{r.astroVersion}</span>}
-                          </>
-                        : r.cms !== "Error" && r.cms !== "Blocked"
-                          ? <span class="astro-no" title="No Astro fingerprint found">✗</span>
-                          : <span class="astro-unknown">—</span>
-                      }
-                    </td>
-                    <td>
-                      <span class={`cms-badge cms-badge--${r.cmsType}`}>{r.cms}</span>
-                    </td>
-                    <td class="cell-type">
-                      {r.cmsType !== "unknown" ? CMS_TYPE_LABELS[r.cmsType] ?? r.cmsType : ""}
-                    </td>
-                    <td>
-                      {r.confidence && (
-                        <span class={`conf-badge conf-badge--${r.confidence}`}>{r.confidence}</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ShowcaseTable results={results} pageSize={PAGE_SIZE} />
+          <ShowcasePagination />
         </section>
       </>
     )}
@@ -227,97 +134,204 @@ const CMS_TYPE_LABELS: Record<string, string> = {
 
 <script is:inline>
   function initDetector() {
+    const table = document.getElementById("results-table");
+    const tbody = table?.querySelector("tbody");
     const searchInput = document.getElementById("search");
     const clearBtn = document.getElementById("clear-filter");
     const astroFilterBtn = document.getElementById("astro-filter");
     const starlightFilterBtn = document.getElementById("starlight-filter");
     const frameworkFilterBtn = document.getElementById("framework-filter");
+    const parkedFilterBtn = document.getElementById("parked-filter");
     const countEl = document.getElementById("results-count");
-    const tbody = document.querySelector("#results-table tbody");
-    if (!tbody || !searchInput) return;
+    const paginationEl = document.getElementById("pagination");
+    if (!tbody || !searchInput || !table) return;
 
-    const rows = Array.from(tbody.querySelectorAll("tr"));
+    const PAGE_SIZE = parseInt(table.dataset.pageSize ?? "50", 10);
+    const allRows = Array.from(tbody.querySelectorAll("tr"));
+
     let activeCmsFilter = null;
     let activeCmsTypeFilter = null;
     let noAstroOnly = false;
+    let sortCol = null;
+    let sortAsc = true;
+    let currentPage = 1;
 
-    function updateCount(visible) {
-      if (countEl) countEl.textContent = `Showing ${visible} site${visible !== 1 ? "s" : ""}`;
+    // ── Sorting ──────────────────────────────────────────────────────────────
+
+    function getSortValue(row, col) {
+      switch (col) {
+        case "title":   return row.dataset.title ?? "";
+        case "astro":   return row.dataset.astroversion ?? "";
+        case "cms":     return row.dataset.cms?.toLowerCase() ?? "";
+        case "cmstype": return row.dataset.cmstype ?? "";
+        default:        return "";
+      }
     }
 
-    function applyFilters() {
+    function sortRows(rows) {
+      if (!sortCol) return rows;
+      return [...rows].sort((a, b) => {
+        const av = getSortValue(a, sortCol);
+        const bv = getSortValue(b, sortCol);
+        if (!av && bv) return 1;
+        if (av && !bv) return -1;
+        if (!av && !bv) return 0;
+        const cmp = av.localeCompare(bv, undefined, { numeric: true });
+        return sortAsc ? cmp : -cmp;
+      });
+    }
+
+    document.querySelectorAll(".sortable").forEach((th) => {
+      th.addEventListener("click", () => {
+        const col = th.dataset.col;
+        if (sortCol === col) { sortAsc = !sortAsc; } else { sortCol = col; sortAsc = true; }
+        document.querySelectorAll(".sortable").forEach((h) => {
+          h.classList.remove("sort-asc", "sort-desc");
+          h.querySelector(".sort-icon").textContent = "";
+        });
+        th.classList.add(sortAsc ? "sort-asc" : "sort-desc");
+        th.querySelector(".sort-icon").textContent = sortAsc ? " ▲" : " ▼";
+        currentPage = 1;
+        applyView();
+      });
+    });
+
+    // ── Filtering ─────────────────────────────────────────────────────────────
+
+    function getFilteredRows() {
       const query = searchInput.value.toLowerCase();
-      let visible = 0;
-      for (const row of rows) {
-        const matchesCms = !activeCmsFilter || row.dataset.cms === activeCmsFilter;
+      return allRows.filter((row) => {
+        const matchesCms     = !activeCmsFilter     || row.dataset.cms === activeCmsFilter;
         const matchesCmsType = !activeCmsTypeFilter || row.dataset.cmstype === activeCmsTypeFilter;
-        const matchesSearch = !query || row.dataset.title.includes(query) || row.dataset.url.includes(query);
-        const matchesAstro = !noAstroOnly || row.dataset.astro === "false";
-        row.hidden = !(matchesCms && matchesCmsType && matchesSearch && matchesAstro);
-        if (!row.hidden) visible++;
+        const matchesSearch  = !query || row.dataset.title.includes(query) || row.dataset.url.includes(query);
+        const matchesAstro   = !noAstroOnly || row.dataset.astro === "false";
+        return matchesCms && matchesCmsType && matchesSearch && matchesAstro;
+      });
+    }
+
+    // ── Pagination ────────────────────────────────────────────────────────────
+
+    function renderPagination(total, page) {
+      if (!paginationEl) return;
+      const totalPages = Math.ceil(total / PAGE_SIZE);
+      if (totalPages <= 1) { paginationEl.innerHTML = ""; return; }
+
+      const items = [];
+      const numBtn = (p, active) =>
+        `<button class="page-num${active ? " active" : ""}" data-page="${p}">${p}</button>`;
+      const navBtn = (label, p, cls, disabled) =>
+        `<button class="${cls}" data-page="${p}" ${disabled ? "disabled" : ""}>${label}</button>`;
+
+      items.push(navBtn("Previous", page - 1, "page-prev", page === 1));
+
+      const pages = new Set([1, totalPages]);
+      for (let p = Math.max(1, page - 2); p <= Math.min(totalPages, page + 2); p++) pages.add(p);
+      let prev = 0;
+      for (const p of [...pages].sort((a, b) => a - b)) {
+        if (prev && p - prev > 1) items.push(`<span class="page-ellipsis">…</span>`);
+        items.push(numBtn(p, p === page));
+        prev = p;
       }
-      updateCount(visible);
+
+      items.push(navBtn("Next", page + 1, "page-next", page === totalPages));
+      paginationEl.innerHTML = items.join("");
+
+      paginationEl.querySelectorAll("[data-page]:not([disabled])").forEach((b) => {
+        b.addEventListener("click", () => {
+          currentPage = parseInt(b.dataset.page, 10);
+          applyView();
+          table.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+    }
+
+    // ── Main view update ──────────────────────────────────────────────────────
+
+    function applyView() {
+      const filtered = getFilteredRows();
+      const sorted   = sortRows(filtered);
+      const start    = (currentPage - 1) * PAGE_SIZE;
+      const pageRows = new Set(sorted.slice(start, start + PAGE_SIZE));
+
+      for (const row of allRows) row.hidden = !pageRows.has(row);
+
+      if (countEl) {
+        const from = Math.min(start + 1, filtered.length);
+        const to   = Math.min(start + PAGE_SIZE, filtered.length);
+        countEl.textContent = filtered.length
+          ? `Showing ${from}–${to} of ${filtered.length} site${filtered.length !== 1 ? "s" : ""}`
+          : "No results";
+      }
+
+      renderPagination(filtered.length, currentPage);
+
       const hasFilter = activeCmsFilter || activeCmsTypeFilter || searchInput.value || noAstroOnly;
       if (clearBtn) clearBtn.hidden = !hasFilter;
     }
 
+    // ── Filter controls ───────────────────────────────────────────────────────
+
+    function clearTypeFilters() {
+      document.querySelectorAll(".bar-filter-btn").forEach((b) => b.classList.remove("active"));
+      if (starlightFilterBtn) starlightFilterBtn.classList.remove("active");
+      if (frameworkFilterBtn) frameworkFilterBtn.classList.remove("active");
+      if (parkedFilterBtn)    parkedFilterBtn.classList.remove("active");
+    }
+
     function setCmsFilter(cms) {
-      activeCmsFilter = activeCmsFilter === cms ? null : cms;
+      activeCmsFilter    = activeCmsFilter === cms ? null : cms;
       activeCmsTypeFilter = null;
+      currentPage = 1;
+      clearTypeFilters();
       document.querySelectorAll(".bar-filter-btn").forEach((b) =>
         b.classList.toggle("active", b.dataset.cms === activeCmsFilter)
       );
-      if (starlightFilterBtn)
-        starlightFilterBtn.classList.toggle("active", activeCmsFilter === "Starlight");
-      if (frameworkFilterBtn) frameworkFilterBtn.classList.remove("active");
-      applyFilters();
+      if (starlightFilterBtn) starlightFilterBtn.classList.toggle("active", activeCmsFilter === "Starlight");
+      applyView();
     }
 
-    document.querySelectorAll(".bar-filter-btn").forEach((btn) => {
-      btn.addEventListener("click", () => setCmsFilter(btn.dataset.cms));
-    });
-
-    if (starlightFilterBtn) {
-      starlightFilterBtn.addEventListener("click", () => setCmsFilter("Starlight"));
+    function setCmsTypeFilter(type, btn) {
+      const isActive = activeCmsTypeFilter === type;
+      activeCmsTypeFilter = isActive ? null : type;
+      activeCmsFilter = null;
+      currentPage = 1;
+      clearTypeFilters();
+      btn.classList.toggle("active", !isActive);
+      applyView();
     }
 
-    if (frameworkFilterBtn) {
-      frameworkFilterBtn.addEventListener("click", () => {
-        const isActive = activeCmsTypeFilter === "framework";
-        activeCmsTypeFilter = isActive ? null : "framework";
-        activeCmsFilter = null;
-        document.querySelectorAll(".bar-filter-btn").forEach((b) => b.classList.remove("active"));
-        if (starlightFilterBtn) starlightFilterBtn.classList.remove("active");
-        frameworkFilterBtn.classList.toggle("active", !isActive);
-        applyFilters();
-      });
-    }
+    document.querySelectorAll(".bar-filter-btn").forEach((b) =>
+      b.addEventListener("click", () => setCmsFilter(b.dataset.cms))
+    );
+    if (starlightFilterBtn) starlightFilterBtn.addEventListener("click", () => setCmsFilter("Starlight"));
+    if (frameworkFilterBtn) frameworkFilterBtn.addEventListener("click", () => setCmsTypeFilter("framework", frameworkFilterBtn));
+    if (parkedFilterBtn)    parkedFilterBtn.addEventListener("click",    () => setCmsTypeFilter("parked", parkedFilterBtn));
 
     if (astroFilterBtn) {
       astroFilterBtn.addEventListener("click", () => {
         noAstroOnly = !noAstroOnly;
+        currentPage = 1;
         astroFilterBtn.classList.toggle("active", noAstroOnly);
-        applyFilters();
+        applyView();
       });
     }
 
-    searchInput.addEventListener("input", applyFilters);
+    searchInput.addEventListener("input", () => { currentPage = 1; applyView(); });
 
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
         activeCmsFilter = null;
         activeCmsTypeFilter = null;
         noAstroOnly = false;
+        currentPage = 1;
         searchInput.value = "";
-        document.querySelectorAll(".bar-filter-btn").forEach((b) => b.classList.remove("active"));
-        if (starlightFilterBtn) starlightFilterBtn.classList.remove("active");
-        if (frameworkFilterBtn) frameworkFilterBtn.classList.remove("active");
+        clearTypeFilters();
         if (astroFilterBtn) astroFilterBtn.classList.remove("active");
-        applyFilters();
+        applyView();
       });
     }
 
-    updateCount(rows.length);
+    applyView();
   }
 
   initDetector();
@@ -325,7 +339,8 @@ const CMS_TYPE_LABELS: Record<string, string> = {
 </script>
 
 <style>
-  .page-header h1 { font-size: var(--step-3); line-height: 1.1; }
+  .page-header h1 { font-size: var(--step-3); line-height: 1.1; 
+  padding-block: var(--space-s);}
   .muted { color: var(--color-text-subtle); font-weight: 400; }
   .meta-line { color: var(--color-text-subtle); font-size: var(--step--1); }
   .notice { font-style: italic; color: var(--color-text-subtle); }
@@ -348,6 +363,7 @@ const CMS_TYPE_LABELS: Record<string, string> = {
   .stat-card--astro    { border-color: var(--violet-6); }
   .stat-card--migrated { border-color: var(--orange-5); }
   .stat-card--detected { border-color: var(--blue-6); }
+  .stat-card--parked   { border-color: var(--yellow-5); }
   .stat-card--error    { border-color: var(--red-5); }
   .stat-value { font-size: var(--step-3); font-weight: 700; line-height: 1; }
   .stat-label { font-size: var(--step--1); color: var(--color-text-subtle); }
@@ -364,7 +380,7 @@ const CMS_TYPE_LABELS: Record<string, string> = {
     border: 2px solid transparent;
     border-radius: 4px;
     cursor: pointer;
-    padding: var(--space-3xs) var(--space-3xs);
+    padding: var(--space-3xs);
     color: inherit;
     text-align: left;
   }
@@ -389,126 +405,7 @@ const CMS_TYPE_LABELS: Record<string, string> = {
   .cms-badge--full-site    { background: var(--red-1);    color: var(--red-9); }
   .cms-badge--framework    { background: var(--cyan-1);   color: var(--cyan-9); }
   .cms-badge--static-gen   { background: var(--green-1);  color: var(--green-9); }
+  .cms-badge--parked       { background: var(--yellow-1); color: var(--yellow-9); }
 
-  .toolbar {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--space-s);
-    justify-content: space-between;
-  }
-  .toolbar h2 { font-size: var(--step-1); margin: 0; }
-  .toolbar-controls { display: flex; align-items: center; gap: var(--space-xs); }
-  .search-input {
-    padding: var(--space-2xs) var(--space-xs);
-    border: 1px solid var(--gray-4);
-    border-radius: var(--space-3xs);
-    font-size: var(--step--1);
-    min-width: 16rem;
-    background: var(--color-bg);
-    color: var(--color-text);
-  }
-  .starlight-filter-btn {
-    padding: var(--space-2xs) var(--space-xs);
-    border: 1px solid var(--violet-4);
-    border-radius: var(--space-3xs);
-    background: none;
-    cursor: pointer;
-    font-size: var(--step--1);
-    color: var(--violet-7);
-    white-space: nowrap;
-  }
-  .starlight-filter-btn:hover { background: var(--violet-0); }
-  .starlight-filter-btn.active { background: var(--violet-1); border-color: var(--violet-6); font-weight: 600; }
-  .framework-filter-btn {
-    padding: var(--space-2xs) var(--space-xs);
-    border: 1px solid var(--cyan-4);
-    border-radius: var(--space-3xs);
-    background: none;
-    cursor: pointer;
-    font-size: var(--step--1);
-    color: var(--cyan-7);
-    white-space: nowrap;
-  }
-  .framework-filter-btn:hover { background: var(--cyan-0); }
-  .framework-filter-btn.active { background: var(--cyan-1); border-color: var(--cyan-6); font-weight: 600; }
-  .astro-filter-btn {
-    padding: var(--space-2xs) var(--space-xs);
-    border: 1px solid var(--orange-4);
-    border-radius: var(--space-3xs);
-    background: none;
-    cursor: pointer;
-    font-size: var(--step--1);
-    color: var(--orange-7);
-    white-space: nowrap;
-  }
-  .astro-filter-btn:hover { background: var(--orange-0); }
-  .astro-filter-btn.active { background: var(--orange-1); border-color: var(--orange-6); font-weight: 600; }
-  .clear-btn {
-    padding: var(--space-2xs) var(--space-xs);
-    border: 1px solid var(--gray-4);
-    border-radius: var(--space-3xs);
-    background: none;
-    cursor: pointer;
-    font-size: var(--step--1);
-    color: inherit;
-  }
-  .clear-btn:hover { background: var(--color-surface); }
   .results-count { font-size: var(--step--1); color: var(--color-text-subtle); }
-
-  .table-wrap { overflow-x: auto; }
-  .results-table { width: 100%; border-collapse: collapse; font-size: var(--step--1); }
-  .results-table th {
-    text-align: left;
-    padding: var(--space-2xs) var(--space-xs);
-    border-bottom: 2px solid var(--gray-3);
-    font-weight: 600;
-    white-space: nowrap;
-    color: var(--color-text-subtle);
-  }
-  .results-table td {
-    padding: var(--space-2xs) var(--space-xs);
-    border-bottom: 1px solid var(--gray-2);
-    vertical-align: middle;
-  }
-  .results-table tr:hover td { background: var(--color-surface); }
-  .cell-site a { display: block; font-weight: 500; color: var(--color-text); text-decoration: none; }
-  .cell-site a:hover { text-decoration: underline; color: var(--color-primary); }
-  .url-hint { display: block; color: var(--color-text-subtle); font-size: var(--step--2); }
-  .cell-type { color: var(--color-text-subtle); white-space: nowrap; font-size: var(--step--2); }
-  .cell-astro { text-align: center; font-size: var(--step-0); white-space: nowrap; }
-  .astro-yes  { color: var(--violet-6); font-weight: 700; cursor: default; }
-  .astro-no   { color: var(--orange-5); font-weight: 700; cursor: default; }
-  .astro-unknown { color: var(--gray-4); cursor: default; }
-  .astro-version {
-    display: inline-block;
-    margin-left: 0.3em;
-    font-size: var(--step--2);
-    color: var(--violet-6);
-    font-weight: 400;
-    vertical-align: middle;
-  }
-  .row--migrated td { background: var(--orange-0); }
-  .row--migrated:hover td { background: var(--orange-1); }
-
-  .conf-badge {
-    display: inline-block;
-    padding: 0.1em 0.45em;
-    border-radius: 999px;
-    font-size: var(--step--2);
-    font-weight: 500;
-  }
-  .conf-badge--high   { background: var(--green-1);  color: var(--green-8); }
-  .conf-badge--medium { background: var(--yellow-1); color: var(--yellow-8); }
-  .conf-badge--low    { background: var(--gray-1);   color: var(--gray-7); }
-
-  .cell-cats { display: flex; flex-wrap: wrap; gap: var(--space-3xs); }
-  .cat-tag {
-    display: inline-block;
-    padding: 0.1em 0.4em;
-    border-radius: 999px;
-    font-size: var(--step--2);
-    background: var(--gray-1);
-    color: var(--gray-7);
-  }
 </style>

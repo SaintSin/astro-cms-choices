@@ -1,0 +1,171 @@
+---
+// src/components/showcase/ShowcaseTable.astro
+// 2026-05-17T00:00:00Z
+
+import type { CmsResult } from "../../types/index";
+import { CMS_TYPE_LABELS } from "../../types/index";
+
+interface Props {
+	results: CmsResult[];
+	pageSize: number;
+}
+
+const { results, pageSize } = Astro.props;
+---
+
+<div class="table-wrap">
+  <table class="results-table" id="results-table" data-page-size={pageSize}>
+    <thead>
+      <tr>
+        <th scope="col" class="sortable" data-col="title">
+          Site <span class="sort-icon" aria-hidden="true"></span>
+        </th>
+        <th scope="col" class="sortable" data-col="astro">
+          Astro version <span class="sort-icon" aria-hidden="true"></span>
+        </th>
+        <th scope="col" class="sortable" data-col="cms">
+          CMS <span class="sort-icon" aria-hidden="true"></span>
+        </th>
+        <th scope="col" class="sortable" data-col="cmstype">
+          Type <span class="sort-icon" aria-hidden="true"></span>
+        </th>
+        <th scope="col">Conf.</th>
+      </tr>
+    </thead>
+    <tbody>
+      {results.map((r) => (
+        <tr
+          data-cms={r.cms}
+          data-cmstype={r.cmsType}
+          data-title={r.title.toLowerCase()}
+          data-url={r.url.toLowerCase()}
+          data-astro={r.astroDetected ? "true" : r.cms === "Error" || r.cms === "Blocked" ? "unknown" : "false"}
+          data-astroversion={r.astroVersion ?? ""}
+          class={r.cmsType === "full-site" ? "row--migrated" : ""}
+        >
+          <td class="cell-site">
+            <a href={r.url} target="_blank" rel="noopener noreferrer">
+              {r.title || r.url}
+            </a>
+            <span class="url-hint">{new URL(r.url).hostname}</span>
+            {r.finalUrl && (
+              <span class="redirect-hint" title={`Redirects to ${r.finalUrl}`}>
+                ↳ {new URL(r.finalUrl).hostname}{new URL(r.finalUrl).pathname !== "/" ? new URL(r.finalUrl).pathname : ""}
+              </span>
+            )}
+          </td>
+          <td class="cell-astro">
+            {r.astroDetected
+              ? <>
+                  <span class="astro-yes" title={r.astroSignals.join(", ")}>✓</span>
+                  {r.astroVersion && <span class="astro-version">v{r.astroVersion}</span>}
+                </>
+              : r.cms !== "Error" && r.cms !== "Blocked"
+                ? <span class="astro-no" title="No Astro fingerprint found">✗</span>
+                : <span class="astro-unknown">—</span>
+            }
+          </td>
+          <td>
+            <span class={`cms-badge cms-badge--${r.cmsType}`}>{r.cms}</span>
+          </td>
+          <td class="cell-type">
+            {r.cmsType !== "unknown" ? CMS_TYPE_LABELS[r.cmsType] ?? r.cmsType : ""}
+          </td>
+          <td>
+            {r.confidence && (
+              <span class={`conf-badge conf-badge--${r.confidence}`}>{r.confidence}</span>
+            )}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .table-wrap { overflow-x: auto; }
+
+  .results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--step--1);
+  }
+
+  .results-table th {
+    text-align: left;
+    padding: var(--space-2xs) var(--space-xs);
+    border-bottom: 2px solid var(--gray-3);
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--color-text-subtle);
+  }
+
+  .sortable { cursor: pointer; user-select: none; }
+  .sortable:hover { color: var(--color-text); }
+  .sortable.sort-asc,
+  .sortable.sort-desc { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+  .sort-icon { font-size: 0.7em; }
+
+  .results-table td {
+    padding: var(--space-2xs) var(--space-xs);
+    border-bottom: 1px solid var(--gray-2);
+    vertical-align: middle;
+  }
+  .results-table tr:hover td { background: var(--color-surface); }
+
+  .cell-site a {
+    display: block;
+    font-weight: 500;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .cell-site a:hover { text-decoration: underline; color: var(--color-primary); }
+  .url-hint { display: block; color: var(--color-text-subtle); font-size: var(--step--2); }
+  .redirect-hint { display: block; color: var(--color-text-subtle); font-size: var(--step--2); font-style: italic; }
+
+  .cell-astro { text-align: center; font-size: var(--step-0); white-space: nowrap; }
+  .astro-yes     { color: var(--violet-6); font-weight: 700; cursor: default; }
+  .astro-no      { color: var(--orange-5); font-weight: 700; cursor: default; }
+  .astro-unknown { color: var(--gray-4); cursor: default; }
+  .astro-version {
+    display: inline-block;
+    margin-left: 0.3em;
+    font-size: var(--step--2);
+    color: var(--violet-6);
+    font-weight: 400;
+    vertical-align: middle;
+  }
+
+  .cell-type { color: var(--color-text-subtle); white-space: nowrap; font-size: var(--step--2); }
+
+  .row--migrated td { background: var(--orange-0); }
+  .row--migrated:hover td { background: var(--orange-1); }
+
+  .cms-badge {
+    display: inline-block;
+    padding: 0.15em 0.6em;
+    border-radius: 999px;
+    font-size: var(--step--2);
+    font-weight: 600;
+    white-space: nowrap;
+    background: var(--gray-2);
+    color: var(--gray-8);
+  }
+  .cms-badge--headless-cms { background: var(--blue-1);   color: var(--blue-9); }
+  .cms-badge--page-builder { background: var(--purple-1); color: var(--purple-9); }
+  .cms-badge--full-site    { background: var(--red-1);    color: var(--red-9); }
+  .cms-badge--framework    { background: var(--cyan-1);   color: var(--cyan-9); }
+  .cms-badge--static-gen   { background: var(--green-1);  color: var(--green-9); }
+  .cms-badge--parked       { background: var(--yellow-1); color: var(--yellow-9); }
+
+  .conf-badge {
+    display: inline-block;
+    padding: 0.1em 0.45em;
+    border-radius: 999px;
+    font-size: var(--step--2);
+    font-weight: 500;
+  }
+  .conf-badge--high   { background: var(--green-1);  color: var(--green-8); }
+  .conf-badge--medium { background: var(--yellow-1); color: var(--yellow-8); }
+  .conf-badge--low    { background: var(--gray-1);   color: var(--gray-7); }
+</style>

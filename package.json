@@ -34,6 +34,13 @@
 		"oxfmt": "^0.50.0",
 		"postcss-jit-props": "^1.0.16"
 	},
+	"author": "St John Mackay",
+	"contributors": [
+		{
+			"name": "Claude (Anthropic)",
+			"url": "https://claude.ai"
+		}
+	],
 	"engines": {
 		"node": ">=22.12.0"
 	},

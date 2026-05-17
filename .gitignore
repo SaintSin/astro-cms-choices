@@ -24,3 +24,9 @@ pnpm-debug.log*
 
 # AI
 .claude/
+
+# Astro showcase sparse clone (auto-populated by pnpm detect)
+.showcase-cache/
+
+# Generated CMS detection results (regenerate with pnpm detect)
+src/data/cms-results.json

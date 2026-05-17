@@ -10,6 +10,7 @@
 //   pnpm detect -- --limit 50 --concurrency 8
 //   pnpm detect -- --resume          (skip already-processed URLs)
 
+import { execSync } from "node:child_process";
 import { access, readdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
@@ -28,6 +29,7 @@ type CmsType =
 	| "full-site"
 	| "framework"
 	| "static-gen"
+	| "parked"
 	| "unknown";
 
 interface ShowcaseEntry {
@@ -47,6 +49,7 @@ export interface CmsResult {
 	astroDetected: boolean;
 	astroVersion: string | null;
 	astroSignals: string[];
+	finalUrl: string | null;
 	categories: string[];
 	dateAdded: string;
 	fetchedAt: string;
@@ -142,6 +145,7 @@ interface Rule {
 		html: string,
 		headers: Record<string, string>,
 		url: string,
+		finalUrl?: string,
 	) => boolean;
 }
 
@@ -515,6 +519,74 @@ const RULES: Rule[] = [
 		match: (html) =>
 			/__remixContext|__remix-error|\/_build\/entry\.client\./i.test(html),
 	},
+
+	// ── Parked / expired / for-sale domains ───────────────────────────────────
+	{
+		cms: "GoDaddy",
+		cmsType: "parked",
+		confidence: "high",
+		// GoDaddy parking pages load assets from wsimg.com or trafficmanager
+		match: (html, _h, _u, finalUrl) =>
+			/wsimg\.com\/parking|godaddy\.com\/traf|Buy this domain.*GoDaddy|GoDaddy.*for sale/i.test(
+				html,
+			) ||
+			(!!finalUrl && /godaddy\.com/i.test(new URL(finalUrl).hostname)),
+	},
+	{
+		cms: "Sedo",
+		cmsType: "parked",
+		confidence: "high",
+		match: (html, _h, _u, finalUrl) =>
+			/sedo\.com|<div[^>]+id="sedo_/i.test(html) ||
+			(!!finalUrl && /sedo\.com/i.test(new URL(finalUrl).hostname)),
+	},
+	{
+		cms: "Dan.com",
+		cmsType: "parked",
+		confidence: "high",
+		match: (html, _h, _u, finalUrl) =>
+			/[^a-z]dan\.com\/|buy.*dan\.com/i.test(html) ||
+			(!!finalUrl && /\bdan\.com$/i.test(new URL(finalUrl).hostname)),
+	},
+	{
+		cms: "Afternic",
+		cmsType: "parked",
+		confidence: "high",
+		match: (html, _h, _u, finalUrl) =>
+			/afternic\.com/i.test(html) ||
+			(!!finalUrl && /afternic\.com/i.test(new URL(finalUrl).hostname)),
+	},
+	{
+		cms: "Namecheap",
+		cmsType: "parked",
+		confidence: "high",
+		match: (html) =>
+			/courtesy of namecheap|namecheap\.com.*parking|parking\.namecheap/i.test(
+				html,
+			),
+	},
+	{
+		cms: "Bodis",
+		cmsType: "parked",
+		confidence: "high",
+		match: (html) => /bodis\.com/i.test(html),
+	},
+	{
+		cms: "ParkingCrew",
+		cmsType: "parked",
+		confidence: "high",
+		match: (html) => /parkingcrew\.net/i.test(html),
+	},
+	{
+		cms: "Parked",
+		cmsType: "parked",
+		confidence: "medium",
+		// Generic parking page indicators
+		match: (html) =>
+			/<title>[^<]*(domain for sale|this domain is for sale|buy this domain|domain parked)[^<]*<\/title>/i.test(
+				html,
+			) || /this domain is parked|domain parking/i.test(html),
+	},
 ];
 
 // Matches a generator meta tag regardless of attribute order:
@@ -539,7 +611,11 @@ function extractAstroVersion(html: string): string | null {
 	return null;
 }
 
-function detectAstro(html: string): { detected: boolean; version: string | null; signals: string[] } {
+function detectAstro(html: string): {
+	detected: boolean;
+	version: string | null;
+	signals: string[];
+} {
 	const signals: string[] = [];
 	if (hasGeneratorTag(html, /Astro/i)) signals.push("generator meta tag");
 	// Starlight is an Astro-native framework — its generator tag confirms Astro
@@ -552,7 +628,11 @@ function detectAstro(html: string): { detected: boolean; version: string | null;
 	if (/<astro-island/i.test(html)) signals.push("<astro-island> element");
 	// hoisted.js was used by Astro 0.x / early 1.x before the /_astro/ convention
 	if (/hoisted\.js/i.test(html)) signals.push("hoisted.js (Astro <2)");
-	return { detected: signals.length > 0, version: extractAstroVersion(html), signals };
+	return {
+		detected: signals.length > 0,
+		version: extractAstroVersion(html),
+		signals,
+	};
 }
 
 function isCloudflareBlocked(
@@ -580,6 +660,7 @@ function fingerprint(
 	html: string,
 	headers: Record<string, string>,
 	url: string,
+	finalUrl?: string,
 ): {
 	cms: string;
 	cmsType: CmsType;
@@ -598,7 +679,7 @@ function fingerprint(
 	for (const conf of ["high", "medium", "low"] as Confidence[]) {
 		for (const rule of RULES) {
 			if (rule.confidence !== conf) continue;
-			if (rule.match(html, headers, url)) {
+			if (rule.match(html, headers, url, finalUrl)) {
 				return {
 					cms: rule.cms,
 					cmsType: rule.cmsType,
@@ -606,6 +687,23 @@ function fingerprint(
 					evidence: [`${rule.confidence} confidence rule matched`],
 				};
 			}
+		}
+	}
+	// Fallback: domain changed entirely = forwarded/sold to an unrecognised destination
+	if (finalUrl) {
+		try {
+			const inHost = new URL(url).hostname.replace(/^www\./, "");
+			const outHost = new URL(finalUrl).hostname.replace(/^www\./, "");
+			if (inHost !== outHost) {
+				return {
+					cms: "Forwarded",
+					cmsType: "parked",
+					confidence: "high",
+					evidence: [`Redirected to ${outHost}`],
+				};
+			}
+		} catch {
+			/* malformed URL — ignore */
 		}
 	}
 	return null;
@@ -618,25 +716,61 @@ function fingerprint(
 async function fetchSite(
 	url: string,
 	timeoutMs = 10_000,
-): Promise<{ html: string; headers: Record<string, string> }> {
+): Promise<{
+	html: string;
+	headers: Record<string, string>;
+	finalUrl: string;
+}> {
 	const controller = new AbortController();
 	const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+	const UA =
+		"Mozilla/5.0 (compatible; cms-detector/1.0; +https://github.com/withastro/astro.build)";
+
 	try {
 		const res = await fetch(url, {
 			signal: controller.signal,
-			headers: {
-				"User-Agent":
-					"Mozilla/5.0 (compatible; cms-detector/1.0; +https://github.com/withastro/astro.build)",
-				Accept: "text/html,application/xhtml+xml",
-			},
+			headers: { "User-Agent": UA, Accept: "text/html,application/xhtml+xml" },
 			redirect: "follow",
 		});
-		const html = await res.text();
+		let html = await res.text();
+		let finalUrl = res.url;
 		const headers: Record<string, string> = {};
 		res.headers.forEach((v, k) => {
 			headers[k.toLowerCase()] = v;
 		});
-		return { html, headers };
+
+		// Follow <meta http-equiv="refresh" content="0;url=..."> client-side redirects
+		// e.g. docs.astro.build serves a 200 with only a meta-refresh, no Astro fingerprints.
+		const metaRefresh =
+			html.match(
+				/<meta[^>]+http-equiv=["']?refresh["']?[^>]+content=["'][^"']*url=([^"'\s>]+)/i,
+			) ??
+			html.match(
+				/<meta[^>]+content=["'][^"']*url=([^"'\s>]+)[^"']*["'][^>]+http-equiv=["']?refresh["']?/i,
+			);
+		if (metaRefresh) {
+			const redirectTarget = new URL(metaRefresh[1], finalUrl).href;
+			try {
+				const res2 = await fetch(redirectTarget, {
+					signal: controller.signal,
+					headers: {
+						"User-Agent": UA,
+						Accept: "text/html,application/xhtml+xml",
+					},
+					redirect: "follow",
+				});
+				html = await res2.text();
+				finalUrl = res2.url;
+				res2.headers.forEach((v, k) => {
+					headers[k.toLowerCase()] = v;
+				});
+			} catch {
+				// meta-refresh follow failed — keep the original response
+			}
+		}
+
+		return { html, headers, finalUrl };
 	} finally {
 		clearTimeout(timer);
 	}
@@ -683,7 +817,7 @@ async function main() {
 		options: {
 			source: {
 				type: "string",
-				default: "/tmp/astro-build-showcase/src/content/showcase",
+				default: ".showcase-cache/src/content/showcase",
 			},
 			output: {
 				type: "string",
@@ -704,6 +838,47 @@ async function main() {
 		? Number.parseInt(args.limit as string, 10)
 		: undefined;
 	const resume = args.resume as boolean;
+
+	// Auto-clone the astro.build showcase if the source directory is missing.
+	// Uses a sparse checkout limited to *.yml files only — skips the 2,600+ webp screenshots.
+	const showcaseRepo = "https://github.com/withastro/astro.build.git";
+	const cacheRoot = resolve(".showcase-cache");
+	const isDefaultSource =
+		sourceDir === resolve(".showcase-cache/src/content/showcase");
+	let sourceMissing = false;
+	try {
+		await access(sourceDir);
+	} catch {
+		sourceMissing = true;
+	}
+	if (sourceMissing) {
+		if (!isDefaultSource) {
+			console.error(`Error: source directory not found: ${sourceDir}`);
+			process.exit(1);
+		}
+		console.log(
+			"Showcase cache not found — cloning astro.build (sparse, yml only)…",
+		);
+		execSync(
+			`git clone --filter=blob:none --sparse "${showcaseRepo}" "${cacheRoot}"`,
+			{ stdio: "inherit" },
+		);
+		execSync(
+			`git -C "${cacheRoot}" sparse-checkout set --no-cone "src/content/showcase/*.yml"`,
+			{ stdio: "inherit" },
+		);
+		console.log("Clone complete.");
+	} else if (isDefaultSource) {
+		// Pull latest changes to keep the cache fresh
+		console.log("Updating showcase cache…");
+		try {
+			execSync(`git -C "${cacheRoot}" pull --ff-only`, { stdio: "inherit" });
+		} catch {
+			console.warn(
+				"Warning: could not pull latest changes (offline or conflict). Using cached data.",
+			);
+		}
+	}
 
 	console.log(`Source: ${sourceDir}`);
 	console.log(`Output: ${outputFile}`);
@@ -753,9 +928,13 @@ async function main() {
 		enqueue(async () => {
 			let result: CmsResult;
 			try {
-				const { html, headers } = await fetchSite(entry.url, timeoutMs);
-				const hit = fingerprint(html, headers, entry.url);
+				const { html, headers, finalUrl } = await fetchSite(
+					entry.url,
+					timeoutMs,
+				);
+				const hit = fingerprint(html, headers, entry.url, finalUrl);
 				const astro = detectAstro(html);
+				const resolvedUrl = finalUrl !== entry.url ? finalUrl : null;
 				result = {
 					title: entry.title,
 					url: entry.url,
@@ -766,6 +945,7 @@ async function main() {
 					astroDetected: astro.detected,
 					astroVersion: astro.version,
 					astroSignals: astro.signals,
+					finalUrl: resolvedUrl,
 					categories: entry.categories ?? [],
 					dateAdded: entry.dateAdded,
 					fetchedAt: new Date().toISOString(),
@@ -781,6 +961,7 @@ async function main() {
 					astroDetected: false,
 					astroVersion: null,
 					astroSignals: [],
+					finalUrl: null,
 					categories: entry.categories ?? [],
 					dateAdded: entry.dateAdded,
 					fetchedAt: new Date().toISOString(),
@@ -812,7 +993,7 @@ async function main() {
 
 	const output: ResultsFile = {
 		generated: new Date().toISOString(),
-		sourceDir,
+		sourceDir: sourceDir.replace(process.cwd() + "/", ""),
 		total: allResults.length,
 		results: allResults,
 	};

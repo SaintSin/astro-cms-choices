@@ -18,28 +18,16 @@ export interface SiteMetadata {
 	contactEmail?: string;
 	searchRoute?: string;
 	menu?: MenuItem[];
+	showcasePageSize?: number;
 }
 
 export const siteMetadata: SiteMetadata = {
-	// Site name - used in JSON-LD and meta tags
-	name: "My Awesome Site",
-
-	// Site description for SEO
-	description: "A starter template for building amazing websites",
-
-	// Optional: Logo URL (relative or absolute)
+	name: "Astro Showcase — CMS Detector",
+	description: "Which CMS (if any) powers each site in the Astro showcase?",
 	logo: "/logo.svg",
-
-	// Optional: Contact email for JSON-LD ContactPoint
-	contactEmail: "info@example.com",
-
-	// Optional: Search route for JSON-LD SearchAction
-	// searchRoute: "/search",
-
-	// Optional: Main navigation menu for JSON-LD SiteNavigationElement
-	// Only include pages that actually exist on your site
 	menu: [
 		{ label: "Home", href: "/" },
 		{ label: "About", href: "/about" },
 	],
+	showcasePageSize: 50,
 };
