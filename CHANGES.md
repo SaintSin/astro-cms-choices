@@ -64,3 +64,26 @@ Five independent signals used to confirm Astro:
 
 - `src/data/cms-results.json` moved to `.gitignore` — it is a generated artefact; run `pnpm detect` to produce it locally
 - `sourceDir` field in `cms-results.json` now stored as a project-relative path (e.g. `.showcase-cache/src/content/showcase`) rather than an absolute filesystem path
+
+### Insights page
+
+- New `/insights` page with Chart.js visualisations:
+  - Doughnut chart: Astro major version distribution across all detected sites
+  - Stacked bar chart: submission year vs current Astro version — shows which cohorts have kept up to date
+  - Summary stats: sites on v5+, on v6/v7 (current), still on v1–v3, no version detected
+- Chart.js installed as a dependency; data passed server-side via `<script type="application/json">` to avoid `define:vars` encoding issues
+
+### Navigation
+
+- Header uncommented and wired up with site name link and nav
+- `HeaderNav` now driven from `siteMetadata.menu` — single source of truth for navigation links
+- Astro version column sort updated to use proper semver comparison (fixes `4.9.0` vs `4.10.0` ordering)
+- Table column widths fixed with `ch` units and `table-layout: fixed` — no more layout shift when sorting
+- Sortable columns show `⇅` indicator by default, switching to `▲`/`▼` when active
+- Footer: GitHub repo link and icon aligned right; copyright left
+
+### Analytics
+
+- Added Pandalytics analytics (`netlify/functions/pandalytics.ts`) — tracks Core Web Vitals to Turso via Netlify function
+- `Analytics.astro` component added to `BaseLayout`
+- Site linked to Netlify CLI for `netlify deploy` with function support

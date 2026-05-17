@@ -10,6 +10,7 @@ Scans every site in the [Astro showcase](https://astro.build/showcase/) and fing
 - Fingerprints each site from HTML and HTTP headers
 - Detects whether the site is still running on Astro
 - Displays results in a filterable, sortable, paginated table
+- [Insights page](/insights) with version distribution and submission trend charts
 
 ## Detection coverage
 
@@ -76,7 +77,9 @@ rm -rf .astro && pnpm dev
 │   ├── data/
 │   │   └── cms-results.json    # Generated output (gitignored — run pnpm detect)
 │   ├── pages/
-│   │   └── index.astro         # Results UI
+│   │   ├── index.astro         # Results UI
+│   │   ├── insights.astro      # Version distribution charts
+│   │   └── about.astro         # About page
 │   └── types/
 │       └── index.ts            # Shared TypeScript types
 ```
@@ -84,5 +87,7 @@ rm -rf .astro && pnpm dev
 ## Tech stack
 
 - [Astro 6](https://astro.build)
+- [Chart.js 4](https://www.chartjs.org) for insights charts
 - [Biome](https://biomejs.dev) for linting and formatting
+- [Turso](https://turso.tech) for analytics storage (via Pandalytics)
 - Deployed on [Netlify](https://www.netlify.com)

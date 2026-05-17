@@ -161,16 +161,38 @@ const parkedCount = results.filter((r) => r.cmsType === "parked").length;
     function getSortValue(row, col) {
       switch (col) {
         case "title":   return row.dataset.title ?? "";
-        case "astro":   return row.dataset.astroversion ?? "";
         case "cms":     return row.dataset.cms?.toLowerCase() ?? "";
         case "cmstype": return row.dataset.cmstype ?? "";
         default:        return "";
       }
     }
 
+    // Parse "4.10.2" → [4, 10, 2] for correct numeric semver comparison
+    function parseVersion(v) {
+      if (!v) return null;
+      return v.split(".").map(n => parseInt(n, 10) || 0);
+    }
+
+    function compareVersions(a, b) {
+      const av = parseVersion(a);
+      const bv = parseVersion(b);
+      if (!av && !bv) return 0;
+      if (!av) return 1;   // no version sorts last
+      if (!bv) return -1;
+      for (let i = 0; i < Math.max(av.length, bv.length); i++) {
+        const diff = (av[i] ?? 0) - (bv[i] ?? 0);
+        if (diff !== 0) return diff;
+      }
+      return 0;
+    }
+
     function sortRows(rows) {
       if (!sortCol) return rows;
       return [...rows].sort((a, b) => {
+        if (sortCol === "astro") {
+          const cmp = compareVersions(a.dataset.astroversion, b.dataset.astroversion);
+          return sortAsc ? cmp : -cmp;
+        }
         const av = getSortValue(a, sortCol);
         const bv = getSortValue(b, sortCol);
         if (!av && bv) return 1;
@@ -187,10 +209,10 @@ const parkedCount = results.filter((r) => r.cmsType === "parked").length;
         if (sortCol === col) { sortAsc = !sortAsc; } else { sortCol = col; sortAsc = true; }
         document.querySelectorAll(".sortable").forEach((h) => {
           h.classList.remove("sort-asc", "sort-desc");
-          h.querySelector(".sort-icon").textContent = "";
+          h.querySelector(".sort-icon").textContent = "⇅";
         });
         th.classList.add(sortAsc ? "sort-asc" : "sort-desc");
-        th.querySelector(".sort-icon").textContent = sortAsc ? " ▲" : " ▼";
+        th.querySelector(".sort-icon").textContent = sortAsc ? "▲" : "▼";
         currentPage = 1;
         applyView();
       });

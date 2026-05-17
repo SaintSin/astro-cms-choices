@@ -6,7 +6,7 @@ import Nav from "@components/global/HeaderNav.astro";
 
 <header class="header">
   <div class="wrapper">
-    <h2>Header</h2>
+    <a href="/" class="site-name">Astro · What CMS?</a>
     <Nav />
   </div>
 </header>
@@ -17,6 +17,20 @@ import Nav from "@components/global/HeaderNav.astro";
     z-index: 1000;
     margin-block-end: var(--space-l);
     background: var(--color-surface);
+    border-bottom: 1px solid var(--color-keyline, var(--gray-2));
     padding-block: var(--space-xs);
   }
+  .header .wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .site-name {
+    font-weight: 700;
+    font-size: var(--step-0);
+    text-decoration: none;
+    color: var(--color-text);
+    letter-spacing: -0.01em;
+  }
+  .site-name:hover { color: var(--color-primary, var(--violet-6)); }
 </style>

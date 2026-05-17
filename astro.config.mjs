@@ -19,5 +19,5 @@ export default defineConfig({
 	},
 	integrations: [sitemap(), robotsTxt()],
 	trailingSlash: "always",
-	site: "http://localhost/",
+	site: "https://astro-what-cms.netlify.app",
 });

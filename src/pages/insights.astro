@@ -1,0 +1,259 @@
+---
+// src/pages/insights.astro
+// 2026-05-17T00:00:00Z
+
+import { readFile } from "node:fs/promises";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import type { ResultsFile } from "../types/index";
+
+const raw: ResultsFile = JSON.parse(
+  await readFile("src/data/cms-results.json", "utf8")
+);
+const results = raw.results;
+
+// ── Version distribution (all Astro-detected sites) ─────────────────────────
+const VERSION_COLOURS: Record<string, string> = {
+  v1: "#f87171", // red
+  v2: "#fb923c", // orange
+  v3: "#fbbf24", // amber
+  v4: "#34d399", // emerald
+  v5: "#60a5fa", // blue
+  v6: "#a78bfa", // violet
+  v7: "#f472b6", // pink
+  "No version": "#94a3b8", // slate
+};
+
+const versionCounts: Record<string, number> = {};
+for (const site of results) {
+  if (!site.astroDetected) continue;
+  const major = site.astroVersion
+    ? `v${site.astroVersion.split(".")[0]}`
+    : "No version";
+  versionCounts[major] = (versionCounts[major] ?? 0) + 1;
+}
+const versionLabels = Object.keys(versionCounts).sort((a, b) => {
+  if (a === "No version") return 1;
+  if (b === "No version") return -1;
+  return a.localeCompare(b, undefined, { numeric: true });
+});
+const versionData = versionLabels.map((k) => versionCounts[k]);
+const versionColors = versionLabels.map((k) => VERSION_COLOURS[k] ?? "#94a3b8");
+const totalDetected = results.filter((r) => r.astroDetected).length;
+
+// ── Submission year × Astro major (stacked bar) ──────────────────────────────
+const MAJORS = ["v1", "v2", "v3", "v4", "v5", "v6", "v7"];
+const yearMajor: Record<number, Record<string, number>> = {};
+
+for (const site of results) {
+  if (!site.astroDetected || !site.astroVersion || !site.dateAdded) continue;
+  const year = new Date(site.dateAdded).getFullYear();
+  const major = `v${site.astroVersion.split(".")[0]}`;
+  if (!yearMajor[year]) yearMajor[year] = {};
+  yearMajor[year][major] = (yearMajor[year][major] ?? 0) + 1;
+}
+const years = Object.keys(yearMajor).sort();
+
+const stackedDatasets = MAJORS.map((major) => ({
+  label: major,
+  data: years.map((y) => yearMajor[Number(y)]?.[major] ?? 0),
+  backgroundColor: VERSION_COLOURS[major] ?? "#94a3b8",
+}));
+
+// ── Summary stats ─────────────────────────────────────────────────────────────
+const current = (versionCounts["v6"] ?? 0) + (versionCounts["v7"] ?? 0);
+const legacy = (versionCounts["v1"] ?? 0) + (versionCounts["v2"] ?? 0) + (versionCounts["v3"] ?? 0);
+---
+
+<BaseLayout metaData={{ title: "Insights — Astro CMS Detector", description: "Astro version distribution and submission trends across the showcase." }}>
+  <div class="wrapper">
+    <h1>Insights</h1>
+    <p class="lead">Version distribution and submission trends across {totalDetected.toLocaleString()} Astro-detected sites.</p>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="stat-value violet">{(versionCounts["v5"] ?? 0) + (versionCounts["v6"] ?? 0) + (versionCounts["v7"] ?? 0)}</div>
+        <div class="stat-label">On v5 or later</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value green">{current}</div>
+        <div class="stat-label">On v6 / v7 (current)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value amber">{legacy}</div>
+        <div class="stat-label">Still on v1–v3</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value slate">{versionCounts["No version"] ?? 0}</div>
+        <div class="stat-label">No version detected</div>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h2>Astro version distribution</h2>
+        <p class="chart-desc">Which major version is each site currently running?</p>
+        <div class="doughnut-wrap">
+          <canvas id="versionChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h2>Submission year vs current version</h2>
+        <p class="chart-desc">Sites submitted in each year, coloured by their current Astro major version — shows how many have kept up to date.</p>
+        <div class="bar-wrap">
+          <canvas id="yearChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<!-- Pass server data to client via JSON script tag -->
+<script id="insights-data" type="application/json" set:html={JSON.stringify({ versionLabels, versionData, versionColors, years, stackedDatasets }).replace(/<\/script>/gi, "<\\/script>")} />
+
+<script>
+  import { Chart, ArcElement, DoughnutController, BarElement, BarController, CategoryScale, LinearScale, Legend, Tooltip } from "chart.js";
+  Chart.register(ArcElement, DoughnutController, BarElement, BarController, CategoryScale, LinearScale, Legend, Tooltip);
+
+  const raw = document.getElementById("insights-data")?.textContent ?? "{}";
+  const { versionLabels, versionData, versionColors, years, stackedDatasets } = JSON.parse(raw);
+
+  const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+  const textColor = isDark ? "#94a3b8" : "#64748b";
+  const gridColor = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
+
+  // Doughnut — version distribution
+  new Chart(document.getElementById("versionChart") as HTMLCanvasElement, {
+    type: "doughnut",
+    data: {
+      labels: versionLabels,
+      datasets: [{
+        data: versionData,
+        backgroundColor: versionColors,
+        borderWidth: 2,
+        borderColor: isDark ? "#1e293b" : "#ffffff",
+        hoverOffset: 8,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      cutout: "62%",
+      plugins: {
+        legend: {
+          position: "right",
+          labels: { color: textColor, padding: 16, font: { size: 13 } },
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` ${ctx.label}: ${ctx.parsed.toLocaleString()} sites`,
+          },
+        },
+      },
+    },
+  });
+
+  // Stacked bar — year × version
+  new Chart(document.getElementById("yearChart") as HTMLCanvasElement, {
+    type: "bar",
+    data: {
+      labels: years,
+      datasets: stackedDatasets,
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { color: textColor },
+          grid: { color: gridColor },
+        },
+        y: {
+          stacked: true,
+          ticks: { color: textColor },
+          grid: { color: gridColor },
+        },
+      },
+      plugins: {
+        legend: {
+          position: "bottom",
+          labels: { color: textColor, padding: 12, font: { size: 12 } },
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y} sites`,
+          },
+        },
+      },
+    },
+  });
+</script>
+
+<style>
+  h1 { font-size: var(--step-3); margin-block-end: var(--space-xs); }
+  .lead {
+    font-size: var(--step-0);
+    color: var(--color-text-subtle);
+    margin-block-end: var(--space-l);
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--space-s);
+    margin-block-end: var(--space-xl);
+  }
+  .stat-card {
+    background: var(--color-surface);
+    border: 1px solid var(--gray-2);
+    border-radius: var(--space-3xs);
+    padding: var(--space-s);
+  }
+  .stat-value {
+    font-size: var(--step-3);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin-block-end: var(--space-3xs);
+  }
+  .stat-value.violet { color: var(--violet-6); }
+  .stat-value.green  { color: var(--green-6); }
+  .stat-value.amber  { color: var(--orange-5); }
+  .stat-value.slate  { color: var(--gray-5); }
+  .stat-label {
+    font-size: var(--step--2);
+    color: var(--color-text-subtle);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 500;
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-l);
+  }
+  @media (max-width: 768px) {
+    .charts-grid { grid-template-columns: 1fr; }
+  }
+
+  .chart-card {
+    background: var(--color-surface);
+    border: 1px solid var(--gray-2);
+    border-radius: var(--space-3xs);
+    padding: var(--space-m);
+  }
+  .chart-card h2 {
+    font-size: var(--step-0);
+    font-weight: 600;
+    margin-block-end: var(--space-3xs);
+  }
+  .chart-desc {
+    font-size: var(--step--2);
+    color: var(--color-text-subtle);
+    margin-block-end: var(--space-m);
+  }
+  .doughnut-wrap { max-width: 420px; margin-inline: auto; }
+  .bar-wrap { width: 100%; }
+</style>

@@ -3,11 +3,10 @@
 
 // Not using a list, as Google sites don't seem to use it. And being sheep we follow Google
 
+import { siteMetadata } from "@config/siteMetadata";
+
 const { pathname } = Astro.url;
-const links = [
-	{ label: "Home", href: "/" },
-	{ label: "About", href: "/about/" },
-];
+const links = siteMetadata.menu ?? [];
 ---
 
 <nav class="nav-links">
