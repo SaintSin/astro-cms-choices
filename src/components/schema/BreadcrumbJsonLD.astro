@@ -1,0 +1,25 @@
+---
+// src/components/schema/BreadcrumbJsonLD.astro
+// Outputs a BreadcrumbList JSON-LD script tag for improved navigation in search results
+
+import { generateBreadcrumbJsonLd } from "@utils/breadcrumbHelper";
+
+interface Props {
+	pageTitle?: string;
+}
+
+const { pageTitle } = Astro.props;
+const baseUrl = Astro.site?.toString().replace(/\/$/, "") || "";
+const { pathname } = Astro.url;
+
+const breadcrumbJsonLd = generateBreadcrumbJsonLd(pathname, baseUrl, pageTitle);
+---
+
+<script
+	is:inline
+	type="application/ld+json"
+	set:html={JSON.stringify({
+		"@context": "https://schema.org",
+		"@graph": [breadcrumbJsonLd],
+	})}
+/>

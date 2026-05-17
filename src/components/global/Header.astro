@@ -1,0 +1,22 @@
+---
+// @components/page/Header.astro
+
+import Nav from "@components/global/HeaderNav.astro";
+---
+
+<header class="header">
+  <div class="wrapper">
+    <h2>Header</h2>
+    <Nav />
+  </div>
+</header>
+<style>
+  .header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    margin-block-end: var(--space-l);
+    background: var(--color-surface);
+    padding-block: var(--space-xs);
+  }
+</style>

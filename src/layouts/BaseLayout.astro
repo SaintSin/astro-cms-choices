@@ -1,0 +1,26 @@
+---
+// layouts/BaseLayout.astro
+
+import Basehead from "@components/global/Basehead.astro";
+import Footer from "@components/global/Footer.astro";
+import Header from "@components/global/Header.astro";
+import type { MetaData } from "@types";
+
+interface Props {
+	metaData: MetaData;
+}
+
+const { metaData } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <Basehead metaData={metaData} />
+  <body>
+    <Header />
+    <div class="content">
+      <slot />
+    </div>
+    <Footer />
+  </body>
+</html>

@@ -1,0 +1,33 @@
+---
+// src/components/schema/SiteNavigationJsonLD.astro
+// Outputs a SiteNavigationElement JSON-LD schema to help search engines
+// understand site structure and enable sitelinks in search results
+// Navigation items are automatically imported from siteMetadata config
+
+import { siteMetadata } from "@config/siteMetadata";
+
+const baseUrl = Astro.site?.toString().replace(/\/$/, "") || "";
+
+// Main navigation items from config - filtered to only include items with href
+const navigationItems = siteMetadata.menu?.filter((item) => item.href) || [];
+
+// Build the SiteNavigationElement schema
+const jsonLd = {
+	"@type": "SiteNavigationElement",
+	"@context": "https://schema.org",
+	name: siteMetadata.name,
+	url: baseUrl,
+	hasPart: navigationItems.map((item, index) => ({
+		"@type": "WebPage",
+		name: item.label,
+		url: baseUrl + item.href,
+		position: index + 1,
+	})),
+};
+---
+
+<script
+	is:inline
+	type="application/ld+json"
+	set:html={JSON.stringify(jsonLd)}
+/>

@@ -1,0 +1,40 @@
+---
+// @components/global/HeaderNav.astro
+
+// Not using a list, as Google sites don't seem to use it. And being sheep we follow Google
+
+const { pathname } = Astro.url;
+const links = [
+	{ label: "Home", href: "/" },
+	{ label: "About", href: "/about/" },
+];
+---
+
+<nav class="nav-links">
+  {
+    links.map((link) => (
+      <a
+        class={pathname == link.href ? "active--exact" : ""}
+        href={link.href}
+        data-astro-prefetch
+      >
+        {link.label}
+      </a>
+    ))
+  }
+</nav>
+
+<style>
+  .nav-links {
+    a {
+      padding-inline-end: var(--gap);
+      text-decoration: none;
+    }
+    .active--exact {
+      font-weight: 700;
+      text-decoration: underline;
+      text-decoration-thickness: 2px;
+      text-underline-offset: 4px;
+    }
+  }
+</style>

@@ -1,0 +1,42 @@
+---
+// src/components/schema/WebsiteJsonLD.astro
+// Outputs a WebSite JSON-LD schema to establish site identity and enable
+// enhanced search features like sitelinks search box
+
+import { siteMetadata } from "@config/siteMetadata";
+
+const baseUrl = Astro.site?.toString().replace(/\/$/, "") || "";
+
+// Build the WebSite schema with optional SearchAction
+const jsonLd = {
+	"@context": "https://schema.org",
+	"@type": "WebSite",
+	name: siteMetadata.name,
+	description: siteMetadata.description,
+	url: baseUrl,
+	...(siteMetadata.logo && { logo: `${baseUrl}${siteMetadata.logo}` }),
+	...(siteMetadata.contactEmail && {
+		contactPoint: {
+			"@type": "ContactPoint",
+			contactType: "Customer Service",
+			email: siteMetadata.contactEmail,
+		},
+	}),
+	...(siteMetadata.searchRoute && {
+		potentialAction: {
+			"@type": "SearchAction",
+			target: {
+				"@type": "EntryPoint",
+				urlTemplate: `${baseUrl}${siteMetadata.searchRoute}?q={search_term_string}`,
+			},
+			"query-input": "required name=search_term_string",
+		},
+	}),
+};
+---
+
+<script
+  is:inline
+  type="application/ld+json"
+  set:html={JSON.stringify(jsonLd)}
+/>

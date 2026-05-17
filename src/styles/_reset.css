@@ -1,0 +1,159 @@
+/* 2023 Modern reset */
+/* https://andy-bell.co.uk/a-more-modern-css-reset/ */
+/* Revised 19 March 2025 */
+/* Box sizing rules */
+
+/*
+2026/04/03 Additions from Kevin Powell
+https://www.youtube.com/watch?v=qI5rXLJnxco
+ */
+
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+/* Prevent font size inflation */
+html {
+	-moz-text-size-adjust: none;
+	-webkit-text-size-adjust: none;
+	text-size-adjust: none;
+	scrollbar-gutter: stable;
+}
+
+/* Remove default margin in favour of better control in authored CSS */
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd,
+ul,
+ol,
+li,
+caption,
+table {
+	margin: 0;
+	padding: 0;
+}
+
+/* Remove list styles on ul, ol elements with a list role, which suggests default styling will be removed */
+ul[role="list"],
+ol[role="list"] {
+	list-style: none;
+}
+
+/* Set core body defaults */
+body {
+	display: grid;
+	grid-template-rows: auto 1fr auto;
+	min-block-size: 100svh;
+	line-height: 1.5;
+}
+
+/* Set shorter line heights on headings and interactive elements */
+h1,
+h2,
+h3,
+h4,
+button,
+input,
+label {
+	line-height: 1.1;
+}
+
+/* Balance text wrapping on headings */
+h1,
+h2,
+h3,
+h4 {
+	text-wrap: balance;
+}
+/* And pretty paragraphs*/
+
+p,
+li,
+blockquote,
+figcaption {
+	text-wrap: pretty;
+}
+/* Prevents layout breaking from long strings (URLs, etc.): */
+p,
+li,
+h1,
+h2,
+h3,
+h4 {
+	overflow-wrap: break-word;
+}
+/* A elements that don't have a class get default styles */
+a:not([class]) {
+	color: currentColor;
+	text-decoration-skip-ink: auto;
+}
+
+/* Make images and media easier to work with */
+img,
+picture,
+video,
+canvas,
+svg {
+	display: block;
+	max-inline-size: 100%;
+	block-size: auto;
+}
+
+/* Form elements */
+/* Inherit fonts for inputs and buttons */
+input,
+button,
+textarea,
+select {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+
+	appearance: none;
+	margin: 0;
+	border: none;
+	padding: 0;
+	font: inherit;
+}
+
+/* Make sure textareas without a rows attribute are not tiny */
+textarea:not([rows]) {
+	min-height: 10em;
+}
+
+/* Anything that has been anchored to should have extra scroll margin */
+:target {
+	scroll-margin-block: 5ex;
+}
+
+/* Remove all animations and transitions for people that prefer not to see them */
+@media (prefers-reduced-motion: reduce) {
+	html:focus-within {
+		scroll-behavior: auto;
+	}
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms;
+		animation-iteration-count: 1;
+		transition-duration: 0.01ms;
+		scroll-behavior: auto;
+	}
+}
+:root {
+	interpolate-size: allow-keywords;
+	font-synthesis: none;
+	color-scheme: light dark;
+}
+:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}
