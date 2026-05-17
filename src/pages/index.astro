@@ -1,119 +1,514 @@
 ---
-// pages/index.astro
-import { Picture } from "astro:assets";
-import image1 from "@images/panda-01.jpg";
+// src/pages/index.astro
+// 2026-05-17T00:00:00Z
+
 import Layout from "@layouts/BaseLayout.astro";
 
 const meta = {
-	title: "Welcome to Astro",
-	description: "The metadescription",
-	imageOG: "generic-social-1200x630.png",
-	altOG: "Alt text for OG image",
+	title: "Astro Showcase — CMS Detector",
+	description: "Which CMS (if any) powers each site in the Astro showcase?",
+};
+
+interface CmsResult {
+	title: string;
+	url: string;
+	cms: string;
+	cmsType: string;
+	confidence: string | null;
+	evidence: string[];
+	categories: string[];
+	astroDetected: boolean;
+	astroVersion: string | null;
+	astroSignals: string[];
+	dateAdded: string;
+	fetchedAt: string;
+	error?: string;
+}
+
+interface ResultsFile {
+	generated: string;
+	sourceDir: string;
+	total: number;
+	results: CmsResult[];
+}
+
+let data: ResultsFile | null = null;
+try {
+	const raw = await import("../data/cms-results.json");
+	data = raw.default as ResultsFile;
+} catch {
+	// data file not yet generated — show empty state
+}
+
+const results: CmsResult[] = data?.results ?? [];
+
+const cmsCounts = new Map<string, number>();
+for (const r of results) {
+	if (r.cms === "Unknown" || r.cms === "Error" || r.cms === "Blocked") continue;
+	cmsCounts.set(r.cms, (cmsCounts.get(r.cms) ?? 0) + 1);
+}
+const sorted = [...cmsCounts.entries()].sort((a, b) => b[1] - a[1]);
+const detected = results.filter(
+	(r) => r.cms !== "Unknown" && r.cms !== "Error" && r.cms !== "Blocked",
+).length;
+const errors = results.filter((r) => r.cms === "Error").length;
+const unknown = results.filter((r) => r.cms === "Unknown").length;
+const total = results.length;
+const astroConfirmed = results.filter((r) => r.astroDetected).length;
+const noLongerAstro = results.filter(
+	(r) => !r.astroDetected && r.cms !== "Error" && r.cms !== "Blocked",
+).length;
+const starlightCount = results.filter((r) => r.cms === "Starlight").length;
+const frameworkCount = results.filter((r) => r.cmsType === "framework").length;
+
+const CMS_TYPE_LABELS: Record<string, string> = {
+	"headless-cms": "Headless CMS",
+	"page-builder": "Page Builder",
+	"full-site": "Full-site (no Astro)",
+	framework: "JS Framework",
+	"static-gen": "Static Gen",
 };
 ---
 
 <Layout metaData={meta}>
-  <main class="wrapper flow">
-    <h1>A Simple Starter for Astro</h1>
-    <p>
-      Lorem, ipsum dolor sit amet consectetur adipisicing elit. Libero aut
-      magnam laborum assumenda, odio, accusamus vero nisi impedit culpa incidunt
-      deserunt, quo dolorem. Soluta accusamus natus, culpa iure nemo iste!
-    </p>
-    <p>
-      Lorem, ipsum dolor sit amet consectetur adipisicing elit. Libero aut
-      magnam laborum assumenda, odio, accusamus vero nisi impedit culpa incidunt
-      deserunt, quo dolorem. Soluta accusamus natus, culpa iure nemo iste!
-    </p>
-    <ul>
-      <li>Modern CSS</li>
-      <li>CUBE CSS</li>
-      <li>OG Meta</li>
-      <li>Minimal Starter</li>
-      <li>Experimental Edition</li>
-      <li>Component library</li>
-    </ul>
-    <ol>
-      <li>Minimal Starter<br /></li>
-      <li>Experimental Edition</li>
-      <li>Components Edition</li>
-    </ol>
-    <h2>Image</h2>
-    <Picture formats={["avif", "webp"]} src={image1} alt="alt-text" quality={50} />
+  <main class="wrapper flow" style="--flow-space: var(--space-l)">
 
-    <section class="grid flow" data-layout="50-50">
-      <div class="flow">
-        <h2>Grid 50-50</h2>
-        <h2>Second H2</h2>
-        <p>Number of columns is controlled by using attribute data-layout</p>
-        <p>Number of columns is controlled by using attribute data-layout</p>
-      </div>
-      <div class="flow">
-        <h2>Grid</h2>
-        <p>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Tenetur fuga
-          libero labore impedit nam officia facere omnis ullam iure unde.
-          Veritatis quidem error similique eum modi dicta eaque blanditiis
-          voluptatem.
+    <header class="page-header flow">
+      <h1>Astro Showcase <span class="muted">CMS Detector</span></h1>
+      {data ? (
+        <p class="meta-line">
+          {total.toLocaleString()} sites scanned &middot; generated {new Date(data.generated).toLocaleDateString("en-GB", { dateStyle: "medium" })}
         </p>
-        <p>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Tenetur fuga
-          libero labore impedit nam officia facere omnis ullam iure unde.
-          Veritatis quidem error similique eum modi dicta eaque blanditiis
-          voluptatem.
-        </p>
-        <p>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Tenetur fuga
-          libero labore impedit nam officia facere omnis ullam iure unde.
-          Veritatis quidem error similique eum modi dicta eaque blanditiis
-          voluptatem.
-        </p>
-      </div>
-    </section>
-    <section class="flow">
-      <h2>Grid Thirds</h2>
-      <div class="grid" data-layout="thirds">
-        <Picture formats={["avif", "webp"]} src={image1} alt="-" quality={50} />
-        <Picture formats={["avif", "webp"]} src={image1} alt="-" quality={50} />
-        <Picture formats={["avif", "webp"]} src={image1} alt="alt-text" quality={50} />
-      </div>
-      <div class="grid" data-layout="thirds">
-        <Picture formats={["avif", "webp"]} src={image1} alt="alt-text" quality={50} class="span-2" />
-        <Picture formats={["avif", "webp"]} src={image1} alt="alt-text" quality={50} />
-      </div>
-    </section>
-    <section class="flow">
-      <h2>Responsive Images</h2>
-      <div class="flow resize-h">
-        <p>Fixed with nominated width</p>
-        <Picture formats={["avif", "webp"]}
-          src={image1}
-          alt="alt-text"
-          quality={50}
-          width={600}
-          layout="fixed"
-        />
-        <p>Constrained</p>
-        <Picture formats={["avif", "webp"]}
-          src={image1}
-          alt="alt-text"
-          quality={50}
-          width={700}
-          height={700}
-          layout="constrained"
-        />
-        <p>Full width</p>
-        <Picture formats={["avif", "webp"]} src={image1} alt="alt-text" quality={50} layout="full-width" />
-      </div>
-    </section>
+      ) : (
+        <p class="notice">No data yet — run <code>pnpm detect</code> to scan the showcase.</p>
+      )}
+    </header>
+
+    {data && (
+      <>
+        <section class="stats-grid" aria-label="Summary">
+          <div class="stat-card">
+            <span class="stat-value">{total.toLocaleString()}</span>
+            <span class="stat-label">Sites scanned</span>
+          </div>
+          <div class="stat-card stat-card--astro">
+            <span class="stat-value">{astroConfirmed}</span>
+            <span class="stat-label">Astro confirmed</span>
+          </div>
+          <div class="stat-card stat-card--migrated">
+            <span class="stat-value">{noLongerAstro}</span>
+            <span class="stat-label">Astro not detected</span>
+          </div>
+          <div class="stat-card stat-card--detected">
+            <span class="stat-value">{detected}</span>
+            <span class="stat-label">Sites with CMS detected</span>
+          </div>
+          <div class="stat-card stat-card--error">
+            <span class="stat-value">{errors}</span>
+            <span class="stat-label">Fetch errors</span>
+          </div>
+        </section>
+
+        <section class="breakdown flow" aria-label="CMS breakdown">
+          <h2>Breakdown</h2>
+          <ul class="bar-list" role="list">
+            {sorted.map(([cms, count]) => {
+              const cmsType = results.find((r) => r.cms === cms)?.cmsType ?? "unknown";
+              return (
+                <li class="bar-item">
+                  <button class="bar-filter-btn" data-cms={cms} type="button">
+                    <span class="bar-label">
+                      <span class={`cms-badge cms-badge--${cmsType}`}>{cms}</span>
+                    </span>
+                    <span class="bar-track" aria-hidden="true">
+                      <span class="bar-fill" style={`width: ${((count / total) * 100).toFixed(1)}%`}></span>
+                    </span>
+                    <span class="bar-count">{count}</span>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
+        <section class="results-section flow" aria-label="Site results">
+          <div class="toolbar">
+            <h2>Sites</h2>
+            <div class="toolbar-controls">
+              {starlightCount > 0 && (
+                <button id="starlight-filter" class="starlight-filter-btn" type="button">
+                  Starlight ({starlightCount})
+                </button>
+              )}
+              {frameworkCount > 0 && (
+                <button id="framework-filter" class="framework-filter-btn" type="button">
+                  JS Frameworks ({frameworkCount})
+                </button>
+              )}
+              <button id="astro-filter" class="astro-filter-btn" type="button">
+                Astro not detected ({noLongerAstro})
+              </button>
+              <input
+                id="search"
+                class="search-input"
+                type="search"
+                placeholder="Search title or URL…"
+                aria-label="Search sites"
+              />
+              <button id="clear-filter" class="clear-btn" type="button" hidden>
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <p class="results-count" id="results-count" aria-live="polite">
+            Showing {total} sites
+          </p>
+
+          <div class="table-wrap">
+            <table class="results-table" id="results-table">
+              <thead>
+                <tr>
+                  <th scope="col">Site</th>
+                  <th scope="col">Astro</th>
+                  <th scope="col">CMS</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Conf.</th>
+                    </tr>
+              </thead>
+              <tbody>
+                {results.map((r) => (
+                  <tr
+                    data-cms={r.cms}
+                    data-cmstype={r.cmsType}
+                    data-title={r.title.toLowerCase()}
+                    data-url={r.url.toLowerCase()}
+                    data-astro={r.astroDetected ? "true" : r.cms === "Error" || r.cms === "Blocked" ? "unknown" : "false"}
+                    class={r.cmsType === "full-site" ? "row--migrated" : ""}
+                  >
+                    <td class="cell-site">
+                      <a href={r.url} target="_blank" rel="noopener noreferrer">
+                        {r.title || r.url}
+                      </a>
+                      <span class="url-hint">{new URL(r.url).hostname}</span>
+                    </td>
+                    <td class="cell-astro">
+                      {r.astroDetected
+                        ? <>
+                            <span class="astro-yes" title={r.astroSignals.join(", ")}>✓</span>
+                            {r.astroVersion && <span class="astro-version">v{r.astroVersion}</span>}
+                          </>
+                        : r.cms !== "Error" && r.cms !== "Blocked"
+                          ? <span class="astro-no" title="No Astro fingerprint found">✗</span>
+                          : <span class="astro-unknown">—</span>
+                      }
+                    </td>
+                    <td>
+                      <span class={`cms-badge cms-badge--${r.cmsType}`}>{r.cms}</span>
+                    </td>
+                    <td class="cell-type">
+                      {r.cmsType !== "unknown" ? CMS_TYPE_LABELS[r.cmsType] ?? r.cmsType : ""}
+                    </td>
+                    <td>
+                      {r.confidence && (
+                        <span class={`conf-badge conf-badge--${r.confidence}`}>{r.confidence}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </>
+    )}
   </main>
 </Layout>
+
+<script is:inline>
+  function initDetector() {
+    const searchInput = document.getElementById("search");
+    const clearBtn = document.getElementById("clear-filter");
+    const astroFilterBtn = document.getElementById("astro-filter");
+    const starlightFilterBtn = document.getElementById("starlight-filter");
+    const frameworkFilterBtn = document.getElementById("framework-filter");
+    const countEl = document.getElementById("results-count");
+    const tbody = document.querySelector("#results-table tbody");
+    if (!tbody || !searchInput) return;
+
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+    let activeCmsFilter = null;
+    let activeCmsTypeFilter = null;
+    let noAstroOnly = false;
+
+    function updateCount(visible) {
+      if (countEl) countEl.textContent = `Showing ${visible} site${visible !== 1 ? "s" : ""}`;
+    }
+
+    function applyFilters() {
+      const query = searchInput.value.toLowerCase();
+      let visible = 0;
+      for (const row of rows) {
+        const matchesCms = !activeCmsFilter || row.dataset.cms === activeCmsFilter;
+        const matchesCmsType = !activeCmsTypeFilter || row.dataset.cmstype === activeCmsTypeFilter;
+        const matchesSearch = !query || row.dataset.title.includes(query) || row.dataset.url.includes(query);
+        const matchesAstro = !noAstroOnly || row.dataset.astro === "false";
+        row.hidden = !(matchesCms && matchesCmsType && matchesSearch && matchesAstro);
+        if (!row.hidden) visible++;
+      }
+      updateCount(visible);
+      const hasFilter = activeCmsFilter || activeCmsTypeFilter || searchInput.value || noAstroOnly;
+      if (clearBtn) clearBtn.hidden = !hasFilter;
+    }
+
+    function setCmsFilter(cms) {
+      activeCmsFilter = activeCmsFilter === cms ? null : cms;
+      activeCmsTypeFilter = null;
+      document.querySelectorAll(".bar-filter-btn").forEach((b) =>
+        b.classList.toggle("active", b.dataset.cms === activeCmsFilter)
+      );
+      if (starlightFilterBtn)
+        starlightFilterBtn.classList.toggle("active", activeCmsFilter === "Starlight");
+      if (frameworkFilterBtn) frameworkFilterBtn.classList.remove("active");
+      applyFilters();
+    }
+
+    document.querySelectorAll(".bar-filter-btn").forEach((btn) => {
+      btn.addEventListener("click", () => setCmsFilter(btn.dataset.cms));
+    });
+
+    if (starlightFilterBtn) {
+      starlightFilterBtn.addEventListener("click", () => setCmsFilter("Starlight"));
+    }
+
+    if (frameworkFilterBtn) {
+      frameworkFilterBtn.addEventListener("click", () => {
+        const isActive = activeCmsTypeFilter === "framework";
+        activeCmsTypeFilter = isActive ? null : "framework";
+        activeCmsFilter = null;
+        document.querySelectorAll(".bar-filter-btn").forEach((b) => b.classList.remove("active"));
+        if (starlightFilterBtn) starlightFilterBtn.classList.remove("active");
+        frameworkFilterBtn.classList.toggle("active", !isActive);
+        applyFilters();
+      });
+    }
+
+    if (astroFilterBtn) {
+      astroFilterBtn.addEventListener("click", () => {
+        noAstroOnly = !noAstroOnly;
+        astroFilterBtn.classList.toggle("active", noAstroOnly);
+        applyFilters();
+      });
+    }
+
+    searchInput.addEventListener("input", applyFilters);
+
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => {
+        activeCmsFilter = null;
+        activeCmsTypeFilter = null;
+        noAstroOnly = false;
+        searchInput.value = "";
+        document.querySelectorAll(".bar-filter-btn").forEach((b) => b.classList.remove("active"));
+        if (starlightFilterBtn) starlightFilterBtn.classList.remove("active");
+        if (frameworkFilterBtn) frameworkFilterBtn.classList.remove("active");
+        if (astroFilterBtn) astroFilterBtn.classList.remove("active");
+        applyFilters();
+      });
+    }
+
+    updateCount(rows.length);
+  }
+
+  initDetector();
+  document.addEventListener("astro:page-load", initDetector);
+</script>
+
 <style>
-  /* This can be removed */
-  .resize-h {
-    border: 1px solid var(--color-text-subtle);
-    padding: 1rem;
-    overflow: auto;
-    resize: horizontal;
+  .page-header h1 { font-size: var(--step-3); line-height: 1.1; }
+  .muted { color: var(--color-text-subtle); font-weight: 400; }
+  .meta-line { color: var(--color-text-subtle); font-size: var(--step--1); }
+  .notice { font-style: italic; color: var(--color-text-subtle); }
+  code { font-family: monospace; background: var(--color-surface); padding: 0.1em 0.4em; border-radius: 4px; }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: var(--space-s);
+  }
+  .stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3xs);
+    padding: var(--space-s);
+    border-radius: var(--space-3xs);
+    background: var(--color-surface);
+    border-left: 4px solid var(--gray-4);
+  }
+  .stat-card--astro    { border-color: var(--violet-6); }
+  .stat-card--migrated { border-color: var(--orange-5); }
+  .stat-card--detected { border-color: var(--blue-6); }
+  .stat-card--error    { border-color: var(--red-5); }
+  .stat-value { font-size: var(--step-3); font-weight: 700; line-height: 1; }
+  .stat-label { font-size: var(--step--1); color: var(--color-text-subtle); }
+
+  .breakdown h2 { font-size: var(--step-1); }
+  .bar-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; }
+  .bar-filter-btn {
+    display: grid;
+    grid-template-columns: 14rem 1fr 3rem;
+    align-items: center;
+    gap: var(--space-xs);
+    width: 100%;
+    background: none;
+    border: 2px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: var(--space-3xs) var(--space-3xs);
+    color: inherit;
+    text-align: left;
+  }
+  .bar-filter-btn:hover .bar-fill { opacity: 0.75; }
+  .bar-filter-btn.active { border-color: var(--color-primary); background: var(--blue-0); }
+  .bar-track { height: 1.25rem; background: var(--gray-2); border-radius: 3px; overflow: hidden; }
+  .bar-fill { display: block; height: 100%; background: var(--color-primary); border-radius: 3px; min-width: 2px; }
+  .bar-count { font-size: var(--step--1); color: var(--color-text-subtle); text-align: right; }
+
+  .cms-badge {
+    display: inline-block;
+    padding: 0.15em 0.6em;
+    border-radius: 999px;
+    font-size: var(--step--2);
+    font-weight: 600;
+    white-space: nowrap;
+    background: var(--gray-2);
+    color: var(--gray-8);
+  }
+  .cms-badge--headless-cms { background: var(--blue-1);   color: var(--blue-9); }
+  .cms-badge--page-builder { background: var(--purple-1); color: var(--purple-9); }
+  .cms-badge--full-site    { background: var(--red-1);    color: var(--red-9); }
+  .cms-badge--framework    { background: var(--cyan-1);   color: var(--cyan-9); }
+  .cms-badge--static-gen   { background: var(--green-1);  color: var(--green-9); }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    justify-content: space-between;
+  }
+  .toolbar h2 { font-size: var(--step-1); margin: 0; }
+  .toolbar-controls { display: flex; align-items: center; gap: var(--space-xs); }
+  .search-input {
+    padding: var(--space-2xs) var(--space-xs);
+    border: 1px solid var(--gray-4);
+    border-radius: var(--space-3xs);
+    font-size: var(--step--1);
+    min-width: 16rem;
+    background: var(--color-bg);
+    color: var(--color-text);
+  }
+  .starlight-filter-btn {
+    padding: var(--space-2xs) var(--space-xs);
+    border: 1px solid var(--violet-4);
+    border-radius: var(--space-3xs);
+    background: none;
+    cursor: pointer;
+    font-size: var(--step--1);
+    color: var(--violet-7);
+    white-space: nowrap;
+  }
+  .starlight-filter-btn:hover { background: var(--violet-0); }
+  .starlight-filter-btn.active { background: var(--violet-1); border-color: var(--violet-6); font-weight: 600; }
+  .framework-filter-btn {
+    padding: var(--space-2xs) var(--space-xs);
+    border: 1px solid var(--cyan-4);
+    border-radius: var(--space-3xs);
+    background: none;
+    cursor: pointer;
+    font-size: var(--step--1);
+    color: var(--cyan-7);
+    white-space: nowrap;
+  }
+  .framework-filter-btn:hover { background: var(--cyan-0); }
+  .framework-filter-btn.active { background: var(--cyan-1); border-color: var(--cyan-6); font-weight: 600; }
+  .astro-filter-btn {
+    padding: var(--space-2xs) var(--space-xs);
+    border: 1px solid var(--orange-4);
+    border-radius: var(--space-3xs);
+    background: none;
+    cursor: pointer;
+    font-size: var(--step--1);
+    color: var(--orange-7);
+    white-space: nowrap;
+  }
+  .astro-filter-btn:hover { background: var(--orange-0); }
+  .astro-filter-btn.active { background: var(--orange-1); border-color: var(--orange-6); font-weight: 600; }
+  .clear-btn {
+    padding: var(--space-2xs) var(--space-xs);
+    border: 1px solid var(--gray-4);
+    border-radius: var(--space-3xs);
+    background: none;
+    cursor: pointer;
+    font-size: var(--step--1);
+    color: inherit;
+  }
+  .clear-btn:hover { background: var(--color-surface); }
+  .results-count { font-size: var(--step--1); color: var(--color-text-subtle); }
+
+  .table-wrap { overflow-x: auto; }
+  .results-table { width: 100%; border-collapse: collapse; font-size: var(--step--1); }
+  .results-table th {
+    text-align: left;
+    padding: var(--space-2xs) var(--space-xs);
+    border-bottom: 2px solid var(--gray-3);
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--color-text-subtle);
+  }
+  .results-table td {
+    padding: var(--space-2xs) var(--space-xs);
+    border-bottom: 1px solid var(--gray-2);
+    vertical-align: middle;
+  }
+  .results-table tr:hover td { background: var(--color-surface); }
+  .cell-site a { display: block; font-weight: 500; color: var(--color-text); text-decoration: none; }
+  .cell-site a:hover { text-decoration: underline; color: var(--color-primary); }
+  .url-hint { display: block; color: var(--color-text-subtle); font-size: var(--step--2); }
+  .cell-type { color: var(--color-text-subtle); white-space: nowrap; font-size: var(--step--2); }
+  .cell-astro { text-align: center; font-size: var(--step-0); white-space: nowrap; }
+  .astro-yes  { color: var(--violet-6); font-weight: 700; cursor: default; }
+  .astro-no   { color: var(--orange-5); font-weight: 700; cursor: default; }
+  .astro-unknown { color: var(--gray-4); cursor: default; }
+  .astro-version {
+    display: inline-block;
+    margin-left: 0.3em;
+    font-size: var(--step--2);
+    color: var(--violet-6);
+    font-weight: 400;
+    vertical-align: middle;
+  }
+  .row--migrated td { background: var(--orange-0); }
+  .row--migrated:hover td { background: var(--orange-1); }
+
+  .conf-badge {
+    display: inline-block;
+    padding: 0.1em 0.45em;
+    border-radius: 999px;
+    font-size: var(--step--2);
+    font-weight: 500;
+  }
+  .conf-badge--high   { background: var(--green-1);  color: var(--green-8); }
+  .conf-badge--medium { background: var(--yellow-1); color: var(--yellow-8); }
+  .conf-badge--low    { background: var(--gray-1);   color: var(--gray-7); }
+
+  .cell-cats { display: flex; flex-wrap: wrap; gap: var(--space-3xs); }
+  .cat-tag {
+    display: inline-block;
+    padding: 0.1em 0.4em;
+    border-radius: 999px;
+    font-size: var(--step--2);
+    background: var(--gray-1);
+    color: var(--gray-7);
   }
 </style>

@@ -1,69 +1,59 @@
-# Astro 6 Starter
+# Astro Showcase — CMS Detector
 
-A clean, modern Astro 6 starter with semantic component organization, modern CSS with `@layer` support, and Biome for code quality.
+Scans every site in the [Astro showcase](https://astro.build/showcase/) and fingerprints which CMS (if any) is powering it — headless CMSs, page builders, full-site platforms, JS frameworks, and static-site generators.
 
-## Features
+## What it does
 
-- **Astro 6** - Latest version with experimental features enabled
-- **Modern CSS** - No Sass, uses native CSS with `@layer` for cascade management
-- **Semantic Components** - Organized by purpose (global, schema, feature-specific)
-- **Biome** - Fast linting and formatting with zero-config setup
-- **JSON-LD Schema** - Built-in WebSite schema with SearchAction
-- **Path Aliases** - Clean imports with `@components`, `@layouts`, `@types`, etc.
-- **CUBE CSS** - Composition utilities (flow, grid, wrapper)
+- Fetches all ~2,600 sites listed in the Astro showcase
+- Fingerprints each site from HTML and HTTP headers
+- Detects whether the site is still running on Astro
+- Displays results in a filterable, searchable table
 
-## 🚀 Project Structure
+## Detection coverage
 
-```text
-/
-├── public/
+| Category | Examples |
+| :--- | :--- |
+| Headless CMS | Contentful, Sanity, Storyblok, Prismic, DatoCMS, Hygraph, Strapi, Keystatic, Builder.io, Tina CMS, Payload, Decap, and more |
+| Page builder / hosted | Webflow, Squarespace, Wix, Framer, Shopify, HubSpot, Notion |
+| Full-site CMS | WordPress, Ghost, Drupal, Joomla, Craft CMS, Kirby, Statamic, TYPO3, Umbraco |
+| JS framework | Next.js, Nuxt, SvelteKit, Remix |
+| Static-site generator | Starlight, Hugo, Eleventy, Jekyll, Gatsby, Hexo |
+
+Astro detection uses five independent signals: generator meta tag, Starlight generator tag, `data-astro-cid-*` attributes, `/_astro/` asset paths, and `<astro-island>` elements.
+
+Sites behind Cloudflare JS challenges are recorded as `Blocked` rather than `Unknown`.
+
+## Commands
+
+| Command | Action |
+| :--- | :--- |
+| `pnpm dev` | Start dev server at `localhost:4321` |
+| `pnpm detect` | Scan all showcase sites and write `src/data/cms-results.json` |
+| `pnpm detect -- --limit 50` | Scan first 50 sites only |
+| `pnpm detect -- --resume` | Skip already-processed URLs |
+| `pnpm detect -- --concurrency 8` | Set fetch concurrency (default: 6) |
+| `pnpm build` | Build production site |
+| `pnpm check` | Lint and format with Biome |
+
+After running `pnpm detect`, clear the Astro cache and restart the dev server to pick up new data:
+
+```bash
+rm -rf .astro && pnpm dev
+```
+
+## Project structure
+
+```
+├── scripts/
+│   └── detect-cms.ts       # Detection script (run with pnpm detect)
 ├── src/
-│   ├── assets/           # Images and static assets
-│   ├── components/
-│   │   ├── global/       # Layout components (Header, Footer, etc.)
-│   │   └── schema/       # JSON-LD schema components
-│   ├── config/           # Configuration files (siteMetadata.ts)
-│   ├── layouts/          # Page layouts
-│   ├── pages/            # Routes
-│   ├── scripts/          # Client-side scripts
-│   ├── styles/           # Global and composition styles
-│   │   └── compositions/ # CUBE CSS utilities
-│   └── types/            # TypeScript definitions
-└── package.json
+│   ├── data/
+│   │   └── cms-results.json  # Generated output (gitignored if large)
+│   └── pages/
+│       └── index.astro       # Results UI
 ```
 
-## 🧞 Commands
+## Tech stack
 
-| Command             | Action                                 |
-| :------------------ | :------------------------------------- |
-| `pnpm install`      | Install dependencies                   |
-| `pnpm dev`          | Start dev server at `localhost:4321`   |
-| `pnpm build`        | Build production site to `./dist/`     |
-| `pnpm preview`      | Preview build locally before deploying |
-| `pnpm biome check`  | Check code quality with Biome          |
-| `pnpm biome format` | Format code with Oxfmt                 |
-
-## ⚙️ Configuration
-
-### JSON-LD Schema
-
-Edit `src/config/siteMetadata.ts` to customize the WebSite JSON-LD schema:
-
-```typescript
-export const siteMetadata: SiteMetadata = {
-	name: "My Site Name",
-	description: "Site description for SEO",
-	logo: "/logo.svg",
-	contactEmail: "info@example.com",
-	searchRoute: "/search", // Optional: enables SearchAction in schema
-};
-```
-
-The schema is automatically injected into every page's `<head>` via the `WebsiteJsonLD` component.
-
-## 📋 Notes
-
-- See `CLAUDE.md` for development guidelines
-- Never use `!important` in CSS — solve specificity with `@layer`
-- Use path aliases for all imports
-- Components should be used when imported (fix Biome warnings during implementation)
+- [Astro 6](https://astro.build)
+- [Biome](https://biomejs.dev) for linting and formatting
