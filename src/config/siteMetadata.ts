@@ -27,7 +27,7 @@ export const siteMetadata: SiteMetadata = {
 	logo: "/logo.svg",
 	menu: [
 		{ label: "Home", href: "/" },
-		{ label: "Insights", href: "/insights" },
+		{ label: "Insights", href: "/insights/" },
 	],
 	showcasePageSize: 50,
 };

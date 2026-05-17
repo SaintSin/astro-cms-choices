@@ -146,7 +146,11 @@ const legacy = (versionCounts["v1"] ?? 0) + (versionCounts["v2"] ?? 0) + (versio
         },
         tooltip: {
           callbacks: {
-            label: (ctx) => ` ${ctx.label}: ${ctx.parsed.toLocaleString()} sites`,
+            label: (ctx) => {
+              const total = (ctx.dataset.data as number[]).reduce((a, b) => a + b, 0);
+              const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : "0.0";
+              return ` ${ctx.label}: ${ctx.parsed.toLocaleString()} sites (${pct}%)`;
+            },
           },
         },
       },
@@ -231,11 +235,8 @@ const legacy = (versionCounts["v1"] ?? 0) + (versionCounts["v2"] ?? 0) + (versio
 
   .charts-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     gap: var(--space-l);
-  }
-  @media (max-width: 768px) {
-    .charts-grid { grid-template-columns: 1fr; }
   }
 
   .chart-card {
@@ -254,6 +255,6 @@ const legacy = (versionCounts["v1"] ?? 0) + (versionCounts["v2"] ?? 0) + (versio
     color: var(--color-text-subtle);
     margin-block-end: var(--space-m);
   }
-  .doughnut-wrap { max-width: 420px; margin-inline: auto; }
+  .doughnut-wrap { max-width: 780px; margin-inline: auto; }
   .bar-wrap { width: 100%; }
 </style>
