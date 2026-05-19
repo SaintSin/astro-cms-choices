@@ -52,7 +52,21 @@ const parkedCount = results.filter((r) => r.cmsType === "parked").length;
 
     <header class="page-header flow">
       <h1>Astro Showcase <span class="muted">CMS Detector</span></h1>
-      {data ? (
+      <p class="about-lead">
+        Every site featured on the <a href="https://astro.build/showcase/" target="_blank" rel="noopener noreferrer">official Astro Showcase</a> — automatically scanned to detect which CMS (if any) is powering it, and which version of Astro it's running.
+      </p>
+   
+      <p class="submit-cta">
+        <a href="https://github.com/withastro/roadmap/discussions/521" target="_blank" rel="noopener noreferrer">Submit your site to the Astro Showcase →</a>
+      </p>
+      <details class="about-details">
+        <summary>About this data</summary>
+        <div class="about-body">
+          <p>Detection is automated: each site is fetched and inspected for Astro fingerprints (script filenames, meta generators, HTTP headers) and CMS signals (API endpoints, script patterns, DNS records). It's accurate but not infallible.</p>
+          <p><strong>Caveats:</strong> some sites block scrapers, redirect away from their Astro front-end, or don't expose version signals. Sites marked <em>"Astro not detected"</em> may have migrated to another platform, may be behind a CDN that strips headers, or simply couldn't be reached at scan time. Confidence badges (high / medium / low) reflect how many signals were found.</p>
+        </div>
+      </details>  
+       {data ? (
         <p class="meta-line">
           {total.toLocaleString()} sites scanned &middot; generated {new Date(data.generated).toLocaleDateString("en-GB", { dateStyle: "medium" })}
         </p>
@@ -359,12 +373,54 @@ const parkedCount = results.filter((r) => r.cmsType === "parked").length;
 </script>
 
 <style>
-  .page-header h1 { font-size: var(--step-3); line-height: 1.1; 
-  padding-block: var(--space-s);}
+  .page-header h1 { font-size: var(--step-3); line-height: 1.1; padding-block: var(--space-s); }
   .muted { color: var(--color-text-subtle); font-weight: 400; }
+  .about-lead {
+    font-size: var(--step-0);
+    max-width: 68ch;
+  }
+  .about-lead a { color: var(--color-primary); }
+  .submit-cta { font-size: var(--step--1); }
+  .submit-cta a { color: var(--color-primary); font-weight: 500; }
   .meta-line { color: var(--color-text-subtle); font-size: var(--step--1); }
   .notice { font-style: italic; color: var(--color-text-subtle); }
   code { font-family: monospace; background: var(--color-surface); padding: 0.1em 0.4em; border-radius: 4px; }
+
+  .about-details {
+    border: 1px solid var(--gray-2);
+    border-radius: var(--space-3xs);
+    background: var(--color-surface);
+    max-width: 68ch;
+  }
+  .about-details summary {
+    padding: var(--space-xs) var(--space-s);
+    font-size: var(--step--1);
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--color-text-subtle);
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2xs);
+  }
+  .about-details summary::before {
+    content: "▶";
+    font-size: 0.6em;
+    transition: transform 0.15s;
+  }
+  .about-details[open] summary::before { transform: rotate(90deg); }
+  .about-details summary:hover { color: var(--color-text); }
+  .about-body {
+    padding: var(--space-xs) var(--space-s) var(--space-s);
+    border-top: 1px solid var(--gray-2);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    font-size: var(--step--1);
+    color: var(--color-text-subtle);
+  }
+  .about-body a { color: var(--color-primary); }
+  .about-body strong { color: var(--color-text); }
 
   .stats-grid {
     display: grid;
@@ -419,9 +475,12 @@ const parkedCount = results.filter((r) => r.cmsType === "parked").length;
     text-align: left;
   }
   .bar-filter-btn:hover .bar-fill { opacity: 0.75; }
-  .bar-filter-btn.active { border-color: var(--color-primary); background: var(--blue-0); }
-  .bar-track { height: 1.25rem; background: var(--gray-2); border-radius: 3px; overflow: hidden; }
-  .bar-fill { display: block; height: 100%; background: var(--color-primary); border-radius: 3px; min-width: 2px; }
+  .bar-filter-btn.active { border-color: var(--color-primary);
+     background: var(--blue-0); }
+  .bar-track { height: 1.25rem; background: var(--gray-2);
+     border-radius: 3px; overflow: hidden; }
+  .bar-fill { display: block; height: 100%; background: var(--color-primary);
+     border-radius: 3px; min-width: 2px; }
   .bar-index {
     font-size: var(--step--2);
     color: var(--gray-4);

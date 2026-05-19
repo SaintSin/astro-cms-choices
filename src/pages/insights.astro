@@ -7,34 +7,34 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import type { ResultsFile } from "../types/index";
 
 const raw: ResultsFile = JSON.parse(
-  await readFile("src/data/cms-results.json", "utf8")
+	await readFile("src/data/cms-results.json", "utf8"),
 );
 const results = raw.results;
 
 // ── Version distribution (all Astro-detected sites) ─────────────────────────
 const VERSION_COLOURS: Record<string, string> = {
-  v1: "#f87171", // red
-  v2: "#fb923c", // orange
-  v3: "#fbbf24", // amber
-  v4: "#34d399", // emerald
-  v5: "#60a5fa", // blue
-  v6: "#a78bfa", // violet
-  v7: "#f472b6", // pink
-  "No version": "#94a3b8", // slate
+	v1: "#f87171", // red
+	v2: "#fb923c", // orange
+	v3: "#fbbf24", // amber
+	v4: "#34d399", // emerald
+	v5: "#60a5fa", // blue
+	v6: "#a78bfa", // violet
+	v7: "#f472b6", // pink
+	"No version": "#94a3b8", // slate
 };
 
 const versionCounts: Record<string, number> = {};
 for (const site of results) {
-  if (!site.astroDetected) continue;
-  const major = site.astroVersion
-    ? `v${site.astroVersion.split(".")[0]}`
-    : "No version";
-  versionCounts[major] = (versionCounts[major] ?? 0) + 1;
+	if (!site.astroDetected) continue;
+	const major = site.astroVersion
+		? `v${site.astroVersion.split(".")[0]}`
+		: "No version";
+	versionCounts[major] = (versionCounts[major] ?? 0) + 1;
 }
 const versionLabels = Object.keys(versionCounts).sort((a, b) => {
-  if (a === "No version") return 1;
-  if (b === "No version") return -1;
-  return a.localeCompare(b, undefined, { numeric: true });
+	if (a === "No version") return 1;
+	if (b === "No version") return -1;
+	return a.localeCompare(b, undefined, { numeric: true });
 });
 const versionData = versionLabels.map((k) => versionCounts[k]);
 const versionColors = versionLabels.map((k) => VERSION_COLOURS[k] ?? "#94a3b8");
@@ -45,23 +45,26 @@ const MAJORS = ["v1", "v2", "v3", "v4", "v5", "v6", "v7"];
 const yearMajor: Record<number, Record<string, number>> = {};
 
 for (const site of results) {
-  if (!site.astroDetected || !site.astroVersion || !site.dateAdded) continue;
-  const year = new Date(site.dateAdded).getFullYear();
-  const major = `v${site.astroVersion.split(".")[0]}`;
-  if (!yearMajor[year]) yearMajor[year] = {};
-  yearMajor[year][major] = (yearMajor[year][major] ?? 0) + 1;
+	if (!site.astroDetected || !site.astroVersion || !site.dateAdded) continue;
+	const year = new Date(site.dateAdded).getFullYear();
+	const major = `v${site.astroVersion.split(".")[0]}`;
+	if (!yearMajor[year]) yearMajor[year] = {};
+	yearMajor[year][major] = (yearMajor[year][major] ?? 0) + 1;
 }
 const years = Object.keys(yearMajor).sort();
 
 const stackedDatasets = MAJORS.map((major) => ({
-  label: major,
-  data: years.map((y) => yearMajor[Number(y)]?.[major] ?? 0),
-  backgroundColor: VERSION_COLOURS[major] ?? "#94a3b8",
+	label: major,
+	data: years.map((y) => yearMajor[Number(y)]?.[major] ?? 0),
+	backgroundColor: VERSION_COLOURS[major] ?? "#94a3b8",
 }));
 
 // ── Summary stats ─────────────────────────────────────────────────────────────
 const current = (versionCounts["v6"] ?? 0) + (versionCounts["v7"] ?? 0);
-const legacy = (versionCounts["v1"] ?? 0) + (versionCounts["v2"] ?? 0) + (versionCounts["v3"] ?? 0);
+const legacy =
+	(versionCounts["v1"] ?? 0) +
+	(versionCounts["v2"] ?? 0) +
+	(versionCounts["v3"] ?? 0);
 ---
 
 <BaseLayout metaData={{ title: "Insights — Astro CMS Detector", description: "Astro version distribution and submission trends across the showcase." }}>

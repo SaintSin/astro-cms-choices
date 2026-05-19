@@ -4,7 +4,7 @@
 // Listens for Astro Page Load event
 // Updated 250907 17:05 - Added debug toggle, clean production mode
 
-const siteId = Astro.site ? new URL(Astro.site).hostname : 'localhost';
+const siteId = Astro.site ? new URL(Astro.site).hostname : "localhost";
 ---
 
 <script define:vars={{ siteId }} is:inline>
