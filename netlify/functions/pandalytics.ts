@@ -19,7 +19,7 @@ interface MetricData {
 	fcp?: number;
 	ttfb?: number;
 	inp?: number;
-  duration_ms?: number;
+	duration_ms?: number;
 }
 
 // Truncate strings to prevent oversized payloads
@@ -130,7 +130,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
     INSERT INTO pageviews (
       session_id, url, path, referrer, timestamp,
       lcp, cls, fcp, ttfb, inp, duration_ms
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
 	const sessionParams = [
