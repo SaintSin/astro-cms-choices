@@ -22,9 +22,9 @@ Scans every site in the [Astro showcase](https://astro.build/showcase/) and fing
 | JS framework          | Next.js, Nuxt, SvelteKit, Remix                                                                                             |
 | Static-site generator | Starlight, Hugo, Eleventy, Jekyll, Gatsby, Hexo                                                                             |
 
-Astro detection uses six independent signals: generator meta tag, Starlight generator tag, `data-astro-cid-*` attributes, `/_astro/` asset paths, `<astro-island>` elements, and legacy `hoisted.js` (pre-2.x).
+Astro detection uses eight independent signals: generator meta tag, Starlight generator tag, `data-astro-*` attributes, `/_astro/` asset paths, `<astro-island>` elements, `:where(.astro-*)` CSS selectors, `astro-` scoped class names, and legacy `hoisted.js` (pre-2.x). Detection logic is informed by [isAstro](https://github.com/OliverSpeir/isAstro) by Oliver Speir.
 
-Sites behind Cloudflare JS challenges are recorded as `Blocked` rather than `Unknown`.
+Sites behind bot challenges (Cloudflare, sgcaptcha) are recorded as `Blocked` rather than `Unknown`.
 
 Domains that have been parked, sold, or forwarded to a registrar page (GoDaddy, Sedo, Afternic, etc.) are recorded as `Parked / Forwarded`.
 

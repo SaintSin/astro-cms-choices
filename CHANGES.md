@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-05-20
+
+### Detection
+
+- Broadened Astro signals from 5 to 8, drawing on patterns from [isAstro](https://github.com/OliverSpeir/isAstro) by Oliver Speir:
+  - `data-astro-*` attributes (previously only `data-astro-cid-*`)
+  - `:where(.astro-*)` CSS selector blocks
+  - `astro-` prefixed scoped class names on elements
+- Expanded bot-challenge detection beyond Cloudflare: `cdn-cgi/challenge-platform`, `_cf_chl_opt`, `cf-spinner`, sgcaptcha redirect patterns
+- Added cookie-collection redirect handling: sites that issue cookies on the initial redirect are now fetched in two passes (manual → collect cookies → follow with cookies), rescuing sites previously seen as bot-blocked
+- Added `starlightVersion` extraction from generator meta tag — scraped for all Starlight sites
+- Scan diff report: after each full run, prints newly detected Astro sites, sites no longer detected, version changes, and CMS changes compared to the previous results file
+
+### Insights page
+
+- Added Starlight version distribution doughnut chart — groups 241 Starlight sites into recency bands:
+  - v1+ / v0.37–v0.39 (recent) / v0.32–v0.36 / v0.28–v0.31 / v0.25–v0.27 / v0.24 and older
+- Renamed "No version" label to "unknown" throughout
+- Fixed stacked bar chart title: "Submission year vs Astro version in use" (was "vs current version", which implied the latest Astro release)
+- Doughnut tooltips now show percentage alongside count
+- Switched to single-column chart layout (was two-column grid)
+- Consistent frontmatter structure (`meta` object, `Layout` alias) matching `index.astro`
+
+### UI
+
+- Per-row isAstro test link in results table: hovering any row reveals a `test ↗` link that opens `isastro.pages.dev/?url=<hostname>` in a new tab
+- Table bottom-border fix: switched `td` from `border-bottom` to `border-top` so the last visible row on any paginated page never shows a trailing rule
+- Table key added below results explaining the orange full-site row highlight
+- Homepage About section: brief description of what the site does, link to submit to the Astro Showcase, and expandable "About this data" details block
+
+### Acknowledgements
+
+- Astro detection logic informed by [isAstro](https://github.com/OliverSpeir/isAstro) — Oliver Speir's standalone Astro detector
+
 ## 2026-05-17
 
 ### Deployment
