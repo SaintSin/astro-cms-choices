@@ -10,6 +10,7 @@ export interface CmsResult {
 	categories: string[];
 	astroDetected: boolean;
 	astroVersion: string | null;
+	starlightVersion: string | null;
 	astroSignals: string[];
 	finalUrl: string | null;
 	dateAdded: string;

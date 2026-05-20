@@ -65,6 +65,41 @@ const stackedDatasets = MAJORS.map((major) => ({
 	backgroundColor: VERSION_COLOURS[major] ?? "#94a3b8",
 }));
 
+// ── Starlight version distribution ───────────────────────────────────────────
+
+// Group Starlight versions into recency bands (latest = v0.39.x as of May 2026)
+// Bands: v1+, v0.37–v0.39 (recent), v0.32–v0.36 (mid), v0.25–v0.31, older / unknown
+function starlightBand(version: string | null): string {
+	if (!version) return "unknown";
+	const [major, minor] = version.split(".").map(Number);
+	if (major >= 1) return "v1+";
+	if (minor >= 37) return "v0.37–v0.39 (recent)";
+	if (minor >= 32) return "v0.32–v0.36";
+	if (minor >= 25) return "v0.25–v0.31";
+	return "v0.24 and older";
+}
+
+const BAND_ORDER = ["v1+", "v0.37–v0.39 (recent)", "v0.32–v0.36", "v0.25–v0.31", "v0.24 and older", "unknown"];
+const BAND_COLOURS: Record<string, string> = {
+	"v1+":                   "#34d399", // emerald
+	"v0.37–v0.39 (recent)":  "#60a5fa", // blue
+	"v0.32–v0.36":           "#a78bfa", // violet
+	"v0.25–v0.31":           "#fbbf24", // amber
+	"v0.24 and older":       "#fb923c", // orange
+	"unknown":               "#94a3b8", // slate
+};
+
+const starlightCounts: Record<string, number> = {};
+for (const site of results) {
+	if (site.cms !== "Starlight") continue;
+	const band = starlightBand(site.starlightVersion);
+	starlightCounts[band] = (starlightCounts[band] ?? 0) + 1;
+}
+const starlightLabels = BAND_ORDER.filter((b) => starlightCounts[b]);
+const starlightData = starlightLabels.map((k) => starlightCounts[k]);
+const starlightColors = starlightLabels.map((k) => BAND_COLOURS[k]);
+const totalStarlight = results.filter((r) => r.cms === "Starlight").length;
+
 // ── Summary stats ─────────────────────────────────────────────────────────────
 const current = (versionCounts["v6"] ?? 0) + (versionCounts["v7"] ?? 0);
 const legacy =
@@ -107,6 +142,14 @@ const legacy =
       </div>
 
       <div class="chart-card">
+        <h2>Starlight version distribution</h2>
+        <p class="chart-desc">Which major Starlight version are the {totalStarlight} Starlight sites running?</p>
+        <div class="doughnut-wrap">
+          <canvas id="starlightChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
         <h2>Submission year vs Astro version in use</h2>
         <p class="chart-desc">Sites grouped by the year they were added to the showcase, coloured by the Astro major version they are currently running.</p>
         <div class="bar-wrap">
@@ -118,14 +161,14 @@ const legacy =
 </Layout>
 
 <!-- Pass server data to client via JSON script tag -->
-<script id="insights-data" type="application/json" set:html={JSON.stringify({ versionLabels, versionData, versionColors, years, stackedDatasets }).replace(/<\/script>/gi, "<\\/script>")} />
+<script id="insights-data" type="application/json" set:html={JSON.stringify({ versionLabels, versionData, versionColors, years, stackedDatasets, starlightLabels, starlightData, starlightColors }).replace(/<\/script>/gi, "<\\/script>")} />
 
 <script>
   import { Chart, ArcElement, DoughnutController, BarElement, BarController, CategoryScale, LinearScale, Legend, Tooltip } from "chart.js";
   Chart.register(ArcElement, DoughnutController, BarElement, BarController, CategoryScale, LinearScale, Legend, Tooltip);
 
   const raw = document.getElementById("insights-data")?.textContent ?? "{}";
-  const { versionLabels, versionData, versionColors, years, stackedDatasets } = JSON.parse(raw);
+  const { versionLabels, versionData, versionColors, years, stackedDatasets, starlightLabels, starlightData, starlightColors } = JSON.parse(raw);
 
   const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
   const textColor = isDark ? "#94a3b8" : "#64748b";
@@ -139,6 +182,41 @@ const legacy =
       datasets: [{
         data: versionData,
         backgroundColor: versionColors,
+        borderWidth: 2,
+        borderColor: isDark ? "#1e293b" : "#ffffff",
+        hoverOffset: 8,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      cutout: "62%",
+      plugins: {
+        legend: {
+          position: "right",
+          labels: { color: textColor, padding: 16, font: { size: 13 } },
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const total = (ctx.dataset.data as number[]).reduce((a, b) => a + b, 0);
+              const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : "0.0";
+              return ` ${ctx.label}: ${ctx.parsed.toLocaleString()} sites (${pct}%)`;
+            },
+          },
+        },
+      },
+    },
+  });
+
+  // Doughnut — Starlight version distribution
+  new Chart(document.getElementById("starlightChart") as HTMLCanvasElement, {
+    type: "doughnut",
+    data: {
+      labels: starlightLabels,
+      datasets: [{
+        data: starlightData,
+        backgroundColor: starlightColors,
         borderWidth: 2,
         borderColor: isDark ? "#1e293b" : "#ffffff",
         hoverOffset: 8,

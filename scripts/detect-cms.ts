@@ -48,6 +48,7 @@ export interface CmsResult {
 	evidence: string[];
 	astroDetected: boolean;
 	astroVersion: string | null;
+	starlightVersion: string | null;
 	astroSignals: string[];
 	finalUrl: string | null;
 	categories: string[];
@@ -611,9 +612,20 @@ function extractAstroVersion(html: string): string | null {
 	return null;
 }
 
+function extractStarlightVersion(html: string): string | null {
+	for (const m of html.matchAll(/<meta\b([^>]*)>/gi)) {
+		const attrs = m[1];
+		if (!/\bname\s*=\s*["']?generator["']?/i.test(attrs)) continue;
+		const v = attrs.match(/Starlight\s+v?([\d]+\.[\d]+\.[\d]+[\w.-]*)/i);
+		if (v) return v[1];
+	}
+	return null;
+}
+
 function detectAstro(html: string): {
 	detected: boolean;
 	version: string | null;
+	starlightVersion: string | null;
 	signals: string[];
 } {
 	const signals: string[] = [];
@@ -621,37 +633,54 @@ function detectAstro(html: string): {
 	// Starlight is an Astro-native framework — its generator tag confirms Astro
 	if (hasGeneratorTag(html, /Starlight/i))
 		signals.push("Starlight generator tag");
-	// data-astro-cid-* on any element = Astro scoped CSS (very reliable)
-	if (/data-astro-cid-/i.test(html)) signals.push("data-astro-cid attribute");
+	// data-astro-* on any element (cid, transition, source, etc.) — all Astro-specific
+	if (/data-astro-/i.test(html)) signals.push("data-astro- attribute");
 	// /_astro/ is the asset path used by Astro 2+
 	if (/\/_astro\//i.test(html)) signals.push("/_astro/ asset path");
 	if (/<astro-island/i.test(html)) signals.push("<astro-island> element");
+	// :where(.astro-XXXXXX) — Astro scoped CSS selector pattern
+	if (/:where\s*\(\.astro-[\w-]+\)/i.test(html))
+		signals.push(":where(.astro-) CSS");
+	// [data-astro-...] in inline <style> blocks
+	if (/\[data-astro-[^\]]*\]/i.test(html))
+		signals.push("data-astro CSS selector");
+	// astro- prefixed class on any element (body-level signal)
+	if (/class\s*=\s*["'][^"']*\bastro-[\w]/i.test(html))
+		signals.push("astro- class");
 	// hoisted.js was used by Astro 0.x / early 1.x before the /_astro/ convention
 	if (/hoisted\.js/i.test(html)) signals.push("hoisted.js (Astro <2)");
 	return {
 		detected: signals.length > 0,
 		version: extractAstroVersion(html),
+		starlightVersion: extractStarlightVersion(html),
 		signals,
 	};
 }
 
-function isCloudflareBlocked(
+function isBotChallenge(
 	html: string,
 	headers: Record<string, string>,
 ): boolean {
 	// Cloudflare JS/CAPTCHA challenge pages — fetch can't solve these
 	if (headers["cf-mitigated"] === "challenge") return true;
 	if (
+		headers["cf-ray"] &&
+		/<title>\s*(Just a moment|Attention Required)/i.test(html)
+	)
+		return true;
+	if (
 		/cf_chl_opt|cf-browser-verification|__cf_chl_jschl_tk__|cfreload/i.test(
 			html,
 		)
 	)
 		return true;
-	// "Just a moment..." or "Attention Required!" with a cf-ray header
-	if (
-		headers["cf-ray"] &&
-		/<title>\s*(Just a moment|Attention Required)/i.test(html)
-	)
+	// Cloudflare challenge platform assets
+	if (/cdn-cgi\/challenge-platform/i.test(html)) return true;
+	if (/_cf_chl_opt/i.test(html)) return true;
+	if (/cf-spinner/i.test(html)) return true;
+	// CAPTCHA / verification redirects via meta-refresh
+	if (/\.well-known\/sgcaptcha/i.test(html)) return true;
+	if (/<meta[^>]+refresh[^>]+(?:sgcaptcha|challenge|verify)/i.test(html))
 		return true;
 	return false;
 }
@@ -667,7 +696,7 @@ function fingerprint(
 	confidence: Confidence;
 	evidence: string[];
 } | null {
-	if (isCloudflareBlocked(html, headers)) {
+	if (isBotChallenge(html, headers)) {
 		return {
 			cms: "Blocked",
 			cmsType: "unknown",
@@ -727,12 +756,41 @@ async function fetchSite(
 	const UA =
 		"Mozilla/5.0 (compatible; cms-detector/1.0; +https://github.com/withastro/astro.build)";
 
+	const baseHeaders = {
+		"User-Agent": UA,
+		Accept: "text/html,application/xhtml+xml",
+		"Accept-Language": "en-US,en;q=0.5",
+	};
+
 	try {
-		const res = await fetch(url, {
+		// First pass: manual redirect to collect cookies (handles cookie-gated redirects)
+		let res = await fetch(url, {
 			signal: controller.signal,
-			headers: { "User-Agent": UA, Accept: "text/html,application/xhtml+xml" },
-			redirect: "follow",
+			headers: baseHeaders,
+			redirect: "manual",
 		});
+
+		// Collect cookies from the first response
+		const setCookie = res.headers.get("set-cookie");
+		const cookies = setCookie
+			? setCookie
+					.split(",")
+					.map((c) => c.trim().split(";")[0])
+					.filter(Boolean)
+			: [];
+
+		// If the server redirected, follow properly with cookies attached
+		if (res.status >= 300 && res.status < 400) {
+			res = await fetch(url, {
+				signal: controller.signal,
+				headers: {
+					...baseHeaders,
+					...(cookies.length ? { Cookie: cookies.join("; ") } : {}),
+				},
+				redirect: "follow",
+			});
+		}
+
 		let html = await res.text();
 		let finalUrl = res.url;
 		const headers: Record<string, string> = {};
@@ -754,10 +812,7 @@ async function fetchSite(
 			try {
 				const res2 = await fetch(redirectTarget, {
 					signal: controller.signal,
-					headers: {
-						"User-Agent": UA,
-						Accept: "text/html,application/xhtml+xml",
-					},
+					headers: baseHeaders,
 					redirect: "follow",
 				});
 				html = await res2.text();
@@ -885,6 +940,18 @@ async function main() {
 	console.log(`Concurrency: ${concurrency} | Timeout: ${timeoutMs}ms`);
 	if (limit) console.log(`Limit: ${limit}`);
 
+	// Snapshot current results for comparison after the run
+	const previousResults = new Map<string, CmsResult>();
+	try {
+		const prev: ResultsFile = JSON.parse(await readFile(outputFile, "utf8"));
+		for (const r of prev.results) previousResults.set(r.url, r);
+		console.log(
+			`Loaded ${previousResults.size} previous results for comparison`,
+		);
+	} catch {
+		// No previous results — comparison will be skipped
+	}
+
 	// Load existing results if resuming
 	const existingResults = new Map<string, CmsResult>();
 	if (resume) {
@@ -944,6 +1011,7 @@ async function main() {
 					evidence: hit?.evidence ?? [],
 					astroDetected: astro.detected,
 					astroVersion: astro.version,
+					starlightVersion: astro.starlightVersion,
 					astroSignals: astro.signals,
 					finalUrl: resolvedUrl,
 					categories: entry.categories ?? [],
@@ -960,6 +1028,7 @@ async function main() {
 					evidence: [],
 					astroDetected: false,
 					astroVersion: null,
+					starlightVersion: null,
 					astroSignals: [],
 					finalUrl: null,
 					categories: entry.categories ?? [],
@@ -1015,6 +1084,67 @@ async function main() {
 		);
 	}
 	console.log(`\nWrote ${allResults.length} results → ${outputFile}`);
+
+	// ── Comparison with previous run ─────────────────────────────────────────
+	if (previousResults.size > 0) {
+		const newAstro: string[] = [];
+		const lostAstro: string[] = [];
+		const versionChanged: string[] = [];
+		const cmsChanged: string[] = [];
+		const newSites: string[] = [];
+
+		for (const r of allResults) {
+			const prev = previousResults.get(r.url);
+			if (!prev) {
+				newSites.push(r.title || r.url);
+				continue;
+			}
+			if (!prev.astroDetected && r.astroDetected)
+				newAstro.push(
+					`  + ${r.title || r.url} → now Astro${r.astroVersion ? ` v${r.astroVersion}` : ""}`,
+				);
+			if (prev.astroDetected && !r.astroDetected)
+				lostAstro.push(`  - ${r.title || r.url} → ${r.cms}`);
+			if (
+				prev.astroVersion !== r.astroVersion &&
+				r.astroVersion &&
+				prev.astroVersion
+			)
+				versionChanged.push(
+					`  ~ ${r.title || r.url}: v${prev.astroVersion} → v${r.astroVersion}`,
+				);
+			if (prev.cms !== r.cms)
+				cmsChanged.push(`  ~ ${r.title || r.url}: ${prev.cms} → ${r.cms}`);
+		}
+
+		console.log("\n─── Changes vs previous run ───────────────");
+		if (newSites.length)
+			console.log(`  ${newSites.length} new site(s) added to showcase`);
+		if (newAstro.length) {
+			console.log(`\n  Newly detected as Astro (${newAstro.length}):`);
+			newAstro.forEach((l) => console.log(l));
+		}
+		if (lostAstro.length) {
+			console.log(`\n  No longer detected as Astro (${lostAstro.length}):`);
+			lostAstro.forEach((l) => console.log(l));
+		}
+		if (versionChanged.length) {
+			console.log(`\n  Astro version changed (${versionChanged.length}):`);
+			versionChanged.forEach((l) => console.log(l));
+		}
+		if (cmsChanged.length) {
+			console.log(`\n  CMS changed (${cmsChanged.length}):`);
+			cmsChanged.forEach((l) => console.log(l));
+		}
+		if (
+			!newSites.length &&
+			!newAstro.length &&
+			!lostAstro.length &&
+			!versionChanged.length &&
+			!cmsChanged.length
+		)
+			console.log("  No changes detected.");
+	}
 }
 
 main().catch((err) => {

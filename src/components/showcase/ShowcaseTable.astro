@@ -54,7 +54,16 @@ const { results, pageSize } = Astro.props;
             <a href={r.url} target="_blank" rel="noopener noreferrer">
               {r.title || r.url}
             </a>
-            <span class="url-hint">{new URL(r.url).hostname}</span>
+            <span class="url-hint">
+              {new URL(r.url).hostname}
+              <a
+                class="isastro-link"
+                href={`https://isastro.pages.dev/?url=${new URL(r.url).hostname}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Test on isAstro"
+              >test ↗</a>
+            </span>
             {r.finalUrl && (
               <span class="redirect-hint" title={`Redirects to ${r.finalUrl}`}>
                 ↳ {new URL(r.finalUrl).hostname}{new URL(r.finalUrl).pathname !== "/" ? new URL(r.finalUrl).pathname : ""}
@@ -147,6 +156,15 @@ const { results, pageSize } = Astro.props;
   }
   .cell-site a:hover { text-decoration: underline; color: var(--color-primary); }
   .url-hint { display: block; color: var(--color-text-subtle); font-size: var(--step--2); }
+  .isastro-link {
+    margin-inline-start: 0.5em;
+    color: var(--violet-6);
+    text-decoration: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    font-size: var(--step--2);
+  }
+  .results-table tr:hover .isastro-link { opacity: 1; }
   .redirect-hint { display: block; color: var(--color-text-subtle); font-size: var(--step--2); font-style: italic; }
 
   .cell-astro { text-align: center;

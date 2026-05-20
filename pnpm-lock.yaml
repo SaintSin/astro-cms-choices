@@ -16,13 +16,13 @@ importers:
         version: 3.7.2
       '@felixicaza/astro-capo':
         specifier: ^1.1.0
-        version: 1.1.0(astro@6.3.5(@types/node@25.9.1)(rollup@4.60.4))
+        version: 1.1.0(astro@6.3.6(@types/node@25.9.1)(rollup@4.60.4))
       '@iconify-json/ri':
         specifier: ^1.2.10
         version: 1.2.10
       astro:
-        specifier: ^6.3.5
-        version: 6.3.5(@types/node@25.9.1)(rollup@4.60.4)
+        specifier: ^6.3.6
+        version: 6.3.6(@types/node@25.9.1)(rollup@4.60.4)
       astro-icon:
         specifier: ^1.1.5
         version: 1.1.5
@@ -980,8 +980,8 @@ packages:
   astro-robots-txt@1.0.0:
     resolution: {integrity: sha512-6JQSLid4gMhoWjOm85UHLkgrw0+hHIjnJVIUqxjU2D6feKlVyYukMNYjH44ZDZBK1P8hNxd33PgWlHzCASvedA==}
 
-  astro@6.3.5:
-    resolution: {integrity: sha512-gU+4KedkbTuVgz7YoVAN+9Ftnq0GaYwejxK2NbqDzB0M9dWd0f3kXZBuaM9hzbchRFoRAJfJjFtdX9LK6Ir7ZA==}
+  astro@6.3.6:
+    resolution: {integrity: sha512-lM30gGI/iASK9Z1WQVnBBYzxVwDv8slkXbJOF7FNJdZQeBrFETpsQvYoLRupM/adt2ObP5hkYAWEeCjofoqlRw==}
     engines: {node: '>=22.12.0', npm: '>=9.6.5', pnpm: '>=7.1.0'}
     hasBin: true
 
@@ -2337,9 +2337,9 @@ snapshots:
   '@esbuild/win32-x64@0.27.7':
     optional: true
 
-  '@felixicaza/astro-capo@1.1.0(astro@6.3.5(@types/node@25.9.1)(rollup@4.60.4))':
+  '@felixicaza/astro-capo@1.1.0(astro@6.3.6(@types/node@25.9.1)(rollup@4.60.4))':
     dependencies:
-      astro: 6.3.5(@types/node@25.9.1)(rollup@4.60.4)
+      astro: 6.3.6(@types/node@25.9.1)(rollup@4.60.4)
       ultrahtml: 1.6.0
 
   '@iconify-json/ri@1.2.10':
@@ -2774,7 +2774,7 @@ snapshots:
       valid-filename: 4.0.0
       zod: 3.25.76
 
-  astro@6.3.5(@types/node@25.9.1)(rollup@4.60.4):
+  astro@6.3.6(@types/node@25.9.1)(rollup@4.60.4):
     dependencies:
       '@astrojs/compiler': 4.0.0
       '@astrojs/internal-helpers': 0.9.1
