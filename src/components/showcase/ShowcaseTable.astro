@@ -58,6 +58,13 @@ const { results, pageSize } = Astro.props;
               {new URL(r.url).hostname}
               <a
                 class="isastro-link"
+                href={r.finalUrl ?? r.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Visit site"
+              >visit ↗</a>
+              <a
+                class="isastro-link"
                 href={`https://isastro.pages.dev/?url=${new URL(r.url).hostname}`}
                 target="_blank"
                 rel="noopener noreferrer"
