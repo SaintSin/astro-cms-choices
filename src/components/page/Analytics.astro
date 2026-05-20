@@ -2,7 +2,7 @@
 // src/components/Analytics.astro
 // Core Web Vitals tracking only
 // Listens for Astro Page Load event
-// Updated 250907 17:05 - Added debug toggle, clean production mode
+// 2026-05-20T00:00:00Z
 
 const siteId = Astro.site ? new URL(Astro.site).hostname : "localhost";
 ---
@@ -68,7 +68,10 @@ const siteId = Astro.site ? new URL(Astro.site).hostname : "localhost";
         if (lower.includes('safari/') && !lower.includes('chrome')) {
           const version = ua.match(/version\/(\d+)/i);
           return `Safari ${version ? version[1] : ''}`;
-        } else if (lower.includes('chrome/') && !lower.includes('edg')) {
+        } else if (lower.includes('edg/')) {
+      const version = ua.match(/edg\/(\d+)/i);
+      return `Edge ${version ? version[1] : ''}`;
+    } else if (lower.includes('chrome/') && !lower.includes('edg')) {
           const version = ua.match(/chrome\/(\d+)/i);
           return `Chrome ${version ? version[1] : ''}`;
         } else if (lower.includes('firefox/')) {
@@ -96,6 +99,7 @@ const siteId = Astro.site ? new URL(Astro.site).hostname : "localhost";
         fcp: null,
         ttfb: null,
         inp: null,
+        duration_ms: 0,
       };
 
       const captureStart = performance.now();
@@ -276,6 +280,8 @@ const siteId = Astro.site ? new URL(Astro.site).hostname : "localhost";
         ) {
           warn('🚨 No CWV captured - all values null/zero');
         }
+
+        metrics.duration_ms = Date.now() - now;
 
         const blob = new Blob([JSON.stringify(metrics)], {
           type: 'application/json',

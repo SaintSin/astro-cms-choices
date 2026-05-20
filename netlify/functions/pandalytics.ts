@@ -1,5 +1,5 @@
 // netlify/functions/pandalytics.ts
-// 2026-03-12T00:00:00Z
+// 2026-05-20T00:00:00Z
 
 import type { Handler, HandlerEvent } from "@netlify/functions";
 
@@ -19,6 +19,7 @@ interface MetricData {
 	fcp?: number;
 	ttfb?: number;
 	inp?: number;
+  duration_ms?: number;
 }
 
 // Truncate strings to prevent oversized payloads
@@ -89,6 +90,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
 		fcp,
 		ttfb,
 		inp,
+		duration_ms,
 	} = bodyData;
 
 	// Extract country from Netlify headers if not provided in data
@@ -127,7 +129,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
 	const pageviewSql = `
     INSERT INTO pageviews (
       session_id, url, path, referrer, timestamp,
-      lcp, cls, fcp, ttfb, inp
+      lcp, cls, fcp, ttfb, inp, duration_ms
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
@@ -153,6 +155,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
 		fcp ?? null,
 		ttfb ?? null,
 		inp ?? null,
+		duration_ms ?? null,
 	];
 
 	// Check required environment variables
