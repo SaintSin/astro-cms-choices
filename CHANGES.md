@@ -30,6 +30,11 @@
 - Table key added below results explaining the orange full-site row highlight
 - Homepage About section: brief description of what the site does, link to submit to the Astro Showcase, and expandable "About this data" details block
 
+### Bug fixes
+
+- Fixed SvelteKit false positive: `\bsveltekit\b` was matching the word in marketing copy on non-SvelteKit sites (e.g. "deploy SvelteKit apps with ease"). Removed the bare word match; SvelteKit is now detected only via `__sveltekit_`, `data-sveltekit-`, and `svelte-announcer` — all runtime-injected signals that don't appear in body text
+- Added VitePress detection (`<meta name="generator" content="VitePress ...">`) as `static-gen` type
+
 ### Acknowledgements
 
 - Astro detection logic informed by [isAstro](https://github.com/OliverSpeir/isAstro) — Oliver Speir's standalone Astro detector

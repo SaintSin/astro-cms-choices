@@ -478,6 +478,12 @@ const RULES: Rule[] = [
 		match: (html) => /<meta[^>]+generator[^>]*Hexo/i.test(html),
 	},
 	{
+		cms: "VitePress",
+		cmsType: "static-gen",
+		confidence: "high",
+		match: (html) => /<meta[^>]+generator[^>]*VitePress/i.test(html),
+	},
+	{
 		cms: "Umbraco",
 		cmsType: "full-site",
 		confidence: "high",
@@ -510,8 +516,9 @@ const RULES: Rule[] = [
 		cms: "SvelteKit",
 		cmsType: "framework",
 		confidence: "high",
+		// \bsveltekit\b deliberately omitted — it appears in marketing copy on non-SvelteKit sites
 		match: (html) =>
-			/\bsveltekit\b|__sveltekit_|data-sveltekit-|svelte-announcer/i.test(html),
+			/__sveltekit_|data-sveltekit-|svelte-announcer/i.test(html),
 	},
 	{
 		cms: "Remix",
