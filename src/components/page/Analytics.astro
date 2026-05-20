@@ -61,6 +61,9 @@ const siteId = Astro.site ? new URL(Astro.site).hostname : "localhost";
         return;
       }
 
+      // Mark immediately so concurrent calls (e.g. astro:page-load + initial load) are deduplicated
+      sessionStorage.setItem(lastSentKey, now.toString());
+
       // Browser detection
       const parseBrowser = (ua) => {
         if (!ua) return 'Unknown';
@@ -300,8 +303,6 @@ const siteId = Astro.site ? new URL(Astro.site).hostname : "localhost";
           log('📡 Sent via fetch');
         }
 
-        // Mark as sent
-        sessionStorage.setItem(lastSentKey, now.toString());
         log('✅ Marked sent:', new Date().toLocaleTimeString());
       }, 1500);
     }
