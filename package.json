@@ -21,7 +21,9 @@
 		"fmt:check": "oxfmt --check",
 		"detect": "node --experimental-strip-types scripts/detect-cms.ts",
 		"clean": "rm -rf dist .astro",
-		"purge": "rm -rf dist .astro .netlify node_modules"
+		"purge": "rm -rf dist .astro .netlify node_modules",
+		"deploy": "netlify deploy --prod --dir dist --functions netlify/functions",
+		"deploy:draft": "netlify deploy --dir dist --functions netlify/functions"
 	},
 	"dependencies": {
 		"@astrojs/compiler-rs": "^0.2.0",
