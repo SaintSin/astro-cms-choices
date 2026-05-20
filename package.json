@@ -1,6 +1,13 @@
 {
 	"name": "astro60",
 	"version": "0.0.1",
+	"author": "St John Mackay",
+	"contributors": [
+		{
+			"name": "Claude (Anthropic)",
+			"url": "https://claude.ai"
+		}
+	],
 	"type": "module",
 	"scripts": {
 		"dev": "astro dev",
@@ -36,13 +43,6 @@
 		"oxfmt": "^0.51.0",
 		"postcss-jit-props": "^1.0.16"
 	},
-	"author": "St John Mackay",
-	"contributors": [
-		{
-			"name": "Claude (Anthropic)",
-			"url": "https://claude.ai"
-		}
-	],
 	"engines": {
 		"node": ">=22.12.0"
 	},

@@ -3,8 +3,14 @@
 // 2026-05-17T00:00:00Z
 
 import { readFile } from "node:fs/promises";
-import BaseLayout from "../layouts/BaseLayout.astro";
+import Layout from "@layouts/BaseLayout.astro";
 import type { ResultsFile } from "../types/index";
+
+const meta = {
+	title: "Insights — Astro CMS Detector",
+	description:
+		"Astro version distribution and submission trends across the showcase.",
+};
 
 const raw: ResultsFile = JSON.parse(
 	await readFile("src/data/cms-results.json", "utf8"),
@@ -20,7 +26,7 @@ const VERSION_COLOURS: Record<string, string> = {
 	v5: "#60a5fa", // blue
 	v6: "#a78bfa", // violet
 	v7: "#f472b6", // pink
-	"No version": "#94a3b8", // slate
+	unknown: "#94a3b8", // slate
 };
 
 const versionCounts: Record<string, number> = {};
@@ -28,12 +34,12 @@ for (const site of results) {
 	if (!site.astroDetected) continue;
 	const major = site.astroVersion
 		? `v${site.astroVersion.split(".")[0]}`
-		: "No version";
+		: "unknown";
 	versionCounts[major] = (versionCounts[major] ?? 0) + 1;
 }
 const versionLabels = Object.keys(versionCounts).sort((a, b) => {
-	if (a === "No version") return 1;
-	if (b === "No version") return -1;
+	if (a === "unknown") return 1;
+	if (b === "unknown") return -1;
 	return a.localeCompare(b, undefined, { numeric: true });
 });
 const versionData = versionLabels.map((k) => versionCounts[k]);
@@ -67,7 +73,7 @@ const legacy =
 	(versionCounts["v3"] ?? 0);
 ---
 
-<BaseLayout metaData={{ title: "Insights — Astro CMS Detector", description: "Astro version distribution and submission trends across the showcase." }}>
+<Layout metaData={meta}>
   <div class="wrapper">
     <h1>Insights</h1>
     <p class="lead">Version distribution and submission trends across {totalDetected.toLocaleString()} Astro-detected sites.</p>
@@ -86,8 +92,8 @@ const legacy =
         <div class="stat-label">Still on v1–v3</div>
       </div>
       <div class="stat-card">
-        <div class="stat-value slate">{versionCounts["No version"] ?? 0}</div>
-        <div class="stat-label">No version detected</div>
+        <div class="stat-value slate">{versionCounts["unknown"] ?? 0}</div>
+        <div class="stat-label">unknown detected</div>
       </div>
     </div>
 
@@ -101,15 +107,15 @@ const legacy =
       </div>
 
       <div class="chart-card">
-        <h2>Submission year vs current version</h2>
-        <p class="chart-desc">Sites submitted in each year, coloured by their current Astro major version — shows how many have kept up to date.</p>
+        <h2>Submission year vs Astro version in use</h2>
+        <p class="chart-desc">Sites grouped by the year they were added to the showcase, coloured by the Astro major version they are currently running.</p>
         <div class="bar-wrap">
           <canvas id="yearChart"></canvas>
         </div>
       </div>
     </div>
   </div>
-</BaseLayout>
+</Layout>
 
 <!-- Pass server data to client via JSON script tag -->
 <script id="insights-data" type="application/json" set:html={JSON.stringify({ versionLabels, versionData, versionColors, years, stackedDatasets }).replace(/<\/script>/gi, "<\\/script>")} />
