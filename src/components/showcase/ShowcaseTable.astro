@@ -155,13 +155,13 @@ const { results, pageSize } = Astro.props;
   }
   .results-table tr:hover td { background: var(--color-surface); }
 
-  .cell-site a {
+  .cell-site a:not(.isastro-link) {
     display: block;
     font-weight: 500;
     color: var(--color-text);
     text-decoration: none;
   }
-  .cell-site a:hover { text-decoration: underline; color: var(--color-primary); }
+  .cell-site a:not(.isastro-link):hover { text-decoration: underline; color: var(--color-primary); }
   .url-hint { display: block; color: var(--color-text-subtle); font-size: var(--step--2); white-space: nowrap; }
   .isastro-link {
     display: inline;
