@@ -36,6 +36,43 @@ Sites where the detection result looks wrong and needs a manual check.
 
 ---
 
+## PR submission process
+
+PRs go to [withastro/astro.build](https://github.com/withastro/astro.build). The showcase source files live in `src/content/showcase/` — one `.yml` + one `.webp` per site.
+
+### Removing sites (no longer Astro)
+
+1. Delete the `.yml` and `.webp` files for each site
+2. **Add the removed URLs to `blockedOrigins`** in `scripts/update-showcase.mjs` — this stops the weekly CI job from re-checking them and potentially re-adding them. Use the root domain (e.g. `https://coolify.io/` not `https://coolify.io/docs/`). Add a dated comment: `// 2026-05-25 - no longer Astro`
+3. Check open issues — if a site owner has already filed a removal request, note `closes #NNNN` in the commit message so it auto-closes
+4. Keep PRs to manageable batches (~10 sites) so maintainers can review quickly
+5. Only include sites where a non-Astro framework/CMS was **positively identified** — don't include sites that are merely undetectable or erroring
+
+### Review process (what maintainers check)
+
+- **trueberryless** (contributor) cross-checks sites via [isastro.pages.dev](https://isastro.pages.dev) and manual HTML inspection
+- **sarah11918** (member) does a final pass before approving — she's thorough, be patient
+- **delucis** (member) reviews code/config changes — he's the one who will catch anything in `update-showcase.mjs`
+- Community members can help verify sites in PR comments — encourage them to claim a range (e.g. "A–F done, no Astro found") to avoid duplicate effort
+- The astro-what-cms isAstro hover link (`test ↗`) can be shared to speed up community verification
+
+### Key feedback from delucis (PR #2409)
+
+- Always add removed domains to `blockedOrigins` in `update-showcase.mjs`
+- If a removal PR also fixes an open issue, reference it with `closes #NNNN` in the commit message
+- The Netlify deploy preview needs a maintainer to approve it — this is separate from the code review approval and can block merge even after approval
+
+### Merge sequence
+
+1. Submit PR with removals + `blockedOrigins` additions
+2. Community spot-checks sites in comments
+3. Contributor approval (trueberryless or similar) — speeds things up but not sufficient alone
+4. Member approval (sarah11918, delucis, or other core team) — required to unblock merge
+5. Netlify deploy preview approved by maintainer
+6. Merge
+
+---
+
 ## Detector improvements found during review
 
 | Issue | Fix | Status |
