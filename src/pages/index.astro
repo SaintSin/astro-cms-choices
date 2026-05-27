@@ -27,7 +27,13 @@ try {
 const results = data?.results ?? [];
 const total = results.length;
 
-const CMS_TYPES = new Set(["headless-cms", "page-builder", "full-site", "framework", "static-gen"]);
+const CMS_TYPES = new Set([
+	"headless-cms",
+	"page-builder",
+	"full-site",
+	"framework",
+	"static-gen",
+]);
 const cmsCounts = new Map<string, number>();
 for (const r of results) {
 	if (!CMS_TYPES.has(r.cmsType)) continue;
@@ -44,7 +50,9 @@ const noLongerAstro = results.filter(
 const starlightCount = results.filter((r) => r.cms === "Starlight").length;
 const frameworkCount = results.filter((r) => r.cmsType === "framework").length;
 const forwardedCount = results.filter((r) => r.cms === "Forwarded").length;
-const parkedCount = results.filter((r) => r.cmsType === "parked" && r.cms !== "Forwarded").length;
+const parkedCount = results.filter(
+	(r) => r.cmsType === "parked" && r.cms !== "Forwarded",
+).length;
 ---
 
 <Layout metaData={meta}>
@@ -292,6 +300,12 @@ const parkedCount = results.filter((r) => r.cmsType === "parked" && r.cms !== "F
       const sorted   = sortRows(filtered);
       const start    = (currentPage - 1) * PAGE_SIZE;
       const pageRows = new Set(sorted.slice(start, start + PAGE_SIZE));
+
+      // Reorder rows in the DOM so the visible rows appear in sort order.
+      // appendChild on an existing node moves it — iterating in sorted order
+      // places each row at the end in sequence, producing a fully sorted tbody.
+      const domOrder = sortCol ? sortRows(allRows) : allRows;
+      for (const row of domOrder) tbody.appendChild(row);
 
       for (const row of allRows) row.hidden = !pageRows.has(row);
 

@@ -20,6 +20,8 @@
 		"fmt": "oxfmt",
 		"fmt:check": "oxfmt --check",
 		"detect": "node --experimental-strip-types scripts/detect-cms.ts",
+		"db:init": "node --experimental-strip-types scripts/db-init.ts",
+		"db:report": "node --experimental-strip-types scripts/db-report.ts",
 		"clean": "rm -rf dist .astro",
 		"purge": "rm -rf dist .astro .netlify node_modules",
 		"deploy": "netlify deploy --prod --dir dist --functions netlify/functions",
@@ -42,6 +44,8 @@
 	"devDependencies": {
 		"@biomejs/biome": "2.4.15",
 		"@netlify/functions": "^5.2.2",
+		"@types/better-sqlite3": "^7.6.13",
+		"better-sqlite3": "^12.10.0",
 		"oxfmt": "^0.52.0",
 		"postcss-jit-props": "^1.0.16"
 	},

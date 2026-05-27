@@ -30,5 +30,10 @@ pnpm-debug.log*
 
 # Generated CMS detection results (regenerate with pnpm detect)
 src/data/cms-results.json
+
+# Local scan history database (local only — not deployed)
+.scan-history.db
+.scan-history.db-wal
+.scan-history.db-shm
 # Local Netlify folder
 .netlify

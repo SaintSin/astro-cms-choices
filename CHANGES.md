@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-05-27 (continued)
+
+### Scan history database
+
+- Added local SQLite scan-history database (`.scan-history.db`, gitignored, never deployed)
+- Installed `better-sqlite3` as a dev dependency; approved native build in `pnpm-workspace.yaml`
+- New scripts:
+  - `scripts/db-utils.ts` — shared `openDb()` / `writeScanToDb()` helpers; auto-creates schema on first use
+  - `scripts/db-init.ts` — one-time setup and health check (`pnpm db:init`)
+  - `scripts/db-report.ts` — query CLI (`pnpm db:report`)
+- `detect-cms.ts` now writes every completed scan to the DB automatically (non-fatal — a DB error never breaks a scan)
+- Three tables: `scans` (one row per run), `sites` (stable site registry), `scan_results` (one row per site per scan)
+- `pnpm db:report` — default shows scan history table
+- `pnpm db:report --errors` — sites that errored in 3+ of the last 5 scans (configurable via `--min` and `--scans`)
+- `pnpm db:report --changes` — CMS / Astro changes between the last two scans
+- `pnpm db:report --decay` — Astro sites grouped by major version, flags v1–v3 specifically
+- `pnpm db:report --site <hostname>` — full per-scan history for one site
+- `pnpm db:report --all` — runs all reports in sequence
+- Existing `cms-results.json` backfilled as scan #1 on first run
+
+### Sort fix
+
+- Fixed Astro version sort (and all column sorts) in the deployed site: `applyView` now reorders rows in the DOM via `tbody.appendChild` in sorted order before applying show/hide, so visible rows appear in correct sequence rather than original JSON insertion order
+
 ## 2026-05-27
 
 ### Detection (second pass)

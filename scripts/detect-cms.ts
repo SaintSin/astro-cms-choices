@@ -14,6 +14,7 @@ import { execSync } from "node:child_process";
 import { access, readdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { parseArgs } from "node:util";
+import { writeScanToDb } from "./db-utils.ts";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -880,6 +881,8 @@ function createQueue(concurrency: number) {
 // ---------------------------------------------------------------------------
 
 async function main() {
+	const startMs = Date.now();
+
 	const { values: args } = parseArgs({
 		args: process.argv.slice(2),
 		options: {
@@ -1019,9 +1022,7 @@ async function main() {
 				// a "Blocked" label from a Cloudflare overlay on top of real HTML
 				// is misleading, so demote it to Unknown in that case.
 				const effectiveHit =
-					hit?.cms === "Blocked" && astro.detected
-						? null
-						: hit;
+					hit?.cms === "Blocked" && astro.detected ? null : hit;
 				result = {
 					title: entry.title,
 					url: entry.url,
@@ -1104,6 +1105,16 @@ async function main() {
 		);
 	}
 	console.log(`\nWrote ${allResults.length} results → ${outputFile}`);
+
+	// ── Write scan to local history DB ───────────────────────────────────────
+	try {
+		const scanId = writeScanToDb(allResults, output, Date.now() - startMs);
+		console.log(`DB: scan #${scanId} saved → .scan-history.db`);
+	} catch (err) {
+		console.warn(
+			`DB write skipped (non-fatal): ${err instanceof Error ? err.message : err}`,
+		);
+	}
 
 	// ── Comparison with previous run ─────────────────────────────────────────
 	if (previousResults.size > 0) {
