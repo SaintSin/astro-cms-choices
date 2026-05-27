@@ -1009,13 +1009,20 @@ async function main() {
 				const hit = fingerprint(html, headers, entry.url, finalUrl);
 				const astro = detectAstro(html);
 				const resolvedUrl = finalUrl !== entry.url ? finalUrl : null;
+				// If we detected an Astro version, we got real content through —
+				// a "Blocked" label from a Cloudflare overlay on top of real HTML
+				// is misleading, so demote it to Unknown in that case.
+				const effectiveHit =
+					hit?.cms === "Blocked" && astro.version
+						? null
+						: hit;
 				result = {
 					title: entry.title,
 					url: entry.url,
-					cms: hit?.cms ?? "Unknown",
-					cmsType: hit?.cmsType ?? "unknown",
-					confidence: hit?.confidence ?? null,
-					evidence: hit?.evidence ?? [],
+					cms: effectiveHit?.cms ?? "Unknown",
+					cmsType: effectiveHit?.cmsType ?? "unknown",
+					confidence: effectiveHit?.confidence ?? null,
+					evidence: effectiveHit?.evidence ?? [],
 					astroDetected: astro.detected,
 					astroVersion: astro.version,
 					starlightVersion: astro.starlightVersion,
