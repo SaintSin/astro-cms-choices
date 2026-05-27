@@ -2,7 +2,12 @@
 
 ## 2026-05-27
 
-### Detection
+### Detection (second pass)
+
+- Added Substack detection via `substackcdn.com` and `substack.com/publish` (`full-site`, high confidence) — catches sites that have redirected their custom domain to a Substack publication
+- Type column in results table now shows "Redirected domain" vs "Parked domain" separately — previously both labelled "Parked / Forwarded"
+
+### Detection (first pass)
 
 - Fixed Blocked + Astro version contradiction: when `astroDetected` is true, a "Blocked" CMS label (from a Cloudflare challenge overlay on top of real HTML) is now demoted to Unknown. Previously the fix only applied when `astroVersion` was present — updated to use `astro.detected` so sites with signals but no version number (e.g. 1vps.com) are also corrected. Blocked sites dropped from 179 → 39 across the dataset
 - Fixed SvelteKit false positive: `\bsveltekit\b` was matching the word in marketing copy. Removed the bare-word match; SvelteKit is now detected only via `__sveltekit_`, `data-sveltekit-`, and `svelte-announcer`
