@@ -43,7 +43,8 @@ const noLongerAstro = results.filter(
 ).length;
 const starlightCount = results.filter((r) => r.cms === "Starlight").length;
 const frameworkCount = results.filter((r) => r.cmsType === "framework").length;
-const parkedCount = results.filter((r) => r.cmsType === "parked").length;
+const forwardedCount = results.filter((r) => r.cms === "Forwarded").length;
+const parkedCount = results.filter((r) => r.cmsType === "parked" && r.cms !== "Forwarded").length;
 ---
 
 <Layout metaData={meta}>
@@ -94,8 +95,8 @@ const parkedCount = results.filter((r) => r.cmsType === "parked").length;
             <span class="stat-label">Sites with CMS detected</span>
           </div>
           <div class="stat-card stat-card--parked">
-            <span class="stat-value">{parkedCount}</span>
-            <span class="stat-label">Parked / forwarded</span>
+            <span class="stat-value">{forwardedCount + parkedCount}</span>
+            <span class="stat-label">Parked or forwarded</span>
           </div>
           <div class="stat-card stat-card--error">
             <span class="stat-value">{errors}</span>
@@ -127,6 +128,7 @@ const parkedCount = results.filter((r) => r.cmsType === "parked").length;
           <ShowcaseToolbar
             starlightCount={starlightCount}
             frameworkCount={frameworkCount}
+            forwardedCount={forwardedCount}
             parkedCount={parkedCount}
             noLongerAstro={noLongerAstro}
           />
@@ -152,6 +154,7 @@ const parkedCount = results.filter((r) => r.cmsType === "parked").length;
     const astroFilterBtn = document.getElementById("astro-filter");
     const starlightFilterBtn = document.getElementById("starlight-filter");
     const frameworkFilterBtn = document.getElementById("framework-filter");
+    const forwardedFilterBtn = document.getElementById("forwarded-filter");
     const parkedFilterBtn = document.getElementById("parked-filter");
     const countEl = document.getElementById("results-count");
     const paginationEl = document.getElementById("pagination");
@@ -162,6 +165,8 @@ const parkedCount = results.filter((r) => r.cmsType === "parked").length;
 
     let activeCmsFilter = null;
     let activeCmsTypeFilter = null;
+    let forwardedOnly = false;
+    let parkedOnly = false;
     let noAstroOnly = false;
     let sortCol = null;
     let sortAsc = true;
@@ -234,11 +239,13 @@ const parkedCount = results.filter((r) => r.cmsType === "parked").length;
     function getFilteredRows() {
       const query = searchInput.value.toLowerCase();
       return allRows.filter((row) => {
-        const matchesCms     = !activeCmsFilter     || row.dataset.cms === activeCmsFilter;
-        const matchesCmsType = !activeCmsTypeFilter || row.dataset.cmstype === activeCmsTypeFilter;
-        const matchesSearch  = !query || row.dataset.title.includes(query) || row.dataset.url.includes(query);
-        const matchesAstro   = !noAstroOnly || row.dataset.astro === "false";
-        return matchesCms && matchesCmsType && matchesSearch && matchesAstro;
+        const matchesCms      = !activeCmsFilter     || row.dataset.cms === activeCmsFilter;
+        const matchesCmsType  = !activeCmsTypeFilter || row.dataset.cmstype === activeCmsTypeFilter;
+        const matchesForwarded = !forwardedOnly || row.dataset.cms === "Forwarded";
+        const matchesParked   = !parkedOnly || (row.dataset.cmstype === "parked" && row.dataset.cms !== "Forwarded");
+        const matchesSearch   = !query || row.dataset.title.includes(query) || row.dataset.url.includes(query);
+        const matchesAstro    = !noAstroOnly || row.dataset.astro === "false";
+        return matchesCms && matchesCmsType && matchesForwarded && matchesParked && matchesSearch && matchesAstro;
       });
     }
 
@@ -306,9 +313,12 @@ const parkedCount = results.filter((r) => r.cmsType === "parked").length;
 
     function clearTypeFilters() {
       document.querySelectorAll(".bar-filter-btn").forEach((b) => b.classList.remove("active"));
-      if (starlightFilterBtn) starlightFilterBtn.classList.remove("active");
-      if (frameworkFilterBtn) frameworkFilterBtn.classList.remove("active");
-      if (parkedFilterBtn)    parkedFilterBtn.classList.remove("active");
+      if (starlightFilterBtn)  starlightFilterBtn.classList.remove("active");
+      if (frameworkFilterBtn)  frameworkFilterBtn.classList.remove("active");
+      if (forwardedFilterBtn)  forwardedFilterBtn.classList.remove("active");
+      if (parkedFilterBtn)     parkedFilterBtn.classList.remove("active");
+      forwardedOnly = false;
+      parkedOnly = false;
     }
 
     function setCmsFilter(cms) {
@@ -338,7 +348,24 @@ const parkedCount = results.filter((r) => r.cmsType === "parked").length;
     );
     if (starlightFilterBtn) starlightFilterBtn.addEventListener("click", () => setCmsFilter("Starlight"));
     if (frameworkFilterBtn) frameworkFilterBtn.addEventListener("click", () => setCmsTypeFilter("framework", frameworkFilterBtn));
-    if (parkedFilterBtn)    parkedFilterBtn.addEventListener("click",    () => setCmsTypeFilter("parked", parkedFilterBtn));
+    if (forwardedFilterBtn) forwardedFilterBtn.addEventListener("click", () => {
+      clearTypeFilters();
+      forwardedOnly = !forwardedOnly;
+      activeCmsFilter = null;
+      activeCmsTypeFilter = null;
+      currentPage = 1;
+      forwardedFilterBtn.classList.toggle("active", forwardedOnly);
+      applyView();
+    });
+    if (parkedFilterBtn) parkedFilterBtn.addEventListener("click", () => {
+      clearTypeFilters();
+      parkedOnly = !parkedOnly;
+      activeCmsFilter = null;
+      activeCmsTypeFilter = null;
+      currentPage = 1;
+      parkedFilterBtn.classList.toggle("active", parkedOnly);
+      applyView();
+    });
 
     if (astroFilterBtn) {
       astroFilterBtn.addEventListener("click", () => {
@@ -355,6 +382,8 @@ const parkedCount = results.filter((r) => r.cmsType === "parked").length;
       clearBtn.addEventListener("click", () => {
         activeCmsFilter = null;
         activeCmsTypeFilter = null;
+        forwardedOnly = false;
+        parkedOnly = false;
         noAstroOnly = false;
         currentPage = 1;
         searchInput.value = "";

@@ -89,7 +89,16 @@ const { results, pageSize } = Astro.props;
             }
           </td>
           <td>
-            <span class={`cms-badge cms-badge--${r.cmsType}`}>{r.cms}</span>
+            {r.cms === "Blocked"
+              ? <span class="status-badge status-badge--blocked" title="Bot challenge detected — content may be incomplete">Bot-protected</span>
+              : r.cms === "Error"
+                ? <span class="status-badge status-badge--error" title={r.error ?? "Fetch failed"}>Fetch error</span>
+                : r.cms === "Forwarded"
+                  ? <span class="status-badge status-badge--forwarded" title={r.finalUrl ? `Redirects to ${r.finalUrl}` : "Domain redirected"}>Redirected</span>
+                  : r.cms === "Unknown" || r.cmsType === "parked"
+                    ? null
+                    : <span class={`cms-badge cms-badge--${r.cmsType}`}>{r.cms}</span>
+            }
           </td>
           <td class="cell-type">
             {r.cmsType !== "unknown" ? CMS_TYPE_LABELS[r.cmsType] ?? r.cmsType : ""}
@@ -228,6 +237,18 @@ const { results, pageSize } = Astro.props;
   .cms-badge--framework    { background: var(--cyan-1);   color: var(--cyan-9); }
   .cms-badge--static-gen   { background: var(--green-1);  color: var(--green-9); }
   .cms-badge--parked       { background: var(--yellow-1); color: var(--yellow-9); }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.15em 0.6em;
+    border-radius: 999px;
+    font-size: var(--step--2);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .status-badge--blocked   { background: var(--yellow-1); color: var(--yellow-8); }
+  .status-badge--error     { background: var(--gray-1);   color: var(--gray-6);   }
+  .status-badge--forwarded { background: var(--blue-1);   color: var(--blue-7);   }
 
   .conf-badge {
     display: inline-block;
