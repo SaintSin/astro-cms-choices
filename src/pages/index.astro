@@ -27,16 +27,15 @@ try {
 const results = data?.results ?? [];
 const total = results.length;
 
+const CMS_TYPES = new Set(["headless-cms", "page-builder", "full-site", "framework", "static-gen"]);
 const cmsCounts = new Map<string, number>();
 for (const r of results) {
-	if (r.cms === "Unknown" || r.cms === "Error" || r.cms === "Blocked") continue;
+	if (!CMS_TYPES.has(r.cmsType)) continue;
 	cmsCounts.set(r.cms, (cmsCounts.get(r.cms) ?? 0) + 1);
 }
 const sorted = [...cmsCounts.entries()].sort((a, b) => b[1] - a[1]);
 
-const detected = results.filter(
-	(r) => r.cms !== "Unknown" && r.cms !== "Error" && r.cms !== "Blocked",
-).length;
+const detected = results.filter((r) => CMS_TYPES.has(r.cmsType)).length;
 const errors = results.filter((r) => r.cms === "Error").length;
 const astroConfirmed = results.filter((r) => r.astroDetected).length;
 const noLongerAstro = results.filter(
