@@ -308,6 +308,12 @@ const RULES: Rule[] = [
 		match: (html) => /ghost\.io|\/ghost\//i.test(html),
 	},
 	{
+		cms: "Substack",
+		cmsType: "full-site",
+		confidence: "high",
+		match: (html) => /substackcdn\.com|substack\.com\/publish/i.test(html),
+	},
+	{
 		cms: "Drupal",
 		cmsType: "full-site",
 		confidence: "high",

@@ -101,7 +101,13 @@ const { results, pageSize } = Astro.props;
             }
           </td>
           <td class="cell-type">
-            {r.cmsType !== "unknown" ? CMS_TYPE_LABELS[r.cmsType] ?? r.cmsType : ""}
+            {r.cms === "Forwarded"
+              ? "Redirected domain"
+              : r.cmsType === "parked"
+                ? "Parked domain"
+                : r.cmsType !== "unknown"
+                  ? CMS_TYPE_LABELS[r.cmsType] ?? r.cmsType
+                  : ""}
           </td>
           <td>
             {r.confidence && (
