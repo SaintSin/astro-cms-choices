@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-05-27
+
+### Detection
+
+- Fixed Blocked + Astro version contradiction: when `astroDetected` is true, a "Blocked" CMS label (from a Cloudflare challenge overlay on top of real HTML) is now demoted to Unknown. Previously the fix only applied when `astroVersion` was present — updated to use `astro.detected` so sites with signals but no version number (e.g. 1vps.com) are also corrected. Blocked sites dropped from 179 → 39 across the dataset
+- Fixed SvelteKit false positive: `\bsveltekit\b` was matching the word in marketing copy. Removed the bare-word match; SvelteKit is now detected only via `__sveltekit_`, `data-sveltekit-`, and `svelte-announcer`
+- Added VitePress detection via `<meta name="generator" content="VitePress ...">` (`static-gen` type)
+
+### UI
+
+- CMS column now shows meaningful status badges instead of internal labels:
+  - "Blocked" → **Bot-protected** (yellow) — Cloudflare or similar challenge detected
+  - "Error" → **Fetch error** (grey) — site unreachable at scan time
+  - "Forwarded" → **Redirected** (blue) — domain redirects to a different hostname
+  - Unknown and parked entries show nothing
+- Breakdown list now filters to actual CMS/framework types only (`headless-cms`, `page-builder`, `full-site`, `framework`, `static-gen`) — Forwarded, Parked, and Unknown entries no longer appear
+- Toolbar: split single "Parked" button into two distinct filters:
+  - **Redirected domains** (blue) — filters by `cms === "Forwarded"`
+  - **Parked domains** (yellow) — filters genuinely parked/expired domains only
+
+### PR workflow (withastro/astro.build)
+
+- First PR merged: [#2409](https://github.com/withastro/astro.build/pull/2409) — removed 77 sites no longer running Astro (76 confirmed migrations + jak2k.schwanenberg.name per issue #2408)
+- All removed domains added to `blockedOrigins` in `scripts/update-showcase.mjs` so weekly CI skips re-checking them
+- PR process documented in `REVIEW-NOTES.md`
+
 ## 2026-05-20
 
 ### Detection
