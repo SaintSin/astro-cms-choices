@@ -22,6 +22,8 @@
 		"detect": "node --experimental-strip-types scripts/detect-cms.ts",
 		"db:init": "node --experimental-strip-types scripts/db-init.ts",
 		"db:report": "node --experimental-strip-types scripts/db-report.ts",
+		"psi": "node scripts/psi.mjs",
+		"crux": "node scripts/crux.mjs",
 		"clean": "rm -rf dist .astro",
 		"purge": "rm -rf dist .astro .netlify node_modules",
 		"deploy": "netlify deploy --prod --dir dist --functions netlify/functions",

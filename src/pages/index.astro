@@ -214,14 +214,22 @@ const parkedCount = results.filter(
       if (!sortCol) return rows;
       return [...rows].sort((a, b) => {
         if (sortCol === "astro") {
+          // Rank: 0 = detected + has version, 1 = detected + no version, 2 = not detected
+          const rank = (row) => {
+            if (row.dataset.astro !== "true") return 2;
+            return row.dataset.astroversion ? 0 : 1;
+          };
+          const ra = rank(a), rb = rank(b);
+          if (ra !== rb) return ra - rb;   // always ascending by rank (not detected always last)
+          if (ra !== 0) return 0;          // both in the same no-version bucket
           const cmp = compareVersions(a.dataset.astroversion, b.dataset.astroversion);
           return sortAsc ? cmp : -cmp;
         }
         const av = getSortValue(a, sortCol);
         const bv = getSortValue(b, sortCol);
-        if (!av && bv) return 1;
-        if (av && !bv) return -1;
         if (!av && !bv) return 0;
+        if (!av) return 1;   // empty values always group at bottom
+        if (!bv) return -1;
         const cmp = av.localeCompare(bv, undefined, { numeric: true });
         return sortAsc ? cmp : -cmp;
       });

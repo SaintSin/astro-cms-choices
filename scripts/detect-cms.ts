@@ -922,8 +922,27 @@ async function processSite(
 	try {
 		const { html, headers, finalUrl } = await fetchSite(entry.url, timeoutMs);
 		const hit = fingerprint(html, headers, entry.url, finalUrl);
-		const astro = detectAstro(html);
-		const resolvedUrl = finalUrl !== entry.url ? finalUrl : null;
+		let astro = detectAstro(html);
+		let deepFinalUrl = finalUrl;
+
+		// For forwarded sites where Astro wasn't detected, make one extra pass
+		// directly on the redirect destination. The intermediate URL may use a
+		// JS redirect or further HTTP redirect (e.g. /docs/ → /docs/public/) that
+		// the first fetch didn't follow all the way to the actual Astro content.
+		if (hit?.cms === "Forwarded" && !astro.detected && finalUrl) {
+			try {
+				const second = await fetchSite(finalUrl, timeoutMs);
+				const secondAstro = detectAstro(second.html);
+				if (secondAstro.detected) {
+					astro = secondAstro;
+					deepFinalUrl = second.finalUrl;
+				}
+			} catch {
+				// second pass failed — keep original result
+			}
+		}
+
+		const resolvedUrl = deepFinalUrl !== entry.url ? deepFinalUrl : null;
 		// If Astro was detected, we got real content through —
 		// a "Blocked" label from a Cloudflare overlay on top of real HTML
 		// is misleading, so demote it to Unknown in that case.
@@ -1055,7 +1074,7 @@ async function main() {
 	const startMs = Date.now();
 
 	const { values: args } = parseArgs({
-		args: process.argv.slice(2),
+		args: process.argv.slice(2).filter((a) => a !== "--"),
 		options: {
 			source: {
 				type: "string",
@@ -1068,6 +1087,8 @@ async function main() {
 			limit: { type: "string" },
 			concurrency: { type: "string", default: "6" },
 			resume: { type: "boolean", default: false },
+			"errors-only": { type: "boolean", default: false },
+			"forwarded-only": { type: "boolean", default: false },
 			timeout: { type: "string", default: "10000" },
 		},
 	});
@@ -1080,6 +1101,8 @@ async function main() {
 		? Number.parseInt(args.limit as string, 10)
 		: undefined;
 	const resume = args.resume as boolean;
+	const errorsOnly = args["errors-only"] as boolean;
+	const forwardedOnly = args["forwarded-only"] as boolean;
 
 	const cacheRoot = resolve(".showcase-cache");
 	const isDefaultSource =
@@ -1103,15 +1126,27 @@ async function main() {
 		// No previous results — comparison will be skipped
 	}
 
-	// Load existing results if resuming
+	// Load existing results if resuming or retrying a subset
 	const existingResults = new Map<string, CmsResult>();
-	if (resume) {
+	if (resume || errorsOnly || forwardedOnly) {
 		try {
 			const existing: ResultsFile = JSON.parse(
 				await readFile(outputFile, "utf8"),
 			);
 			for (const r of existing.results) existingResults.set(r.url, r);
-			console.log(`Resuming: ${existingResults.size} already processed`);
+			if (resume) {
+				console.log(`Resuming: ${existingResults.size} already processed`);
+			} else if (errorsOnly) {
+				const count = [...existingResults.values()].filter(
+					(r) => r.cms === "Error",
+				).length;
+				console.log(`Errors only: ${count} sites to retry`);
+			} else {
+				const count = [...existingResults.values()].filter(
+					(r) => r.cms === "Forwarded" && !r.astroDetected,
+				).length;
+				console.log(`Forwarded (non-Astro) only: ${count} sites to retry`);
+			}
 		} catch {
 			console.log("No existing results found, starting fresh");
 		}
@@ -1129,6 +1164,13 @@ async function main() {
 	const toProcess = limit ? entries.slice(0, limit) : entries;
 	const toFetch = resume
 		? toProcess.filter((e) => !existingResults.has(e.url))
+		: errorsOnly
+		? toProcess.filter((e) => existingResults.get(e.url)?.cms === "Error")
+		: forwardedOnly
+		? toProcess.filter((e) => {
+				const r = existingResults.get(e.url);
+				return r?.cms === "Forwarded" && !r.astroDetected;
+			})
 		: toProcess;
 
 	console.log(
@@ -1156,12 +1198,20 @@ async function main() {
 	// Merge with existing
 	const allResults = [
 		...fresh,
-		...(resume
+		...(resume || errorsOnly || forwardedOnly
 			? [...existingResults.values()].filter(
 					(r) => !fresh.find((f) => f.url === r.url),
 				)
 			: []),
 	].sort((a, b) => a.title.localeCompare(b.title));
+
+	// Safety guard: if we were merging with existing results and the merged total
+	// is drastically smaller than what we started with, something went wrong — bail
+	// rather than silently overwrite good data with an empty or truncated file.
+	if ((resume || errorsOnly || forwardedOnly) && existingResults.size > 0 && allResults.length < existingResults.size * 0.5) {
+		console.error(`\n⛔ Merge safety check failed: expected ~${existingResults.size} results, got ${allResults.length}. Aborting write to protect existing data.\n`);
+		process.exit(1);
+	}
 
 	const output: ResultsFile = {
 		generated: new Date().toISOString(),

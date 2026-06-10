@@ -400,7 +400,7 @@ const { values: args } = parseArgs({
 		all: { type: "boolean", default: false },
 		site: { type: "string" },
 		scans: { type: "string", default: "5" }, // look-back window for --errors
-		min: { type: "string", default: "3" }, // minimum error count for --errors
+		min: { type: "string", default: "5" }, // minimum error count for --errors
 	},
 });
 

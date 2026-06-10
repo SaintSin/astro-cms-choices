@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-06-10 (continued)
+
+### UI
+
+- Fixed Astro version column sort: sites with no Astro detected now always group at the bottom regardless of sort direction (ascending or descending)
+  - Previously, negating the comparison for descending order also flipped the null-handling, scattering no-version rows to the top
+  - Fix uses an explicit rank (0 = detected + version, 1 = detected + no version, 2 = not detected) applied before the directional comparison, using `data-astro` to distinguish "detected but no version" from "not detected at all"
+
+### PSI & CrUX data collection
+
+- Added `scripts/psi.mjs` — PageSpeed Insights script for all confirmed Astro sites from the latest scan
+  - Fetches Lighthouse scores (performance, accessibility, best-practices, SEO) for both mobile and desktop strategies
+  - Captures lab metrics (LCP, CLS, TBT) and field data from `loadingExperience` (LCP, INP, CLS p75 + CWV category)
+  - Writes to new `psi_runs` + `psi_results` tables in `.scan-history.db`
+  - Rate-limited at 700ms between requests (~85/min); estimated ~100 min for full run (~2,100 sites × 2 strategies)
+  - `--new-only` flag skips already-tested site × strategy combos for safe resume after interruption
+  - `--strategy=mobile|desktop`, `--limit=N`, `--dry-run` flags
+- Added `scripts/crux.mjs` — Chrome UX Report script for all confirmed Astro sites from the latest scan
+  - Fetches 28-day real-user field data (LCP, CLS, INP, FCP, TTFB) at origin level for PHONE, DESKTOP, TABLET
+  - Tries bare domain first; falls back to `www.` prefix on 404 (genuine low-traffic sites recorded as `no-data`)
+  - Writes to new `crux_runs` + `crux_results` tables in `.scan-history.db`
+  - Rate-limited at 500ms between requests (~120/min, safely under 150/min CrUX quota); estimated ~53 min for full run
+  - `--new-only` skips site × form_factor combos already fetched today
+  - `--form-factor=PHONE|DESKTOP|TABLET`, `--limit=N`, `--dry-run` flags
+- Added `pnpm psi` and `pnpm crux` scripts to `package.json`
+- Added `.env` with `PAGESPEED_API_KEY` and `CRUX_API_KEY` (gitignored)
+
+### Admin review UI — middleware fix
+
+- Fixed `/admin/api/*` routes returning Astro's 404 page in the local dev server
+  - Root cause: Astro's `trailingSlashMiddleware` uses `stack.unshift()` to position itself before all Vite connect middleware; with `trailingSlash: "always"`, it rejects paths without a trailing slash (e.g. `/admin/api/queue`) before our middleware could run
+  - Fix: on the `'listening'` event, steal the HTTP server's `'request'` event — capture connect's listeners, remove them, re-register a dispatcher that routes `/admin*` directly to our handler and passes everything else to connect unchanged
+  - This bypasses the entire Vite/Astro connect stack for admin routes, making it independent of middleware ordering
+- Removed `enforce: "pre"` from the plugin (no longer needed with the HTTP-level intercept)
+
 ## 2026-06-10
 
 ### Code cleanup
