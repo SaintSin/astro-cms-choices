@@ -1,9 +1,43 @@
 ---
 // src/components/showcase/ShowcasePagination.astro
-// 2026-05-17T00:00:00Z
+// 2026-06-10T00:00:00Z
+
+interface Props {
+  id?: string;
+}
+const { id = "pagination" } = Astro.props;
 ---
 
-<nav id="pagination" class="pagination" aria-label="Pagination"></nav>
+<nav id={id} class="pagination" aria-label="Pagination"></nav>
+
+<script is:inline>
+  function renderPagination(container, total, page, pageSize, onPageChange) {
+    if (!container) return;
+    const totalPages = Math.ceil(total / pageSize);
+    if (totalPages <= 1) { container.innerHTML = ""; return; }
+
+    const numBtn = (p, active) =>
+      `<button class="page-num${active ? " active" : ""}" data-page="${p}">${p}</button>`;
+    const navBtn = (label, p, cls, disabled) =>
+      `<button class="${cls}" data-page="${p}" ${disabled ? "disabled" : ""}>${label}</button>`;
+
+    const items = [navBtn("Previous", page - 1, "page-prev", page === 1)];
+    const pages = new Set([1, totalPages]);
+    for (let p = Math.max(1, page - 2); p <= Math.min(totalPages, page + 2); p++) pages.add(p);
+    let prev = 0;
+    for (const p of [...pages].sort((a, b) => a - b)) {
+      if (prev && p - prev > 1) items.push(`<span class="page-ellipsis">…</span>`);
+      items.push(numBtn(p, p === page));
+      prev = p;
+    }
+    items.push(navBtn("Next", page + 1, "page-next", page === totalPages));
+    container.innerHTML = items.join("");
+
+    container.querySelectorAll("[data-page]:not([disabled])").forEach((b) => {
+      b.addEventListener("click", () => onPageChange(parseInt(b.dataset.page, 10)));
+    });
+  }
+</script>
 
 <style>
   .pagination {

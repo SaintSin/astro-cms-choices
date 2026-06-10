@@ -265,42 +265,6 @@ const parkedCount = results.filter(
       });
     }
 
-    // ── Pagination ────────────────────────────────────────────────────────────
-
-    function renderPagination(total, page) {
-      if (!paginationEl) return;
-      const totalPages = Math.ceil(total / PAGE_SIZE);
-      if (totalPages <= 1) { paginationEl.innerHTML = ""; return; }
-
-      const items = [];
-      const numBtn = (p, active) =>
-        `<button class="page-num${active ? " active" : ""}" data-page="${p}">${p}</button>`;
-      const navBtn = (label, p, cls, disabled) =>
-        `<button class="${cls}" data-page="${p}" ${disabled ? "disabled" : ""}>${label}</button>`;
-
-      items.push(navBtn("Previous", page - 1, "page-prev", page === 1));
-
-      const pages = new Set([1, totalPages]);
-      for (let p = Math.max(1, page - 2); p <= Math.min(totalPages, page + 2); p++) pages.add(p);
-      let prev = 0;
-      for (const p of [...pages].sort((a, b) => a - b)) {
-        if (prev && p - prev > 1) items.push(`<span class="page-ellipsis">…</span>`);
-        items.push(numBtn(p, p === page));
-        prev = p;
-      }
-
-      items.push(navBtn("Next", page + 1, "page-next", page === totalPages));
-      paginationEl.innerHTML = items.join("");
-
-      paginationEl.querySelectorAll("[data-page]:not([disabled])").forEach((b) => {
-        b.addEventListener("click", () => {
-          currentPage = parseInt(b.dataset.page, 10);
-          applyView();
-          table.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
-      });
-    }
-
     // ── Main view update ──────────────────────────────────────────────────────
 
     function applyView() {
@@ -325,7 +289,11 @@ const parkedCount = results.filter(
           : "No results";
       }
 
-      renderPagination(filtered.length, currentPage);
+      renderPagination(paginationEl, filtered.length, currentPage, PAGE_SIZE, (p) => {
+        currentPage = p;
+        applyView();
+        table.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
 
       const hasFilter = activeCmsFilter || activeCmsTypeFilter || searchInput.value || noAstroOnly;
       if (clearBtn) clearBtn.hidden = !hasFilter;

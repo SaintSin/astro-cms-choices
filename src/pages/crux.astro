@@ -4,6 +4,7 @@
 
 import Database from "better-sqlite3";
 import Layout from "@layouts/BaseLayout.astro";
+import ShowcasePagination from "@components/showcase/ShowcasePagination.astro";
 
 const meta = {
 	title: "Core Web Vitals — Astro CMS Detector",
@@ -239,7 +240,7 @@ function fmtCls(v: number | null) {
         </tbody>
       </table>
     </div>
-    <nav id="crux-pagination" class="pagination" aria-label="Pagination"></nav>
+    <ShowcasePagination id="crux-pagination" />
   </main>
 </Layout>
 
@@ -304,36 +305,6 @@ function fmtCls(v: number | null) {
       );
     }
 
-    function renderPagination(total, page) {
-      const totalPages = Math.ceil(total / PAGE_SIZE);
-      if (totalPages <= 1) { paginationEl.innerHTML = ""; return; }
-
-      const numBtn = (p, active) =>
-        `<button class="page-num${active ? " active" : ""}" data-page="${p}">${p}</button>`;
-      const navBtn = (label, p, cls, disabled) =>
-        `<button class="${cls}" data-page="${p}" ${disabled ? "disabled" : ""}>${label}</button>`;
-
-      const items = [navBtn("Previous", page - 1, "page-prev", page === 1)];
-      const pages = new Set([1, totalPages]);
-      for (let p = Math.max(1, page - 2); p <= Math.min(totalPages, page + 2); p++) pages.add(p);
-      let prev = 0;
-      for (const p of [...pages].sort((a, b) => a - b)) {
-        if (prev && p - prev > 1) items.push(`<span class="page-ellipsis">…</span>`);
-        items.push(numBtn(p, p === page));
-        prev = p;
-      }
-      items.push(navBtn("Next", page + 1, "page-next", page === totalPages));
-      paginationEl.innerHTML = items.join("");
-
-      paginationEl.querySelectorAll("[data-page]:not([disabled])").forEach(b => {
-        b.addEventListener("click", () => {
-          currentPage = parseInt(b.dataset.page, 10);
-          applyView();
-          tableWrap?.scrollIntoView({ behavior: "smooth", block: "start" });
-        });
-      });
-    }
-
     function applyView() {
       const filtered = getFiltered();
       const sorted = sortRows(filtered);
@@ -350,7 +321,11 @@ function fmtCls(v: number | null) {
         ? `Showing ${from}–${to} of ${filtered.length} site${filtered.length !== 1 ? "s" : ""}`
         : "No results";
 
-      renderPagination(filtered.length, currentPage);
+      renderPagination(paginationEl, filtered.length, currentPage, PAGE_SIZE, (p) => {
+        currentPage = p;
+        applyView();
+        tableWrap?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
 
       document.querySelectorAll(".sortable").forEach(th => {
         const col = th.dataset.col;
@@ -577,87 +552,4 @@ function fmtCls(v: number | null) {
 
   .metric-th { text-align: center; }
 
-  /* Pagination — matches home page */
-  .pagination {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-s);
-    flex-wrap: wrap;
-    padding-block: var(--space-m);
-  }
-
-  .pagination :global(.page-num) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.2rem;
-    height: 2.2rem;
-    border-radius: var(--space-3xs);
-    font-size: var(--step--1);
-    font-weight: 400;
-    color: var(--color-text-subtle);
-    background: none;
-    border: 1px solid transparent;
-    cursor: pointer;
-    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
-  }
-
-  .pagination :global(.page-num:hover) {
-    background: var(--color-surface);
-    color: var(--color-text);
-    border-color: var(--gray-3);
-  }
-
-  .pagination :global(.page-num.active) {
-    background: var(--violet-6);
-    color: white;
-    border-color: transparent;
-    font-weight: 600;
-    pointer-events: none;
-  }
-
-  .pagination :global(.page-ellipsis) {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.2rem;
-    height: 2.2rem;
-    font-size: var(--step--1);
-    color: var(--color-text-subtle);
-    pointer-events: none;
-    user-select: none;
-  }
-
-  .pagination :global(.page-prev),
-  .pagination :global(.page-next) {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-3xs);
-    padding: 0.45em 0.9em;
-    border-radius: var(--space-3xs);
-    border: 1px solid var(--gray-3);
-    font-size: var(--step--2);
-    font-weight: 400;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--color-text-subtle);
-    background: transparent;
-    cursor: pointer;
-    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
-  }
-
-  .pagination :global(.page-prev:hover),
-  .pagination :global(.page-next:hover) {
-    background: var(--color-surface);
-    color: var(--color-text);
-    border-color: var(--gray-4);
-  }
-
-  .pagination :global(.page-prev:disabled),
-  .pagination :global(.page-next:disabled) {
-    opacity: 0.35;
-    pointer-events: none;
-    cursor: default;
-  }
 </style>

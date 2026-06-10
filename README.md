@@ -40,27 +40,78 @@ pnpm dev      # start dev server
 
 ## Commands
 
-| Command                          | Action                                                        |
-| :------------------------------- | :------------------------------------------------------------ |
-| `pnpm dev`                       | Start dev server at `localhost:4321`                          |
-| `pnpm detect`                    | Scan all showcase sites and write `src/data/cms-results.json` |
-| `pnpm detect -- --limit 50`      | Scan first 50 sites only                                      |
-| `pnpm detect -- --resume`        | Skip already-processed URLs                                   |
-| `pnpm detect -- --concurrency 8` | Set fetch concurrency (default: 6)                            |
-| `pnpm crux`                      | Fetch CrUX field data for all confirmed Astro sites           |
-| `pnpm psi`                       | Fetch PageSpeed Insights scores for all confirmed Astro sites |
-| `pnpm build`                     | Build production site                                         |
-| `pnpm check`                     | Lint and format with Biome                                    |
+| Command       | Action                                                        |
+| :------------ | :------------------------------------------------------------ |
+| `pnpm dev`    | Start dev server at `localhost:4321`                          |
+| `pnpm detect` | Scan all showcase sites and write `src/data/cms-results.json` |
+| `pnpm crux`   | Fetch CrUX field data for all confirmed Astro sites           |
+| `pnpm psi`    | Fetch PageSpeed Insights scores for all confirmed Astro sites |
+| `pnpm build`  | Build production site                                         |
+| `pnpm check`  | Lint and format with Biome                                    |
 
-`pnpm detect` manages the showcase data automatically:
+### `pnpm detect` — CMS scanner
 
-- **First run** — clones `withastro/astro.build` as a sparse checkout into `.showcase-cache/` (`.yml` files only, no screenshots)
-- **Subsequent runs** — pulls the latest changes before scanning
+Scans every site in the Astro showcase and fingerprints its CMS stack. Clones `withastro/astro.build` as a sparse checkout into `.showcase-cache/` on first run (`.yml` files only, no screenshots); subsequent runs pull the latest changes.
 
-After running `pnpm detect`, clear the Astro cache and restart the dev server to pick up new data:
+```bash
+pnpm detect                           # scan all ~2,600 sites
+pnpm detect -- --limit 50             # scan first 50 only (testing)
+pnpm detect -- --concurrency 8        # parallel fetches (default: 6)
+pnpm detect -- --resume               # skip already-processed URLs
+pnpm detect -- --errors-only          # re-scan only sites that errored last run
+pnpm detect -- --forwarded-only       # re-scan only redirected domains
+pnpm detect -- --timeout 15000        # per-site timeout in ms (default: 10000)
+pnpm detect -- --source /path/to/yml  # use a different showcase directory
+pnpm detect -- --output results.json  # write to a different output file
+```
+
+After running, clear the Astro cache to pick up new data:
 
 ```bash
 rm -rf .astro && pnpm dev
+```
+
+### `pnpm crux` — Chrome UX Report
+
+Fetches 28-day real-user field data (LCP, INP, CLS, FCP, TTFB) at origin level for all confirmed Astro sites from the latest scan. Tries the bare domain first; falls back to `www.` on 404. Rate-limited to ~120 req/min (safely under the 150/min quota). Estimated ~53 min for a full run.
+
+Requires `CRUX_API_KEY` in `.env`.
+
+```bash
+pnpm crux                             # fetch all 3 form factors for every site
+pnpm crux -- --form-factor=DESKTOP    # DESKTOP | PHONE | TABLET (default: all 3)
+pnpm crux -- --new-only               # skip site × form_factor combos fetched today
+pnpm crux -- --limit=100              # cap number of sites (testing)
+pnpm crux -- --dry-run                # print what would be fetched, write nothing
+```
+
+### `pnpm psi` — PageSpeed Insights
+
+Fetches Lighthouse scores (performance, accessibility, best-practices, SEO) plus lab and field metrics (LCP, CLS, INP, TBT) for both mobile and desktop strategies. Rate-limited to ~85 req/min. Estimated ~100 min for a full run (~2,100 sites × 2 strategies).
+
+Requires `PAGESPEED_API_KEY` in `.env`.
+
+```bash
+pnpm psi                              # fetch both strategies for every site
+pnpm psi -- --strategy=mobile        # mobile | desktop (default: both)
+pnpm psi -- --new-only               # skip site × strategy combos already fetched
+pnpm psi -- --limit=100              # cap number of sites (testing)
+pnpm psi -- --dry-run                # print what would be fetched, write nothing
+```
+
+### `pnpm db:report` — scan history
+
+Queries `.scan-history.db` for trends and anomalies across scans.
+
+```bash
+pnpm db:report                        # scan history summary (default)
+pnpm db:report -- --errors            # sites erroring in 3+ of the last 5 scans
+pnpm db:report -- --errors --scans 8  # same, look back 8 scans
+pnpm db:report -- --errors --min 5    # raise error threshold to 5
+pnpm db:report -- --changes           # CMS / Astro changes between last 2 scans
+pnpm db:report -- --decay             # Astro sites still on v4 or older
+pnpm db:report -- --site example.com  # full scan history for one hostname
+pnpm db:report -- --all               # run every report
 ```
 
 ## Project structure
