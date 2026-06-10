@@ -24,6 +24,7 @@
 		"db:report": "node --experimental-strip-types scripts/db-report.ts",
 		"psi": "node scripts/psi.mjs",
 		"crux": "node scripts/crux.mjs",
+		"dns-check": "node scripts/dns-check.mjs",
 		"clean": "rm -rf dist .astro",
 		"purge": "rm -rf dist .astro .netlify node_modules",
 		"deploy": "netlify deploy --prod --dir dist --functions netlify/functions",

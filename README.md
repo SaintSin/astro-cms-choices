@@ -99,6 +99,27 @@ pnpm psi -- --limit=100              # cap number of sites (testing)
 pnpm psi -- --dry-run                # print what would be fetched, write nothing
 ```
 
+### `pnpm dns-check` — triage error sites
+
+Queries `.scan-history.db` for persistently-erroring sites then classifies each one via a DNS over HTTPS lookup (Cloudflare + Google) followed by an HTTP HEAD request:
+
+| Result | Meaning |
+| :--- | :--- |
+| `GONE` | Both DoH resolvers return NXDOMAIN — domain likely expired or deleted |
+| `ALIVE` | DNS resolves + HEAD returns 2xx/3xx — transient error at scan time |
+| `BROKEN` | DNS resolves + HEAD returns 4xx/5xx — server up but site is broken |
+| `DEAD SERVER` | DNS resolves but connection refused or timed out |
+| `DNS ERROR` | DoH lookup itself failed (network issue) |
+
+```bash
+pnpm dns-check                        # check sites erroring in 3+ of last 5 scans
+pnpm dns-check -- --scans=8          # wider look-back window (default: 5)
+pnpm dns-check -- --min=5            # raise error threshold (default: 3)
+pnpm dns-check -- --concurrency=5   # parallel checks (default: 10)
+pnpm dns-check -- --limit=50        # cap sites checked (testing)
+pnpm dns-check -- --dry-run         # list sites without making network requests
+```
+
 ### `pnpm db:report` — scan history
 
 Queries `.scan-history.db` for trends and anomalies across scans.
