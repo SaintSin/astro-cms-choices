@@ -21,22 +21,22 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DB_PATH   = resolve(__dirname, "../.scan-history.db");
-const ENV_PATH  = resolve(__dirname, "../.env");
+const DB_PATH = resolve(__dirname, "../.scan-history.db");
+const ENV_PATH = resolve(__dirname, "../.env");
 
 // ── Args ──────────────────────────────────────────────────────────────────────
 
 const args = process.argv.slice(2);
 function getArg(name) {
-	const entry = args.find(a => a.startsWith(`${name}=`));
+	const entry = args.find((a) => a.startsWith(`${name}=`));
 	return entry ? entry.slice(name.length + 1) : null;
 }
 
 const strategyFilter = getArg("--strategy");
-const limitArg       = getArg("--limit");
-const dryRun         = args.includes("--dry-run");
-const newOnly        = args.includes("--new-only");
-const DELAY_MS       = 700;
+const limitArg = getArg("--limit");
+const dryRun = args.includes("--dry-run");
+const newOnly = args.includes("--new-only");
+const DELAY_MS = 700;
 
 // ── .env loader ───────────────────────────────────────────────────────────────
 
@@ -49,7 +49,10 @@ function loadEnv() {
 			const eq = trimmed.indexOf("=");
 			if (eq === -1) continue;
 			const key = trimmed.slice(0, eq).trim();
-			const val = trimmed.slice(eq + 1).trim().replace(/^['"]|['"]$/g, "");
+			const val = trimmed
+				.slice(eq + 1)
+				.trim()
+				.replace(/^['"]|['"]$/g, "");
 			process.env[key] ??= val;
 		}
 	} catch {
@@ -73,9 +76,11 @@ db.pragma("foreign_keys = ON");
 
 db.exec(`
 	CREATE TABLE IF NOT EXISTS psi_runs (
-		id         INTEGER PRIMARY KEY AUTOINCREMENT,
-		started_at TEXT    NOT NULL,
-		scan_id    INTEGER REFERENCES scans(id)
+		id          INTEGER PRIMARY KEY AUTOINCREMENT,
+		started_at  TEXT    NOT NULL,
+		finished_at TEXT,
+		duration_ms INTEGER,
+		scan_id     INTEGER REFERENCES scans(id)
 	);
 
 	CREATE TABLE IF NOT EXISTS psi_results (
@@ -105,6 +110,15 @@ db.exec(`
 	CREATE INDEX IF NOT EXISTS idx_psi_results_run  ON psi_results(run_id);
 `);
 
+// Add duration columns to existing DBs (ALTER TABLE has no IF NOT EXISTS in SQLite)
+for (const col of ["finished_at TEXT", "duration_ms INTEGER"]) {
+	try {
+		db.exec(`ALTER TABLE psi_runs ADD COLUMN ${col}`);
+	} catch {
+		/* already exists */
+	}
+}
+
 function loadLatestScan() {
 	return db.prepare("SELECT id FROM scans ORDER BY id DESC LIMIT 1").get();
 }
@@ -128,6 +142,10 @@ function insertRun(startedAt, scanId) {
 		.run(startedAt, scanId).lastInsertRowid;
 }
 
+const finishRun = db.prepare(
+	"UPDATE psi_runs SET finished_at = ?, duration_ms = ? WHERE id = ?",
+);
+
 const insertResult = db.prepare(`
 	INSERT INTO psi_results (
 		run_id, site_id, fetched_at, strategy, status,
@@ -150,34 +168,35 @@ function metric(audits, id) {
 	return audits?.[id]?.displayValue ?? null;
 }
 
+// fallow-ignore-next-line complexity
 function parsePsi(json) {
-	const lh      = json.lighthouseResult;
-	const cats    = lh?.categories;
-	const audits  = lh?.audits;
-	const cwvMet  = json.loadingExperience?.metrics;
-	const cwvCat  = json.loadingExperience?.overall_category ?? null;
+	const lh = json.lighthouseResult;
+	const cats = lh?.categories;
+	const audits = lh?.audits;
+	const cwvMet = json.loadingExperience?.metrics;
+	const cwvCat = json.loadingExperience?.overall_category ?? null;
 
 	return {
-		status:        "success",
-		performance:   score(cats, "performance"),
+		status: "success",
+		performance: score(cats, "performance"),
 		accessibility: score(cats, "accessibility"),
 		bestPractices: score(cats, "best-practices"),
-		seo:           score(cats, "seo"),
-		cwvCategory:   cwvCat,
-		labLcp:        metric(audits, "largest-contentful-paint"),
-		labCls:        metric(audits, "cumulative-layout-shift"),
-		labTbt:        metric(audits, "total-blocking-time"),
-		fieldLcp:      cwvMet?.LARGEST_CONTENTFUL_PAINT_MS?.percentile     ?? null,
-		fieldInp:      cwvMet?.INTERACTION_TO_NEXT_PAINT?.percentile        ?? null,
-		fieldCls:      cwvMet?.CUMULATIVE_LAYOUT_SHIFT_SCORE?.percentile    ?? null,
-		fieldLcpCat:   cwvMet?.LARGEST_CONTENTFUL_PAINT_MS?.category        ?? null,
-		fieldInpCat:   cwvMet?.INTERACTION_TO_NEXT_PAINT?.category           ?? null,
-		fieldClsCat:   cwvMet?.CUMULATIVE_LAYOUT_SHIFT_SCORE?.category       ?? null,
+		seo: score(cats, "seo"),
+		cwvCategory: cwvCat,
+		labLcp: metric(audits, "largest-contentful-paint"),
+		labCls: metric(audits, "cumulative-layout-shift"),
+		labTbt: metric(audits, "total-blocking-time"),
+		fieldLcp: cwvMet?.LARGEST_CONTENTFUL_PAINT_MS?.percentile ?? null,
+		fieldInp: cwvMet?.INTERACTION_TO_NEXT_PAINT?.percentile ?? null,
+		fieldCls: cwvMet?.CUMULATIVE_LAYOUT_SHIFT_SCORE?.percentile ?? null,
+		fieldLcpCat: cwvMet?.LARGEST_CONTENTFUL_PAINT_MS?.category ?? null,
+		fieldInpCat: cwvMet?.INTERACTION_TO_NEXT_PAINT?.category ?? null,
+		fieldClsCat: cwvMet?.CUMULATIVE_LAYOUT_SHIFT_SCORE?.category ?? null,
 	};
 }
 
 function delay(ms) {
-	return new Promise(r => setTimeout(r, ms));
+	return new Promise((r) => setTimeout(r, ms));
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -188,7 +207,7 @@ if (!latestScan) {
 	process.exit(1);
 }
 
-const sites     = loadSites(latestScan.id, limitArg);
+const sites = loadSites(latestScan.id, limitArg);
 const strategies = strategyFilter ? [strategyFilter] : ["mobile", "desktop"];
 
 // --new-only: skip site_id × strategy combos already in psi_results
@@ -197,7 +216,7 @@ if (newOnly) {
 	const existing = db
 		.prepare("SELECT DISTINCT site_id, strategy FROM psi_results")
 		.all();
-	const done = new Set(existing.map(r => `${r.site_id}:${r.strategy}`));
+	const done = new Set(existing.map((r) => `${r.site_id}:${r.strategy}`));
 	jobs = [];
 	for (const site of sites) {
 		for (const strategy of strategies) {
@@ -207,7 +226,9 @@ if (newOnly) {
 		}
 	}
 } else {
-	jobs = sites.flatMap(site => strategies.map(strategy => ({ site, strategy })));
+	jobs = sites.flatMap((site) =>
+		strategies.map((strategy) => ({ site, strategy })),
+	);
 }
 
 const skipped = sites.length * strategies.length - jobs.length;
@@ -217,9 +238,15 @@ console.log("=".repeat(60));
 console.log(`  Scan:       #${latestScan.id}`);
 console.log(`  Sites:      ${sites.length} confirmed Astro`);
 console.log(`  Strategies: ${strategies.join(", ")}`);
-console.log(`  Total jobs: ${jobs.length}${newOnly && skipped ? ` (${skipped} already tested, skipped)` : ""}`);
-console.log(`  Est. time:  ~${Math.round(jobs.length * (DELAY_MS / 1000) / 60)} min`);
-console.log(`  Mode:       ${dryRun ? "DRY RUN" : newOnly ? "NEW ONLY" : "APPLY"}\n`);
+console.log(
+	`  Total jobs: ${jobs.length}${newOnly && skipped ? ` (${skipped} already tested, skipped)` : ""}`,
+);
+console.log(
+	`  Est. time:  ~${Math.round((jobs.length * (DELAY_MS / 1000)) / 60)} min`,
+);
+console.log(
+	`  Mode:       ${dryRun ? "DRY RUN" : newOnly ? "NEW ONLY" : "APPLY"}\n`,
+);
 
 if (dryRun) {
 	for (const { site, strategy } of jobs.slice(0, 20)) {
@@ -229,14 +256,16 @@ if (dryRun) {
 	process.exit(0);
 }
 
-const startedAt = new Date().toISOString();
-const runId     = insertRun(startedAt, latestScan.id);
-let success = 0, errors = 0;
+const startTime = Date.now();
+const startedAt = new Date(startTime).toISOString();
+const runId = insertRun(startedAt, latestScan.id);
+let success = 0,
+	errors = 0;
 
 for (let i = 0; i < jobs.length; i++) {
 	const { site, strategy } = jobs[i];
 	const progress = `[${String(i + 1).padStart(String(jobs.length).length)}/${jobs.length}]`;
-	const label    = `${site.hostname.padEnd(45)} ${strategy.padEnd(8)}`;
+	const label = `${site.hostname.padEnd(45)} ${strategy.padEnd(8)}`;
 	process.stdout.write(`  ${progress} ${label} `);
 
 	const fetchedAt = new Date().toISOString();
@@ -245,36 +274,66 @@ for (let i = 0; i < jobs.length; i++) {
 		const qs =
 			`url=${encodeURIComponent(site.url)}&strategy=${strategy}&key=${API_KEY}` +
 			`&category=performance&category=accessibility&category=best-practices&category=seo`;
-		const res  = await fetch(`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${qs}`);
+		const res = await fetch(
+			`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${qs}`,
+		);
 		if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
 		const json = await res.json();
 		const data = parsePsi(json);
 
 		insertResult.run(
-			runId, site.id, fetchedAt, strategy, data.status,
-			data.performance, data.accessibility, data.bestPractices, data.seo,
-			data.cwvCategory, data.labLcp, data.labCls, data.labTbt,
-			data.fieldLcp, data.fieldInp, data.fieldCls,
-			data.fieldLcpCat, data.fieldInpCat, data.fieldClsCat,
+			runId,
+			site.id,
+			fetchedAt,
+			strategy,
+			data.status,
+			data.performance,
+			data.accessibility,
+			data.bestPractices,
+			data.seo,
+			data.cwvCategory,
+			data.labLcp,
+			data.labCls,
+			data.labTbt,
+			data.fieldLcp,
+			data.fieldInp,
+			data.fieldCls,
+			data.fieldLcpCat,
+			data.fieldInpCat,
+			data.fieldClsCat,
 			null,
 		);
 		console.log(
 			`Perf: ${String(data.performance ?? "—").padStart(3)}  ` +
-			`A11y: ${String(data.accessibility ?? "—").padStart(3)}  ` +
-			`SEO: ${String(data.seo ?? "—").padStart(3)}  ` +
-			`CWV: ${data.cwvCategory ?? "—"}`,
+				`A11y: ${String(data.accessibility ?? "—").padStart(3)}  ` +
+				`SEO: ${String(data.seo ?? "—").padStart(3)}  ` +
+				`CWV: ${data.cwvCategory ?? "—"}`,
 		);
 		success++;
 	} catch (err) {
 		const msg = err.message.slice(0, 80);
 		console.log(`ERROR: ${msg}`);
 		insertResult.run(
-			runId, site.id, fetchedAt, strategy, "error",
-			null, null, null, null,
-			null, null, null, null,
-			null, null, null,
-			null, null, null,
+			runId,
+			site.id,
+			fetchedAt,
+			strategy,
+			"error",
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
 			msg,
 		);
 		errors++;
@@ -283,6 +342,13 @@ for (let i = 0; i < jobs.length; i++) {
 	await delay(DELAY_MS);
 }
 
+const finishedAt = new Date().toISOString();
+const durationMs = Date.now() - startTime;
+const durationMin = (durationMs / 60000).toFixed(1);
+finishRun.run(finishedAt, durationMs, runId);
+
 console.log(`\n✅ PSI complete — run_id=${runId}`);
-console.log(`   Success: ${success}  Errors: ${errors}\n`);
+console.log(
+	`   Success: ${success}  Errors: ${errors}  Duration: ${durationMin} min\n`,
+);
 db.close();

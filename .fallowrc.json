@@ -1,4 +1,15 @@
 {
 	"$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
-	"ignoreDependencies": ["@astrojs/compiler-rs"]
+	"ignoreDependencies": [
+		"@astrojs/compiler-rs",
+		"@astrojs/sitemap",
+		"@iconify-json/ri",
+		"astro-iconify",
+		"astro-robots-txt",
+		"chart.js",
+		"i",
+		"open-props",
+		"sharp",
+		"vite"
+	]
 }

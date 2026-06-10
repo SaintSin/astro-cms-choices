@@ -25,26 +25,27 @@ import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const __dirname  = dirname(fileURLToPath(import.meta.url));
-const DB_PATH    = resolve(__dirname, "../.scan-history.db");
-const CACHE_DIR  = resolve(__dirname, "../.showcase-cache");
-const SHOWCASE   = join(CACHE_DIR, "src/content/showcase");
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DB_PATH = resolve(__dirname, "../.scan-history.db");
+const CACHE_DIR = resolve(__dirname, "../.showcase-cache");
+const SHOWCASE = join(CACHE_DIR, "src/content/showcase");
 const BLOCKED_FILE = join(CACHE_DIR, "scripts/update-showcase.mjs");
-const UPSTREAM   = "withastro/astro.build";
-const FORK       = "SaintSin/astro.build";
-const REPO_LINK  = "https://github.com/SaintSin/astro-cms-choices/blob/main/scripts/dns-check.mjs";
+const UPSTREAM = "withastro/astro.build";
+const FORK = "SaintSin/astro.build";
+const REPO_LINK =
+	"https://github.com/SaintSin/astro-cms-choices/blob/main/scripts/dns-check.mjs";
 
 // ── Args ──────────────────────────────────────────────────────────────────────
 
 const args = process.argv.slice(2);
 function getArg(name, fallback = null) {
-	const entry = args.find(a => a.startsWith(`${name}=`));
+	const entry = args.find((a) => a.startsWith(`${name}=`));
 	return entry ? entry.slice(name.length + 1) : fallback;
 }
 
-const BATCH_SIZE  = parseInt(getArg("--batch-size", "50"), 10);
-const ONLY_BATCH  = getArg("--batch") ? parseInt(getArg("--batch"), 10) : null;
-const DRY_RUN     = args.includes("--dry-run");
+const BATCH_SIZE = parseInt(getArg("--batch-size", "50"), 10);
+const ONLY_BATCH = getArg("--batch") ? parseInt(getArg("--batch"), 10) : null;
+const DRY_RUN = args.includes("--dry-run");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -52,22 +53,25 @@ function run(cmd, opts = {}) {
 	return execSync(cmd, { encoding: "utf8", stdio: "pipe", ...opts }).trim();
 }
 
-function hr(c = "─", w = 72) { return c.repeat(w); }
+function hr(c = "─", w = 72) {
+	return c.repeat(w);
+}
 
 // ── Load gone domains from DB ─────────────────────────────────────────────────
 
 const db = new Database(DB_PATH, { readonly: true });
 
-const latestRun = db.prepare(
-	"SELECT id, checked_at FROM dns_check_runs ORDER BY id DESC LIMIT 1"
-).get();
+const latestRun = db
+	.prepare("SELECT id, checked_at FROM dns_check_runs ORDER BY id DESC LIMIT 1")
+	.get();
 
 if (!latestRun) {
 	console.error("\n  No dns_check_runs found. Run pnpm dns-check first.\n");
 	process.exit(1);
 }
 
-const goneSites = db.prepare(`
+const goneSites = db
+	.prepare(`
 	SELECT s.url, s.hostname, sr.title
 	FROM dns_check_results r
 	JOIN sites s ON s.id = r.site_id
@@ -76,11 +80,16 @@ const goneSites = db.prepare(`
 	WHERE r.result = 'gone'
 	  AND r.run_id = ?
 	ORDER BY s.hostname
-`).all(latestRun.id);
+`)
+	.all(latestRun.id);
 
 console.log(`\n${hr()}`);
-console.log(`  MAKE REMOVAL PRs — ${goneSites.length} gone domains from dns-check run #${latestRun.id}`);
-console.log(`  Checked: ${new Date(latestRun.checked_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}`);
+console.log(
+	`  MAKE REMOVAL PRs — ${goneSites.length} gone domains from dns-check run #${latestRun.id}`,
+);
+console.log(
+	`  Checked: ${new Date(latestRun.checked_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}`,
+);
 console.log(`  Batch size: ${BATCH_SIZE}  |  Dry run: ${DRY_RUN}`);
 console.log(hr());
 
@@ -91,7 +100,7 @@ if (!existsSync(SHOWCASE)) {
 	process.exit(1);
 }
 
-const yamlFiles = readdirSync(SHOWCASE).filter(f => f.endsWith(".yml"));
+const yamlFiles = readdirSync(SHOWCASE).filter((f) => f.endsWith(".yml"));
 const urlToFile = new Map();
 for (const file of yamlFiles) {
 	const content = readFileSync(join(SHOWCASE, file), "utf8");
@@ -100,7 +109,7 @@ for (const file of yamlFiles) {
 }
 
 // Match gone sites to YAML files
-const matched   = [];
+const matched = [];
 const unmatched = [];
 for (const site of goneSites) {
 	const file = urlToFile.get(site.url);
@@ -108,7 +117,9 @@ for (const site of goneSites) {
 	else unmatched.push(site);
 }
 
-console.log(`  Matched to YAML: ${matched.length}  |  No YAML found: ${unmatched.length}`);
+console.log(
+	`  Matched to YAML: ${matched.length}  |  No YAML found: ${unmatched.length}`,
+);
 if (unmatched.length) {
 	console.log(`\n  Unmatched (already removed or URL mismatch):`);
 	for (const s of unmatched) console.log(`    ${s.url}`);
@@ -125,14 +136,18 @@ const batches = [];
 for (let i = 0; i < matched.length; i += BATCH_SIZE) {
 	batches.push(matched.slice(i, i + BATCH_SIZE));
 }
-console.log(`\n  ${batches.length} batch${batches.length > 1 ? "es" : ""} of up to ${BATCH_SIZE}`);
+console.log(
+	`\n  ${batches.length} batch${batches.length > 1 ? "es" : ""} of up to ${BATCH_SIZE}`,
+);
 
 // ── Ensure scripts/ is in sparse checkout ────────────────────────────────────
 
 if (!existsSync(BLOCKED_FILE)) {
 	console.log("\n  Adding scripts/ to sparse checkout...");
 	if (!DRY_RUN) {
-		run(`git -C "${CACHE_DIR}" sparse-checkout set --no-cone "src/content/showcase/*.yml" "scripts/update-showcase.mjs"`);
+		run(
+			`git -C "${CACHE_DIR}" sparse-checkout set --no-cone "src/content/showcase/*.yml" "scripts/update-showcase.mjs"`,
+		);
 		run(`git -C "${CACHE_DIR}" checkout`);
 	}
 }
@@ -145,11 +160,13 @@ for (let b = 0; b < batches.length; b++) {
 	const batchNum = b + 1;
 	if (ONLY_BATCH !== null && ONLY_BATCH !== batchNum) continue;
 
-	const batch  = batches[b];
+	const batch = batches[b];
 	const branch = `chore/remove-gone-domains-batch-${batchNum}-${today}`;
 
 	console.log(`\n${hr("·", 72)}`);
-	console.log(`  Batch ${batchNum}/${batches.length} — ${batch.length} sites  →  ${branch}`);
+	console.log(
+		`  Batch ${batchNum}/${batches.length} — ${batch.length} sites  →  ${branch}`,
+	);
 	console.log(hr("·", 72));
 	for (const s of batch) console.log(`    ${s.hostname}`);
 
@@ -162,22 +179,27 @@ for (let b = 0; b < batches.length; b++) {
 
 	// ── Delete YAML files ─────────────────────────────────────────────────────
 
-	const filePaths = batch.map(s => `src/content/showcase/${s.file}`);
-	run(`git -C "${CACHE_DIR}" rm --sparse ${filePaths.map(f => `"${f}"`).join(" ")}`);
+	const filePaths = batch.map((s) => `src/content/showcase/${s.file}`);
+	run(
+		`git -C "${CACHE_DIR}" rm --sparse ${filePaths.map((f) => `"${f}"`).join(" ")}`,
+	);
 
 	// ── Update blockedOrigins ─────────────────────────────────────────────────
 
 	const blocked = readFileSync(BLOCKED_FILE, "utf8");
-	const entries = batch
-		.map(s => `\t\t'${s.url}',`)
-		.join("\n");
+	const entries = batch.map((s) => `\t\t'${s.url}',`).join("\n");
 	const comment = `\t\t// ${today} - domain gone, NXDOMAIN confirmed via DoH (dns-check.mjs)`;
 	const insertion = `${comment}\n${entries}\n\t],`;
 
 	if (!blocked.includes("\t],\n});")) {
-		throw new Error("Could not find blockedOrigins closing bracket — file format may have changed.");
+		throw new Error(
+			"Could not find blockedOrigins closing bracket — file format may have changed.",
+		);
 	}
-	writeFileSync(BLOCKED_FILE, blocked.replace("\t],\n});", insertion + "\n});"));
+	writeFileSync(
+		BLOCKED_FILE,
+		blocked.replace("\t],\n});", insertion + "\n});"),
+	);
 	run(`git -C "${CACHE_DIR}" add scripts/update-showcase.mjs`);
 
 	// ── Commit ────────────────────────────────────────────────────────────────
@@ -191,18 +213,20 @@ for (let b = 0; b < batches.length; b++) {
 
 	// ── Build PR body ─────────────────────────────────────────────────────────
 
-	const tableRows = batch.map(s => {
-		const label = s.title || s.hostname;
-		const isastro = `https://isastro.pages.dev/?url=${s.hostname}`;
-		return `| [${label}](${s.url}) | [verify ↗](${isastro}) |`;
-	}).join("\n");
+	const tableRows = batch
+		.map((s) => {
+			const label = s.title || s.hostname;
+			const isastro = `https://isastro.pages.dev/?url=${s.hostname}`;
+			return `| [${label}](${s.url}) | [verify ↗](${isastro}) |`;
+		})
+		.join("\n");
 
 	const totalBatches = batches.length;
 	const prBody = `## Summary
 
 Removes ${batch.length} showcase sites whose domains are confirmed gone (NXDOMAIN on both Cloudflare and Google DNS over HTTPS). Batch ${batchNum} of ${totalBatches}.
 
-All domains verified using [\`dns-check.mjs\`](${REPO_LINK}) — a script that queries the [Chrome UX Report](https://developer.chrome.com/docs/crux) scan history database and cross-checks each erroring domain against two independent DoH resolvers before flagging it as gone.
+All domains verified using \`pnpm dns-check\` ([source](${REPO_LINK})) — queries the scan history database for persistently-erroring sites, then cross-checks each domain against two independent DNS over HTTPS resolvers (Cloudflare + Google). Only domains where both resolvers return NXDOMAIN are flagged as gone.
 
 All removed domains added to \`blockedOrigins\` to prevent the weekly CI from re-checking them.
 
@@ -229,6 +253,8 @@ console.log(`\n${hr()}`);
 if (DRY_RUN) {
 	console.log(`  Dry run complete — no changes made.`);
 } else {
-	console.log(`  Branches pushed. Review the pr-body-batch-*.md files and submit PRs when ready.`);
+	console.log(
+		`  Branches pushed. Review the pr-body-batch-*.md files and submit PRs when ready.`,
+	);
 }
 console.log();

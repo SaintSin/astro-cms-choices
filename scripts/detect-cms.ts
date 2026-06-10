@@ -69,6 +69,7 @@ export interface ResultsFile {
 // YAML parser (handles the simple showcase format without a full YAML lib)
 // ---------------------------------------------------------------------------
 
+// fallow-ignore-next-line complexity
 function parseShowcaseYaml(content: string): ShowcaseEntry | null {
 	const result: Record<string, unknown> = {};
 	const lines = content.split("\n");
@@ -915,6 +916,19 @@ async function ensureShowcaseCache(
 	}
 }
 
+async function trySecondPass(
+	url: string,
+	timeoutMs: number,
+): Promise<{ astro: ReturnType<typeof detectAstro>; finalUrl: string } | null> {
+	try {
+		const res = await fetchSite(url, timeoutMs);
+		const astro = detectAstro(res.html);
+		return astro.detected ? { astro, finalUrl: res.finalUrl } : null;
+	} catch {
+		return null;
+	}
+}
+
 async function processSite(
 	entry: ShowcaseEntry,
 	timeoutMs: number,
@@ -930,15 +944,10 @@ async function processSite(
 		// JS redirect or further HTTP redirect (e.g. /docs/ → /docs/public/) that
 		// the first fetch didn't follow all the way to the actual Astro content.
 		if (hit?.cms === "Forwarded" && !astro.detected && finalUrl) {
-			try {
-				const second = await fetchSite(finalUrl, timeoutMs);
-				const secondAstro = detectAstro(second.html);
-				if (secondAstro.detected) {
-					astro = secondAstro;
-					deepFinalUrl = second.finalUrl;
-				}
-			} catch {
-				// second pass failed — keep original result
+			const second = await trySecondPass(finalUrl, timeoutMs);
+			if (second) {
+				astro = second.astro;
+				deepFinalUrl = second.finalUrl;
 			}
 		}
 
@@ -1001,69 +1010,156 @@ function printSummary(allResults: CmsResult[], outputFile: string): void {
 	console.log(`\nWrote ${allResults.length} results → ${outputFile}`);
 }
 
+function printSection(label: string, items: string[]): void {
+	if (!items.length) return;
+	console.log(`\n  ${label} (${items.length}):`);
+	for (const l of items) console.log(l);
+}
+
+interface ChangeLog {
+	newSites: string[];
+	newAstro: string[];
+	lostAstro: string[];
+	versionChanged: string[];
+	cmsChanged: string[];
+}
+
+function classifyResult(r: CmsResult, prev: CmsResult, log: ChangeLog): void {
+	const label = r.title || r.url;
+	if (!prev.astroDetected && r.astroDetected)
+		log.newAstro.push(
+			`  + ${label} → now Astro${r.astroVersion ? ` v${r.astroVersion}` : ""}`,
+		);
+	if (prev.astroDetected && !r.astroDetected)
+		log.lostAstro.push(`  - ${label} → ${r.cms}`);
+	if (
+		prev.astroVersion !== r.astroVersion &&
+		r.astroVersion &&
+		prev.astroVersion
+	)
+		log.versionChanged.push(
+			`  ~ ${label}: v${prev.astroVersion} → v${r.astroVersion}`,
+		);
+	if (prev.cms !== r.cms)
+		log.cmsChanged.push(`  ~ ${label}: ${prev.cms} → ${r.cms}`);
+}
+
+function collectChanges(
+	allResults: CmsResult[],
+	previousResults: Map<string, CmsResult>,
+): ChangeLog {
+	const log: ChangeLog = {
+		newSites: [],
+		newAstro: [],
+		lostAstro: [],
+		versionChanged: [],
+		cmsChanged: [],
+	};
+	for (const r of allResults) {
+		const prev = previousResults.get(r.url);
+		if (!prev) {
+			log.newSites.push(r.title || r.url);
+			continue;
+		}
+		classifyResult(r, prev, log);
+	}
+	return log;
+}
+
 function printChanges(
 	allResults: CmsResult[],
 	previousResults: Map<string, CmsResult>,
 ): void {
 	if (previousResults.size === 0) return;
-
-	const newAstro: string[] = [];
-	const lostAstro: string[] = [];
-	const versionChanged: string[] = [];
-	const cmsChanged: string[] = [];
-	const newSites: string[] = [];
-
-	for (const r of allResults) {
-		const prev = previousResults.get(r.url);
-		if (!prev) {
-			newSites.push(r.title || r.url);
-			continue;
-		}
-		if (!prev.astroDetected && r.astroDetected)
-			newAstro.push(
-				`  + ${r.title || r.url} → now Astro${r.astroVersion ? ` v${r.astroVersion}` : ""}`,
-			);
-		if (prev.astroDetected && !r.astroDetected)
-			lostAstro.push(`  - ${r.title || r.url} → ${r.cms}`);
-		if (
-			prev.astroVersion !== r.astroVersion &&
-			r.astroVersion &&
-			prev.astroVersion
-		)
-			versionChanged.push(
-				`  ~ ${r.title || r.url}: v${prev.astroVersion} → v${r.astroVersion}`,
-			);
-		if (prev.cms !== r.cms)
-			cmsChanged.push(`  ~ ${r.title || r.url}: ${prev.cms} → ${r.cms}`);
-	}
+	const { newSites, newAstro, lostAstro, versionChanged, cmsChanged } =
+		collectChanges(allResults, previousResults);
+	const hasChanges =
+		newSites.length ||
+		newAstro.length ||
+		lostAstro.length ||
+		versionChanged.length ||
+		cmsChanged.length;
 
 	console.log("\n─── Changes vs previous run ───────────────");
 	if (newSites.length)
 		console.log(`  ${newSites.length} new site(s) added to showcase`);
-	if (newAstro.length) {
-		console.log(`\n  Newly detected as Astro (${newAstro.length}):`);
-		for (const l of newAstro) console.log(l);
+	printSection("Newly detected as Astro", newAstro);
+	printSection("No longer detected as Astro", lostAstro);
+	printSection("Astro version changed", versionChanged);
+	printSection("CMS changed", cmsChanged);
+	if (!hasChanges) console.log("  No changes detected.");
+}
+
+// ---------------------------------------------------------------------------
+// Main helpers
+// ---------------------------------------------------------------------------
+
+async function loadPreviousResults(
+	outputFile: string,
+): Promise<Map<string, CmsResult>> {
+	const map = new Map<string, CmsResult>();
+	try {
+		const prev: ResultsFile = JSON.parse(await readFile(outputFile, "utf8"));
+		for (const r of prev.results) map.set(r.url, r);
+		console.log(`Loaded ${map.size} previous results for comparison`);
+	} catch {
+		// No previous results — comparison will be skipped
 	}
-	if (lostAstro.length) {
-		console.log(`\n  No longer detected as Astro (${lostAstro.length}):`);
-		for (const l of lostAstro) console.log(l);
+	return map;
+}
+
+async function loadExistingResults(
+	outputFile: string,
+	resume: boolean,
+	errorsOnly: boolean,
+	forwardedOnly: boolean,
+): Promise<Map<string, CmsResult>> {
+	if (!resume && !errorsOnly && !forwardedOnly) return new Map();
+	const map = new Map<string, CmsResult>();
+	try {
+		const existing: ResultsFile = JSON.parse(
+			await readFile(outputFile, "utf8"),
+		);
+		for (const r of existing.results) map.set(r.url, r);
+		if (resume) {
+			console.log(`Resuming: ${map.size} already processed`);
+		} else if (errorsOnly) {
+			const count = [...map.values()].filter((r) => r.cms === "Error").length;
+			console.log(`Errors only: ${count} sites to retry`);
+		} else {
+			const count = [...map.values()].filter(
+				(r) => r.cms === "Forwarded" && !r.astroDetected,
+			).length;
+			console.log(`Forwarded (non-Astro) only: ${count} sites to retry`);
+		}
+	} catch {
+		console.log("No existing results found, starting fresh");
 	}
-	if (versionChanged.length) {
-		console.log(`\n  Astro version changed (${versionChanged.length}):`);
-		for (const l of versionChanged) console.log(l);
-	}
-	if (cmsChanged.length) {
-		console.log(`\n  CMS changed (${cmsChanged.length}):`);
-		for (const l of cmsChanged) console.log(l);
-	}
-	if (
-		!newSites.length &&
-		!newAstro.length &&
-		!lostAstro.length &&
-		!versionChanged.length &&
-		!cmsChanged.length
-	)
-		console.log("  No changes detected.");
+	return map;
+}
+
+function buildFetchList(
+	entries: ShowcaseEntry[],
+	existingResults: Map<string, CmsResult>,
+	resume: boolean,
+	errorsOnly: boolean,
+	forwardedOnly: boolean,
+	limit: number | undefined,
+): { toFetch: ShowcaseEntry[]; skippedCount: number } {
+	const toProcess = limit ? entries.slice(0, limit) : entries;
+	let toFetch: ShowcaseEntry[];
+	if (resume) toFetch = toProcess.filter((e) => !existingResults.has(e.url));
+	else if (errorsOnly)
+		toFetch = toProcess.filter(
+			(e) => existingResults.get(e.url)?.cms === "Error",
+		);
+	else if (forwardedOnly)
+		toFetch = toProcess.filter((e) => {
+			const r = existingResults.get(e.url);
+			return r?.cms === "Forwarded" && !r.astroDetected;
+		});
+	else toFetch = toProcess;
+	return { toFetch, skippedCount: toProcess.length - toFetch.length };
 }
 
 // ---------------------------------------------------------------------------
@@ -1114,43 +1210,13 @@ async function main() {
 	console.log(`Concurrency: ${concurrency} | Timeout: ${timeoutMs}ms`);
 	if (limit) console.log(`Limit: ${limit}`);
 
-	// Snapshot current results for comparison after the run
-	const previousResults = new Map<string, CmsResult>();
-	try {
-		const prev: ResultsFile = JSON.parse(await readFile(outputFile, "utf8"));
-		for (const r of prev.results) previousResults.set(r.url, r);
-		console.log(
-			`Loaded ${previousResults.size} previous results for comparison`,
-		);
-	} catch {
-		// No previous results — comparison will be skipped
-	}
-
-	// Load existing results if resuming or retrying a subset
-	const existingResults = new Map<string, CmsResult>();
-	if (resume || errorsOnly || forwardedOnly) {
-		try {
-			const existing: ResultsFile = JSON.parse(
-				await readFile(outputFile, "utf8"),
-			);
-			for (const r of existing.results) existingResults.set(r.url, r);
-			if (resume) {
-				console.log(`Resuming: ${existingResults.size} already processed`);
-			} else if (errorsOnly) {
-				const count = [...existingResults.values()].filter(
-					(r) => r.cms === "Error",
-				).length;
-				console.log(`Errors only: ${count} sites to retry`);
-			} else {
-				const count = [...existingResults.values()].filter(
-					(r) => r.cms === "Forwarded" && !r.astroDetected,
-				).length;
-				console.log(`Forwarded (non-Astro) only: ${count} sites to retry`);
-			}
-		} catch {
-			console.log("No existing results found, starting fresh");
-		}
-	}
+	const previousResults = await loadPreviousResults(outputFile);
+	const existingResults = await loadExistingResults(
+		outputFile,
+		resume,
+		errorsOnly,
+		forwardedOnly,
+	);
 
 	// Read all showcase YAMLs
 	const files = (await readdir(sourceDir)).filter((f) => f.endsWith(".yml"));
@@ -1161,20 +1227,16 @@ async function main() {
 		if (entry) entries.push(entry);
 	}
 
-	const toProcess = limit ? entries.slice(0, limit) : entries;
-	const toFetch = resume
-		? toProcess.filter((e) => !existingResults.has(e.url))
-		: errorsOnly
-		? toProcess.filter((e) => existingResults.get(e.url)?.cms === "Error")
-		: forwardedOnly
-		? toProcess.filter((e) => {
-				const r = existingResults.get(e.url);
-				return r?.cms === "Forwarded" && !r.astroDetected;
-			})
-		: toProcess;
-
+	const { toFetch, skippedCount } = buildFetchList(
+		entries,
+		existingResults,
+		resume,
+		errorsOnly,
+		forwardedOnly,
+		limit,
+	);
 	console.log(
-		`\nProcessing ${toFetch.length} sites (${toProcess.length - toFetch.length} skipped/resumed)`,
+		`\nProcessing ${toFetch.length} sites (${skippedCount} skipped/resumed)`,
 	);
 
 	const enqueue = createQueue(concurrency);
@@ -1208,8 +1270,14 @@ async function main() {
 	// Safety guard: if we were merging with existing results and the merged total
 	// is drastically smaller than what we started with, something went wrong — bail
 	// rather than silently overwrite good data with an empty or truncated file.
-	if ((resume || errorsOnly || forwardedOnly) && existingResults.size > 0 && allResults.length < existingResults.size * 0.5) {
-		console.error(`\n⛔ Merge safety check failed: expected ~${existingResults.size} results, got ${allResults.length}. Aborting write to protect existing data.\n`);
+	if (
+		(resume || errorsOnly || forwardedOnly) &&
+		existingResults.size > 0 &&
+		allResults.length < existingResults.size * 0.5
+	) {
+		console.error(
+			`\n⛔ Merge safety check failed: expected ~${existingResults.size} results, got ${allResults.length}. Aborting write to protect existing data.\n`,
+		);
 		process.exit(1);
 	}
 
