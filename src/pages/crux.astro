@@ -148,35 +148,42 @@ function fmtCls(v: number | null) {
 
     <div class="table-wrap" id="crux-table-wrap">
       <table class="crux-table" id="crux-table">
+        <colgroup>
+          <col class="col-site" />
+          <col class="col-ver" />
+          <col class="col-lcp" /><col class="col-inp" /><col class="col-cls" /><col class="col-cwv" />
+          <col class="col-lcp" /><col class="col-inp" /><col class="col-cls" /><col class="col-cwv" />
+          <col class="col-lcp" /><col class="col-inp" /><col class="col-cls" /><col class="col-cwv" />
+        </colgroup>
         <thead>
           <tr>
             <th class="sortable col-site" data-col="title">Site</th>
             <th class="sortable col-ver" data-col="version">Astro</th>
             <th class="col-group-header" colspan="4">
-              <span class="device-icon">🖥</span> Desktop
+            Desktop
             </th>
             <th class="col-group-header" colspan="4">
-              <span class="device-icon">📱</span> Phone
+              Phone
             </th>
             <th class="col-group-header" colspan="4">
-              <span class="device-icon">⬛</span> Tablet
+            Tablet
             </th>
           </tr>
           <tr class="subheader">
             <th></th>
             <th></th>
-            <th class="sortable metric-th" data-col="d_lcp">LCP</th>
-            <th class="sortable metric-th" data-col="d_inp">INP</th>
-            <th class="sortable metric-th" data-col="d_cls">CLS</th>
-            <th class="sortable metric-th cwv-th" data-col="d_cwv">CWV</th>
-            <th class="sortable metric-th" data-col="p_lcp">LCP</th>
-            <th class="sortable metric-th" data-col="p_inp">INP</th>
-            <th class="sortable metric-th" data-col="p_cls">CLS</th>
-            <th class="sortable metric-th cwv-th" data-col="p_cwv">CWV</th>
-            <th class="sortable metric-th" data-col="t_lcp">LCP</th>
-            <th class="sortable metric-th" data-col="t_inp">INP</th>
-            <th class="sortable metric-th" data-col="t_cls">CLS</th>
-            <th class="sortable metric-th cwv-th" data-col="t_cwv">CWV</th>
+            <th class="sortable metric-th col-lcp" data-col="d_lcp">LCP</th>
+            <th class="sortable metric-th col-inp" data-col="d_inp">INP</th>
+            <th class="sortable metric-th col-cls" data-col="d_cls">CLS</th>
+            <th class="sortable metric-th col-cwv" data-col="d_cwv">CWV</th>
+            <th class="sortable metric-th col-lcp" data-col="p_lcp">LCP</th>
+            <th class="sortable metric-th col-inp" data-col="p_inp">INP</th>
+            <th class="sortable metric-th col-cls" data-col="p_cls">CLS</th>
+            <th class="sortable metric-th col-cwv" data-col="p_cwv">CWV</th>
+            <th class="sortable metric-th col-lcp" data-col="t_lcp">LCP</th>
+            <th class="sortable metric-th col-inp" data-col="t_inp">INP</th>
+            <th class="sortable metric-th col-cls" data-col="t_cls">CLS</th>
+            <th class="sortable metric-th col-cwv" data-col="t_cwv">CWV</th>
           </tr>
         </thead>
         <tbody id="crux-tbody">
@@ -207,24 +214,24 @@ function fmtCls(v: number | null) {
                 {s.astro_version ? <span class="ver-badge">v{s.astro_version}</span> : <span class="no-data">—</span>}
               </td>
               <!-- Desktop -->
-              <td class={`metric ${s.d_lcp_r ?? "none"}`}>{fmtLcp(s.d_lcp) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric ${s.d_inp_r ?? "none"}`}>{fmtInp(s.d_inp) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric ${s.d_cls_r ?? "none"}`}>{fmtCls(s.d_cls) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric cwv ${s.d_cwv === 1 ? "good" : s.d_cwv === 0 ? "poor" : "none"}`}>
+              <td class={`metric col-lcp ${s.d_lcp_r ?? "none"}`}>{fmtLcp(s.d_lcp) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric col-inp ${s.d_inp_r ?? "none"}`}>{fmtInp(s.d_inp) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric col-cls ${s.d_cls_r ?? "none"}`}>{fmtCls(s.d_cls) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric col-cwv cwv ${s.d_cwv === 1 ? "good" : s.d_cwv === 0 ? "poor" : "none"}`}>
                 {s.d_cwv === 1 ? "✓" : s.d_cwv === 0 ? "✗" : <span class="no-data">—</span>}
               </td>
               <!-- Phone -->
-              <td class={`metric ${s.p_lcp_r ?? "none"}`}>{fmtLcp(s.p_lcp) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric ${s.p_inp_r ?? "none"}`}>{fmtInp(s.p_inp) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric ${s.p_cls_r ?? "none"}`}>{fmtCls(s.p_cls) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric cwv ${s.p_cwv === 1 ? "good" : s.p_cwv === 0 ? "poor" : "none"}`}>
+              <td class={`metric col-lcp ${s.p_lcp_r ?? "none"}`}>{fmtLcp(s.p_lcp) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric col-inp ${s.p_inp_r ?? "none"}`}>{fmtInp(s.p_inp) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric col-cls ${s.p_cls_r ?? "none"}`}>{fmtCls(s.p_cls) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric col-cwv cwv ${s.p_cwv === 1 ? "good" : s.p_cwv === 0 ? "poor" : "none"}`}>
                 {s.p_cwv === 1 ? "✓" : s.p_cwv === 0 ? "✗" : <span class="no-data">—</span>}
               </td>
               <!-- Tablet -->
-              <td class={`metric ${s.t_lcp_r ?? "none"}`}>{fmtLcp(s.t_lcp) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric ${s.t_inp_r ?? "none"}`}>{fmtInp(s.t_inp) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric ${s.t_cls_r ?? "none"}`}>{fmtCls(s.t_cls) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric cwv ${s.t_cwv === 1 ? "good" : s.t_cwv === 0 ? "poor" : "none"}`}>
+              <td class={`metric col-lcp ${s.t_lcp_r ?? "none"}`}>{fmtLcp(s.t_lcp) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric col-inp ${s.t_inp_r ?? "none"}`}>{fmtInp(s.t_inp) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric col-cls ${s.t_cls_r ?? "none"}`}>{fmtCls(s.t_cls) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric col-cwv cwv ${s.t_cwv === 1 ? "good" : s.t_cwv === 0 ? "poor" : "none"}`}>
                 {s.t_cwv === 1 ? "✓" : s.t_cwv === 0 ? "✗" : <span class="no-data">—</span>}
               </td>
             </tr>
@@ -473,6 +480,8 @@ function fmtCls(v: number | null) {
     width: 100%;
     border-collapse: collapse;
     font-size: var(--step--1);
+    font-family: var(--font-ibm-plex), system-ui, sans-serif;
+    table-layout: fixed;
     white-space: nowrap;
   }
 
@@ -499,6 +508,7 @@ function fmtCls(v: number | null) {
   }
 
   .col-group-header {
+    width: 25ch;
     text-align: center !important;
     border-inline-start: 2px solid var(--gray-3);
   }
@@ -523,26 +533,36 @@ function fmtCls(v: number | null) {
     border-inline-start: 2px solid var(--gray-3);
   }
 
-  .col-site { min-width: 180px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+  .col-site { width: 28ch; overflow: hidden; text-overflow: ellipsis; }
   .col-site a { color: var(--color-text); text-decoration: none; font-weight: 500; }
   .col-site a:hover { color: var(--color-primary); }
 
-  .col-ver { width: 80px; }
+  .col-ver { width: 8ch; }
   .ver-badge {
     font-size: var(--step--2);
     color: var(--color-text-subtle);
     font-variant-numeric: tabular-nums;
   }
 
+  /* Fixed widths prevent layout shift when sorting changes values per row */
+  .col-lcp { width: 6ch; }
+  .col-inp { width: 7ch; }
+  .col-cls { width: 6ch; }
+  .col-cwv { width: 6ch; }
+  .crux-table th.col-cwv,
+  .crux-table td.col-cwv {
+    padding-inline-end: var(--space-xs);
+    font-size: var(--step--2);
+  }
+
   .metric {
     text-align: center;
     font-variant-numeric: tabular-nums;
-    width: 64px;
   }
 
-  .metric.good              { background: color-mix(in srgb, var(--green-6) 12%, transparent); color: var(--green-9); }
-  .metric.needs-improvement { background: color-mix(in srgb, var(--orange-5) 12%, transparent); color: var(--orange-9); }
-  .metric.poor              { background: color-mix(in srgb, var(--red-6) 12%, transparent); color: var(--red-9); }
+  .metric.good              { color: var(--green-9); }
+  .metric.needs-improvement { color: var(--orange-9); }
+  .metric.poor              { color: var(--red-9); }
   .metric.none              { color: var(--color-text-subtle); }
 
   .metric.cwv.good { font-weight: 700; }

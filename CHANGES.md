@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-06-10 (continued 2)
+
+### CrUX page — table layout polish
+
+- Added `<colgroup>` with explicit `<col>` width elements so `table-layout: fixed` distributes all three device groups identically — previously the colspan group headers caused uneven distribution, making Tablet wider than Desktop and Phone
+- Switched to IBM Plex Sans (`var(--font-ibm-plex)`) on the CrUX table; added `table-layout: fixed` to prevent layout shift on sort
+- Replaced `min-width`/`max-width` pixel values with `ch`-unit fixed widths (`col-site: 28ch`, `col-ver: 8ch`, metric columns: `col-lcp: 6ch`, `col-inp: 7ch`, `col-cls: 6ch`, `col-cwv: 6ch`)
+- Set explicit `width: 25ch` on `.col-group-header` (sum of 4 metric cols) so group headers span exactly their columns
+- CWV column: widened to `6ch`, added `padding-inline-end` breathing room before the next group's rule, `font-size: var(--step--2)` to keep ✓/✗ symbols compact
+- Removed background colours from metric cells — rating now shown via text colour only (green/amber/red)
+- Added `col-lcp`, `col-inp`, `col-cls`, `col-cwv` classes to subheader `<th>` and data `<td>` elements for consistent width application
+
 ## 2026-06-10 (continued)
 
 ### CrUX page

@@ -4,6 +4,7 @@ import { ClientRouter } from "astro:transitions";
 import BreadcrumbJsonLD from "@components/schema/BreadcrumbJsonLD.astro";
 import SiteNavigationJsonLD from "@components/schema/SiteNavigationJsonLD.astro";
 import WebsiteJsonLD from "@components/schema/WebsiteJsonLD.astro";
+import Font from "astro/components/Font.astro";
 import { Head } from "@felixicaza/astro-capo";
 import type { MetaData } from "@types";
 
@@ -53,6 +54,7 @@ import "@styles/style.css";
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="generator" content={Astro.generator} />
+  <Font cssVariable="--font-ibm-plex" preload />
   <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
   <WebsiteJsonLD />
   <SiteNavigationJsonLD />

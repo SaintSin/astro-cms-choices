@@ -1,7 +1,7 @@
 // @ts-check
 
 import sitemap from "@astrojs/sitemap";
-import { defineConfig, svgoOptimizer } from "astro/config";
+import { defineConfig, fontProviders, svgoOptimizer } from "astro/config";
 import robotsTxt from "astro-robots-txt";
 
 // ── Local admin review UI ──────────────────────────────────────────────────────
@@ -60,6 +60,14 @@ export default defineConfig({
 	image: {
 		responsiveStyles: true,
 	},
+	fonts: [
+		{
+			provider: fontProviders.google(),
+			name: "IBM Plex Sans",
+			cssVariable: "--font-ibm-plex",
+			weights: ["100 700"], // variable font range
+		},
+	],
 	integrations: [sitemap(), robotsTxt()],
 	vite: {
 		plugins: [localAdminPlugin()],
