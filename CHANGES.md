@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-06-10 (continued 3)
+
+### CrUX page — Astro-only filter
+
+- Restricted CrUX results to sites where `astro_detected = 1` in the latest scan — 528 → 514 sites (14 removed that had CrUX data but no confirmed Astro fingerprint)
+- Changed `LEFT JOIN scan_results` to `INNER JOIN` now that the filter requires a matching scan row
+
+### Pagination refactor
+
+- Extracted `renderPagination` into `ShowcasePagination.astro` as an `is:inline` script with signature `(container, total, page, pageSize, onPageChange)` — removes ~80 lines of duplicate CSS and ~30 lines of duplicate JS from `crux.astro`
+- `ShowcasePagination` now accepts an `id` prop (default `"pagination"`) so the CrUX page can use `id="crux-pagination"` without a separate component
+
+### README
+
+- Added dedicated sections for `pnpm detect`, `pnpm crux`, `pnpm psi`, and `pnpm db:report` with all flags and options documented
+
 ## 2026-06-10 (continued 2)
 
 ### CrUX page — table layout polish

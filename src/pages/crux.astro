@@ -60,8 +60,9 @@ try {
         MAX(CASE WHEN cr.form_factor='TABLET' AND cr.status='success' THEN cr.cwv_pass END) as t_cwv
       FROM crux_results cr
       JOIN sites s ON s.id = cr.site_id
-      LEFT JOIN scan_results sr ON sr.site_id = s.id AND sr.scan_id = ?
+      JOIN scan_results sr ON sr.site_id = s.id AND sr.scan_id = ?
       WHERE cr.run_id = ?
+        AND sr.astro_detected = 1
       GROUP BY s.id
       HAVING d_lcp IS NOT NULL OR p_lcp IS NOT NULL OR t_lcp IS NOT NULL
       ORDER BY s.hostname`,
