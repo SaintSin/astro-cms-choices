@@ -24,22 +24,22 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DB_PATH   = resolve(__dirname, "../.scan-history.db");
-const ENV_PATH  = resolve(__dirname, "../.env");
+const DB_PATH = resolve(__dirname, "../.scan-history.db");
+const ENV_PATH = resolve(__dirname, "../.env");
 
 // ── Args ──────────────────────────────────────────────────────────────────────
 
 const args = process.argv.slice(2);
 function getArg(name) {
-	const entry = args.find(a => a.startsWith(`${name}=`));
+	const entry = args.find((a) => a.startsWith(`${name}=`));
 	return entry ? entry.slice(name.length + 1) : null;
 }
 
 const formFactorFilter = getArg("--form-factor");
-const limitArg         = getArg("--limit");
-const dryRun           = args.includes("--dry-run");
-const newOnly          = args.includes("--new-only");
-const DELAY_MS         = 500; // CrUX quota is 150 req/min — 500ms = 120/min
+const limitArg = getArg("--limit");
+const dryRun = args.includes("--dry-run");
+const newOnly = args.includes("--new-only");
+const DELAY_MS = 500; // CrUX quota is 150 req/min — 500ms = 120/min
 
 // ── .env loader ───────────────────────────────────────────────────────────────
 
@@ -52,7 +52,10 @@ function loadEnv() {
 			const eq = trimmed.indexOf("=");
 			if (eq === -1) continue;
 			const key = trimmed.slice(0, eq).trim();
-			const val = trimmed.slice(eq + 1).trim().replace(/^['"]|['"]$/g, "");
+			const val = trimmed
+				.slice(eq + 1)
+				.trim()
+				.replace(/^['"]|['"]$/g, "");
 			process.env[key] ??= val;
 		}
 	} catch {
@@ -76,9 +79,11 @@ db.pragma("foreign_keys = ON");
 
 db.exec(`
 	CREATE TABLE IF NOT EXISTS crux_runs (
-		id         INTEGER PRIMARY KEY AUTOINCREMENT,
-		started_at TEXT    NOT NULL,
-		scan_id    INTEGER REFERENCES scans(id)
+		id          INTEGER PRIMARY KEY AUTOINCREMENT,
+		started_at  TEXT    NOT NULL,
+		finished_at TEXT,
+		duration_ms INTEGER,
+		scan_id     INTEGER REFERENCES scans(id)
 	);
 
 	CREATE TABLE IF NOT EXISTS crux_results (
@@ -105,6 +110,15 @@ db.exec(`
 	CREATE INDEX IF NOT EXISTS idx_crux_results_run  ON crux_results(run_id);
 `);
 
+// Add duration columns to existing DBs (ALTER TABLE has no IF NOT EXISTS in SQLite)
+for (const col of ["finished_at TEXT", "duration_ms INTEGER"]) {
+	try {
+		db.exec(`ALTER TABLE crux_runs ADD COLUMN ${col}`);
+	} catch {
+		/* already exists */
+	}
+}
+
 function loadLatestScan() {
 	return db.prepare("SELECT id FROM scans ORDER BY id DESC LIMIT 1").get();
 }
@@ -128,6 +142,10 @@ function insertRun(startedAt, scanId) {
 		.run(startedAt, scanId).lastInsertRowid;
 }
 
+const finishRun = db.prepare(
+	"UPDATE crux_runs SET finished_at = ?, duration_ms = ? WHERE id = ?",
+);
+
 const insertResult = db.prepare(`
 	INSERT INTO crux_results (
 		run_id, site_id, fetched_at, form_factor, status,
@@ -140,10 +158,10 @@ const insertResult = db.prepare(`
 // ── CrUX parser ───────────────────────────────────────────────────────────────
 
 const METRIC_KEYS = {
-	lcp:  "largest_contentful_paint",
-	cls:  "cumulative_layout_shift",
-	inp:  "interaction_to_next_paint",
-	fcp:  "first_contentful_paint",
+	lcp: "largest_contentful_paint",
+	cls: "cumulative_layout_shift",
+	inp: "interaction_to_next_paint",
+	fcp: "first_contentful_paint",
 	ttfb: "experimental_time_to_first_byte",
 };
 
@@ -157,7 +175,7 @@ function p75(metrics, key) {
 function rating(metrics, key) {
 	const hist = metrics?.[key]?.histogram;
 	if (!hist?.[0]) return null;
-	if (hist[0].density >= 0.75)         return "good";
+	if (hist[0].density >= 0.75) return "good";
 	if ((hist[2]?.density ?? 0) >= 0.25) return "poor";
 	return "needs-improvement";
 }
@@ -166,29 +184,32 @@ function parseCrux(json) {
 	const metrics = json.record?.metrics;
 	if (!metrics) return null;
 
-	const lcpRating  = rating(metrics, METRIC_KEYS.lcp);
-	const clsRating  = rating(metrics, METRIC_KEYS.cls);
-	const inpRating  = rating(metrics, METRIC_KEYS.inp);
-	const fcpRating  = rating(metrics, METRIC_KEYS.fcp);
+	const lcpRating = rating(metrics, METRIC_KEYS.lcp);
+	const clsRating = rating(metrics, METRIC_KEYS.cls);
+	const inpRating = rating(metrics, METRIC_KEYS.inp);
+	const fcpRating = rating(metrics, METRIC_KEYS.fcp);
 	const ttfbRating = rating(metrics, METRIC_KEYS.ttfb);
 
 	return {
-		lcp_p75:     p75(metrics, METRIC_KEYS.lcp),
-		cls_p75:     p75(metrics, METRIC_KEYS.cls),
-		inp_p75:     p75(metrics, METRIC_KEYS.inp),
-		fcp_p75:     p75(metrics, METRIC_KEYS.fcp),
-		ttfb_p75:    p75(metrics, METRIC_KEYS.ttfb),
-		lcp_rating:  lcpRating,
-		cls_rating:  clsRating,
-		inp_rating:  inpRating,
-		fcp_rating:  fcpRating,
+		lcp_p75: p75(metrics, METRIC_KEYS.lcp),
+		cls_p75: p75(metrics, METRIC_KEYS.cls),
+		inp_p75: p75(metrics, METRIC_KEYS.inp),
+		fcp_p75: p75(metrics, METRIC_KEYS.fcp),
+		ttfb_p75: p75(metrics, METRIC_KEYS.ttfb),
+		lcp_rating: lcpRating,
+		cls_rating: clsRating,
+		inp_rating: inpRating,
+		fcp_rating: fcpRating,
 		ttfb_rating: ttfbRating,
-		cwv_pass: lcpRating === "good" && clsRating === "good" && inpRating === "good" ? 1 : 0,
+		cwv_pass:
+			lcpRating === "good" && clsRating === "good" && inpRating === "good"
+				? 1
+				: 0,
 	};
 }
 
 function delay(ms) {
-	return new Promise(r => setTimeout(r, ms));
+	return new Promise((r) => setTimeout(r, ms));
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -199,17 +220,21 @@ if (!latestScan) {
 	process.exit(1);
 }
 
-const sites      = loadSites(latestScan.id, limitArg);
-const formFactors = formFactorFilter ? [formFactorFilter] : ["PHONE", "DESKTOP", "TABLET"];
+const sites = loadSites(latestScan.id, limitArg);
+const formFactors = formFactorFilter
+	? [formFactorFilter]
+	: ["PHONE", "DESKTOP", "TABLET"];
 
 // --new-only: skip site_id × form_factor combos already fetched today
 let jobs;
 if (newOnly) {
-	const today    = new Date().toISOString().slice(0, 10);
+	const today = new Date().toISOString().slice(0, 10);
 	const existing = db
-		.prepare("SELECT DISTINCT site_id, form_factor FROM crux_results WHERE fetched_at >= ?")
+		.prepare(
+			"SELECT DISTINCT site_id, form_factor FROM crux_results WHERE fetched_at >= ?",
+		)
 		.all(`${today}T00:00:00.000Z`);
-	const done = new Set(existing.map(r => `${r.site_id}:${r.form_factor}`));
+	const done = new Set(existing.map((r) => `${r.site_id}:${r.form_factor}`));
 	jobs = [];
 	for (const site of sites) {
 		for (const ff of formFactors) {
@@ -219,7 +244,9 @@ if (newOnly) {
 		}
 	}
 } else {
-	jobs = sites.flatMap(site => formFactors.map(formFactor => ({ site, formFactor })));
+	jobs = sites.flatMap((site) =>
+		formFactors.map((formFactor) => ({ site, formFactor })),
+	);
 }
 
 const skipped = sites.length * formFactors.length - jobs.length;
@@ -229,9 +256,15 @@ console.log("=".repeat(60));
 console.log(`  Scan:        #${latestScan.id}`);
 console.log(`  Sites:       ${sites.length} confirmed Astro`);
 console.log(`  Form factors: ${formFactors.join(", ")}`);
-console.log(`  Total jobs:  ${jobs.length}${newOnly && skipped ? ` (${skipped} already fetched today, skipped)` : ""}`);
-console.log(`  Est. time:   ~${Math.round(jobs.length * (DELAY_MS / 1000) / 60)} min`);
-console.log(`  Mode:        ${dryRun ? "DRY RUN" : newOnly ? "NEW ONLY" : "APPLY"}\n`);
+console.log(
+	`  Total jobs:  ${jobs.length}${newOnly && skipped ? ` (${skipped} already fetched today, skipped)` : ""}`,
+);
+console.log(
+	`  Est. time:   ~${Math.round((jobs.length * (DELAY_MS / 1000)) / 60)} min`,
+);
+console.log(
+	`  Mode:        ${dryRun ? "DRY RUN" : newOnly ? "NEW ONLY" : "APPLY"}\n`,
+);
 
 if (dryRun) {
 	for (const { site, formFactor } of jobs.slice(0, 20)) {
@@ -241,14 +274,17 @@ if (dryRun) {
 	process.exit(0);
 }
 
-const startedAt = new Date().toISOString();
-const runId     = insertRun(startedAt, latestScan.id);
-let success = 0, noData = 0, errors = 0;
+const startTime = Date.now();
+const startedAt = new Date(startTime).toISOString();
+const runId = insertRun(startedAt, latestScan.id);
+let success = 0,
+	noData = 0,
+	errors = 0;
 
 for (let i = 0; i < jobs.length; i++) {
 	const { site, formFactor } = jobs[i];
 	const progress = `[${String(i + 1).padStart(String(jobs.length).length)}/${jobs.length}]`;
-	const label    = `${site.hostname.padEnd(45)} ${formFactor.padEnd(8)}`;
+	const label = `${site.hostname.padEnd(45)} ${formFactor.padEnd(8)}`;
 	process.stdout.write(`  ${progress} ${label} `);
 
 	const fetchedAt = new Date().toISOString();
@@ -257,9 +293,9 @@ for (let i = 0; i < jobs.length; i++) {
 		return fetch(
 			`https://chromeuxreport.googleapis.com/v1/records:queryRecord?key=${API_KEY}`,
 			{
-				method:  "POST",
+				method: "POST",
 				headers: { "Content-Type": "application/json" },
-				body:    JSON.stringify({ origin, formFactor }),
+				body: JSON.stringify({ origin, formFactor }),
 			},
 		);
 	}
@@ -274,8 +310,25 @@ for (let i = 0; i < jobs.length; i++) {
 		}
 
 		if (res.status === 404) {
-			insertResult.run(runId, site.id, fetchedAt, formFactor, "no-data",
-				null, null, null, null, null, null, null, null, null, null, null, null);
+			insertResult.run(
+				runId,
+				site.id,
+				fetchedAt,
+				formFactor,
+				"no-data",
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+			);
 			console.log("no data");
 			noData++;
 			await delay(DELAY_MS);
@@ -284,32 +337,80 @@ for (let i = 0; i < jobs.length; i++) {
 
 		if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-		const json   = await res.json();
+		const json = await res.json();
 		const parsed = parseCrux(json);
 
 		if (!parsed) {
-			insertResult.run(runId, site.id, fetchedAt, formFactor, "no-data",
-				null, null, null, null, null, null, null, null, null, null, null, null);
+			insertResult.run(
+				runId,
+				site.id,
+				fetchedAt,
+				formFactor,
+				"no-data",
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+				null,
+			);
 			console.log("no data");
 			noData++;
 		} else {
 			insertResult.run(
-				runId, site.id, fetchedAt, formFactor, "success",
-				parsed.lcp_p75, parsed.cls_p75, parsed.inp_p75, parsed.fcp_p75, parsed.ttfb_p75,
-				parsed.lcp_rating, parsed.cls_rating, parsed.inp_rating, parsed.fcp_rating, parsed.ttfb_rating,
-				parsed.cwv_pass, null,
+				runId,
+				site.id,
+				fetchedAt,
+				formFactor,
+				"success",
+				parsed.lcp_p75,
+				parsed.cls_p75,
+				parsed.inp_p75,
+				parsed.fcp_p75,
+				parsed.ttfb_p75,
+				parsed.lcp_rating,
+				parsed.cls_rating,
+				parsed.inp_rating,
+				parsed.fcp_rating,
+				parsed.ttfb_rating,
+				parsed.cwv_pass,
+				null,
 			);
-			const lcp = parsed.lcp_p75  != null ? `${(parsed.lcp_p75 / 1000).toFixed(1)}s` : "—";
-			const cls = parsed.cls_p75  != null ? parsed.cls_p75.toFixed(3)                 : "—";
-			const inp = parsed.inp_p75  != null ? `${parsed.inp_p75}ms`                     : "—";
+			const lcp =
+				parsed.lcp_p75 != null ? `${(parsed.lcp_p75 / 1000).toFixed(1)}s` : "—";
+			const cls = parsed.cls_p75 != null ? parsed.cls_p75.toFixed(3) : "—";
+			const inp = parsed.inp_p75 != null ? `${parsed.inp_p75}ms` : "—";
 			const cwv = parsed.cwv_pass ? "✓ CWV" : "✗ CWV";
 			console.log(`LCP ${lcp}  CLS ${cls}  INP ${inp}  ${cwv}`);
 			success++;
 		}
 	} catch (err) {
 		const msg = err.message.slice(0, 80);
-		insertResult.run(runId, site.id, fetchedAt, formFactor, "error",
-			null, null, null, null, null, null, null, null, null, null, null, msg);
+		insertResult.run(
+			runId,
+			site.id,
+			fetchedAt,
+			formFactor,
+			"error",
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			msg,
+		);
 		console.log(`ERROR: ${msg}`);
 		errors++;
 	}
@@ -317,6 +418,13 @@ for (let i = 0; i < jobs.length; i++) {
 	await delay(DELAY_MS);
 }
 
+const finishedAt = new Date().toISOString();
+const durationMs = Date.now() - startTime;
+const durationMin = (durationMs / 60000).toFixed(1);
+finishRun.run(finishedAt, durationMs, runId);
+
 console.log(`\n✅ CrUX complete — run_id=${runId}`);
-console.log(`   With data: ${success}  No data: ${noData}  Errors: ${errors}\n`);
+console.log(
+	`   With data: ${success}  No data: ${noData}  Errors: ${errors}  Duration: ${durationMin} min\n`,
+);
 db.close();

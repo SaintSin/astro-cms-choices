@@ -25,27 +25,33 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DB_PATH   = resolve(__dirname, "../.scan-history.db");
+const DB_PATH = resolve(__dirname, "../.scan-history.db");
 
 // ── Args ─────────────────────────────────────────────────────────────────────
 
 const args = process.argv.slice(2);
 function getArg(name, fallback) {
-	const entry = args.find(a => a.startsWith(`${name}=`));
+	const entry = args.find((a) => a.startsWith(`${name}=`));
 	return entry ? entry.slice(name.length + 1) : fallback;
 }
 
-const SCANS       = parseInt(getArg("--scans", "5"), 10);
-const MIN_ERRORS  = parseInt(getArg("--min", "3"), 10);
+const SCANS = parseInt(getArg("--scans", "5"), 10);
+const MIN_ERRORS = parseInt(getArg("--min", "3"), 10);
 const CONCURRENCY = parseInt(getArg("--concurrency", "10"), 10);
-const LIMIT       = getArg("--limit") ? parseInt(getArg("--limit"), 10) : null;
-const DRY_RUN     = args.includes("--dry-run");
+const LIMIT = getArg("--limit") ? parseInt(getArg("--limit"), 10) : null;
+const DRY_RUN = args.includes("--dry-run");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function pad(s, n)  { return String(s).padEnd(n); }
-function lpad(s, n) { return String(s).padStart(n); }
-function hr(c = "─", w = 72) { return c.repeat(w); }
+function pad(s, n) {
+	return String(s).padEnd(n);
+}
+function lpad(s, n) {
+	return String(s).padStart(n);
+}
+function hr(c = "─", w = 72) {
+	return c.repeat(w);
+}
 
 // Run `tasks` with at most `limit` in flight at once
 async function pool(tasks, limit) {
@@ -58,7 +64,9 @@ async function pool(tasks, limit) {
 			await next();
 		}
 	}
-	await Promise.all(Array.from({ length: Math.min(limit, tasks.length) }, next));
+	await Promise.all(
+		Array.from({ length: Math.min(limit, tasks.length) }, next),
+	);
 	return results;
 }
 
@@ -114,7 +122,10 @@ async function headCheck(hostname) {
 				signal: AbortSignal.timeout(7000),
 				redirect: "manual",
 			});
-			return { status: res.status, location: res.headers.get("location") ?? undefined };
+			return {
+				status: res.status,
+				location: res.headers.get("location") ?? undefined,
+			};
 		} catch {
 			return { status: 0, error: err.message.slice(0, 60) };
 		}
@@ -124,7 +135,7 @@ async function headCheck(hostname) {
 // ── Classification ────────────────────────────────────────────────────────────
 
 function classify(doh, head) {
-	if (doh === "error")    return "dns-error";
+	if (doh === "error") return "dns-error";
 	if (doh === "nxdomain") return "gone";
 	// DNS resolves — look at HTTP response
 	if (!head || head.status === 0) return "dead-server";
@@ -133,17 +144,17 @@ function classify(doh, head) {
 }
 
 const LABEL = {
-	gone:        "GONE       ",
-	alive:       "ALIVE      ",
-	broken:      "BROKEN     ",
+	gone: "GONE       ",
+	alive: "ALIVE      ",
+	broken: "BROKEN     ",
 	"dead-server": "DEAD SERVER",
 	"dns-error": "DNS ERROR  ",
 };
 
 const ICON = {
-	gone:        "✗",
-	alive:       "✓",
-	broken:      "!",
+	gone: "✗",
+	alive: "✓",
+	broken: "!",
 	"dead-server": "~",
 	"dns-error": "?",
 };
@@ -186,7 +197,8 @@ db.exec(`
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 // Same query logic as db-report --errors
-const rows = db.prepare(`
+const rows = db
+	.prepare(`
   WITH recent AS (SELECT id FROM scans ORDER BY id DESC LIMIT ?),
   counts AS (
     SELECT
@@ -206,13 +218,18 @@ const rows = db.prepare(`
   FROM counts
   WHERE error_count >= ?
   ORDER BY error_count DESC, hostname
-`).all(SCANS, MIN_ERRORS);
+`)
+	.all(SCANS, MIN_ERRORS);
 
 const sites = LIMIT ? rows.slice(0, LIMIT) : rows;
 
 console.log(`\n${hr()}`);
-console.log(`  DNS CHECK — sites erroring in ${MIN_ERRORS}+ of last ${SCANS} scans`);
-console.log(`  ${sites.length} sites to check${DRY_RUN ? " (dry run — skipping network)" : ""}`);
+console.log(
+	`  DNS CHECK — sites erroring in ${MIN_ERRORS}+ of last ${SCANS} scans`,
+);
+console.log(
+	`  ${sites.length} sites to check${DRY_RUN ? " (dry run — skipping network)" : ""}`,
+);
 console.log(hr());
 
 if (sites.length === 0) {
@@ -229,21 +246,30 @@ if (DRY_RUN) {
 }
 
 // Run checks with concurrency pool
-const tasks = sites.map(site => async () => {
-	const doh  = await dohLookup(site.hostname);
-	const head = doh !== "nxdomain" && doh !== "error"
-		? await headCheck(site.hostname)
-		: null;
+const tasks = sites.map((site) => async () => {
+	const doh = await dohLookup(site.hostname);
+	const head =
+		doh !== "nxdomain" && doh !== "error"
+			? await headCheck(site.hostname)
+			: null;
 	return { ...site, doh, head, result: classify(doh, head) };
 });
 
-process.stdout.write(`  Checking ${sites.length} sites (concurrency: ${CONCURRENCY})...\n\n`);
+process.stdout.write(
+	`  Checking ${sites.length} sites (concurrency: ${CONCURRENCY})...\n\n`,
+);
 
 const checked = await pool(tasks, CONCURRENCY);
 
 // ── Print results grouped by classification ───────────────────────────────────
 
-const groups = { gone: [], alive: [], broken: [], "dead-server": [], "dns-error": [] };
+const groups = {
+	gone: [],
+	alive: [],
+	broken: [],
+	"dead-server": [],
+	"dns-error": [],
+};
 for (const r of checked) groups[r.result].push(r);
 
 const order = ["gone", "dead-server", "broken", "alive", "dns-error"];
@@ -256,7 +282,7 @@ for (const key of order) {
 	for (const r of g) {
 		const errs = lpad(`${r.error_count}/${SCANS}`, 4);
 		const http = r.head?.status ? `  HTTP ${r.head.status}` : "";
-		const loc  = r.head?.location ? `  → ${r.head.location.slice(0, 50)}` : "";
+		const loc = r.head?.location ? `  → ${r.head.location.slice(0, 50)}` : "";
 		console.log(`  ${errs}  ${r.hostname}${http}${loc}`);
 	}
 }
@@ -272,7 +298,9 @@ for (const key of order) {
 }
 const goneCount = groups.gone.length;
 if (goneCount) {
-	console.log(`\n  ${goneCount} domain${goneCount > 1 ? "s" : ""} appear gone — candidates for removal from the showcase.`);
+	console.log(
+		`\n  ${goneCount} domain${goneCount > 1 ? "s" : ""} appear gone — candidates for removal from the showcase.`,
+	);
 }
 console.log();
 

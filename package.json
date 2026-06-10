@@ -32,7 +32,7 @@
 		"deploy:draft": "netlify deploy --dir dist --functions netlify/functions"
 	},
 	"dependencies": {
-		"@astrojs/compiler-rs": "^0.2.1",
+		"@astrojs/compiler-rs": "^0.2.2",
 		"@astrojs/sitemap": "^3.7.3",
 		"@felixicaza/astro-capo": "^1.2.1",
 		"@iconify-json/ri": "^1.2.10",

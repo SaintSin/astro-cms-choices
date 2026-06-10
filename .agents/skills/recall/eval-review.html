@@ -1,0 +1,196 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>recall trigger eval review</title>
+<style>
+	body {
+		font:
+			14px system-ui,
+			sans-serif;
+		margin: 24px;
+	}
+	textarea {
+		width: 100%;
+		min-height: 72px;
+	}
+	table {
+		width: 100%;
+		border-collapse: collapse;
+	}
+	th,
+	td {
+		border: 1px solid #ddd;
+		padding: 8px;
+		vertical-align: top;
+	}
+	.section {
+		background: #f5f5f5;
+		font-weight: 700;
+	}
+</style>
+<h1>recall trigger eval review</h1>
+<p>
+	Review the prompts, toggle misclassified cases, add or delete rows, then click
+	Export.
+</p>
+<button
+	onclick="
+		rows.push({ query: '', should_trigger: true });
+		render();
+	"
+>
+	Add Query
+</button>
+<button onclick="exportSet()">Export Eval Set</button>
+<p id="summary"></p>
+<table>
+	<thead>
+		<tr>
+			<th style="width: 72%">Query</th>
+			<th style="width: 14%">Should trigger</th>
+			<th style="width: 14%">Action</th>
+		</tr>
+	</thead>
+	<tbody id="body"></tbody>
+</table>
+<script>
+	const rows = [
+		{
+			query:
+				"Can you fix the regression from issue #418? After last week's retry refactor, our billing webhook started creating duplicate charge attempts. Please trace what changed around `dedupeKeyForEvent`, patch it cleanly, and make the commit history useful for the next person.",
+			should_trigger: true,
+		},
+		{
+			query:
+				"I need to extend the existing cache invalidation flow so deletes also evict the derived search index. Before you change it, figure out why invalidation is split between `cache.ts` and `search-sync.ts`; that looked intentional in an older PR.",
+			should_trigger: true,
+		},
+		{
+			query:
+				"Investigate why `AuthSession` still does that weird double-write to Redis. If the old reason still applies, keep it; if it was just a temporary workaround, simplify it and explain the decision in the commit.",
+			should_trigger: true,
+		},
+		{
+			query:
+				"Support says checkout times out when carts have more than 50 line items. Please fix it in this repo. The bug smells like a regression, so check whether something similar was already fixed before and reference that context when you commit.",
+			should_trigger: true,
+		},
+		{
+			query:
+				"This pagination code in `src/api/orders.ts` looks backwards. Can you figure out who introduced it, whether it was working around a real bug, and then clean it up if it's safe?",
+			should_trigger: true,
+		},
+		{
+			query:
+				"Please refactor the notification fanout code, but only after checking whether the current shape came out of the outage we had in March. I do not want us to repeat the same mistake just because the code looks awkward.",
+			should_trigger: true,
+		},
+		{
+			query:
+				"The `user-profile` feature was partially reverted two PRs ago. Reintroduce avatar caching without bringing back the stale-read bug. Please follow the prior commit chain closely enough that the new commit tells that story clearly.",
+			should_trigger: true,
+		},
+		{
+			query:
+				"Can you patch the flaky test in `payments/retry.test.ts`? It feels like there is some historical workaround hiding in there, and I want the final commit message to explain what we learned instead of just saying 'fix flaky test'.",
+			should_trigger: true,
+		},
+		{
+			query:
+				"We started seeing a regression after commit `7ac1d2e`. Please inspect that chain, fix the bug, and link the relevant history in the new commit so the next agent can recover the rationale.",
+			should_trigger: true,
+		},
+		{
+			query:
+				"Add soft-delete support to the existing admin API. There are already half-finished helpers in this repo, so understand the old direction before wiring in new behavior and committing it.",
+			should_trigger: true,
+		},
+		{
+			query:
+				"Open commit `7ac1d2e` and summarize what changed for me. I do not want any edits yet, just a quick explanation of the diff and why it might have caused the bug.",
+			should_trigger: false,
+		},
+		{
+			query:
+				"What's the bash command to list the 10 largest files in this repo? I just need the command, nothing else.",
+			should_trigger: false,
+		},
+		{
+			query:
+				"Explain what `git log -S` does and when I should use it. No need to inspect this project, I just want the concept.",
+			should_trigger: false,
+		},
+		{
+			query:
+				"Create a brand new Express server for me in `/tmp/demo-api` with one `/health` route. This is just a scratch project, there is no existing repo to preserve history for.",
+			should_trigger: false,
+		},
+		{
+			query:
+				"Review this PR for bugs and risks, but do not change any code. I'm only looking for findings I should send back to the author.",
+			should_trigger: false,
+		},
+		{
+			query:
+				"Summarize how `src/payments` works from the current code only. Please do not look at git history and do not propose edits yet; I just want a read-only walkthrough.",
+			should_trigger: false,
+		},
+		{
+			query: "Can you open issue #418 in my browser? I just want to read it.",
+			should_trigger: false,
+		},
+		{
+			query:
+				"Write a reusable commit message template for our engineering handbook. This is documentation work, not tied to a specific repo change.",
+			should_trigger: false,
+		},
+		{
+			query:
+				"Make a tiny Python script in `/tmp` that converts CSV to JSON. No git repo, no commit, just the script.",
+			should_trigger: false,
+		},
+		{
+			query:
+				"Please make one tiny change: replace `teh` with `the` in the README and stop there. Don't worry about history or a fancy commit message.",
+			should_trigger: false,
+		},
+	];
+	function render() {
+		const b = document.getElementById("body");
+		b.innerHTML = "";
+		const s = [...rows]
+			.map((r, i) => ({ ...r, i }))
+			.sort((a, b) => Number(b.should_trigger) - Number(a.should_trigger));
+		let g = "";
+		for (const r of s) {
+			const h = r.should_trigger ? "Should Trigger" : "Should Not Trigger";
+			if (h !== g) {
+				const tr = document.createElement("tr");
+				tr.innerHTML = `<td colspan="3" class="section">${h}</td>`;
+				b.appendChild(tr);
+				g = h;
+			}
+			const tr = document.createElement("tr");
+			tr.innerHTML = `<td><textarea onchange="rows[${r.i}].query=this.value">${r.query.replace(/&/g, "&amp;").replace(/</g, "&lt;")}</textarea></td><td><input type="checkbox" ${r.should_trigger ? "checked" : ""} onchange="rows[${r.i}].should_trigger=this.checked;render()"></td><td><button onclick="rows.splice(${r.i},1);render()">Delete</button></td>`;
+			b.appendChild(tr);
+		}
+		const p = rows.filter((r) => r.should_trigger).length;
+		document.getElementById("summary").textContent =
+			`${rows.length} total: ${p} should trigger, ${rows.length - p} should not trigger`;
+	}
+	function exportSet() {
+		const out = rows
+			.filter((r) => r.query.trim())
+			.map((r) => ({
+				query: r.query.trim(),
+				should_trigger: r.should_trigger,
+			}));
+		const a = document.createElement("a");
+		a.href = URL.createObjectURL(
+			new Blob([JSON.stringify(out, null, 2)], { type: "application/json" }),
+		);
+		a.download = "eval_set.json";
+		a.click();
+		URL.revokeObjectURL(a.href);
+	}
+	render();
+</script>

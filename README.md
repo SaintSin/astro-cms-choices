@@ -40,14 +40,23 @@ pnpm dev      # start dev server
 
 ## Commands
 
-| Command       | Action                                                        |
-| :------------ | :------------------------------------------------------------ |
-| `pnpm dev`    | Start dev server at `localhost:4321`                          |
-| `pnpm detect` | Scan all showcase sites and write `src/data/cms-results.json` |
-| `pnpm crux`   | Fetch CrUX field data for all confirmed Astro sites           |
-| `pnpm psi`    | Fetch PageSpeed Insights scores for all confirmed Astro sites |
-| `pnpm build`  | Build production site                                         |
-| `pnpm check`  | Lint and format with Biome                                    |
+| Command             | Action                                                        |
+| :------------------ | :------------------------------------------------------------ |
+| `pnpm dev`          | Start dev server at `localhost:4321`                          |
+| `pnpm detect`       | Scan all showcase sites and write `src/data/cms-results.json` |
+| `pnpm crux`         | Fetch CrUX field data for all confirmed Astro sites           |
+| `pnpm psi`          | Fetch PageSpeed Insights scores for all confirmed Astro sites |
+| `pnpm dns-check`    | Triage persistently-erroring sites via DoH + HTTP HEAD        |
+| `pnpm make-prs`     | Prepare batched showcase removal PR branches                  |
+| `pnpm db:init`      | Create `.scan-history.db` and all tables (idempotent)         |
+| `pnpm db:report`    | Query scan history for trends and anomalies                   |
+| `pnpm build`        | Build production site                                         |
+| `pnpm preview`      | Preview the production build locally                          |
+| `pnpm check`        | Lint and format with Biome                                    |
+| `pnpm deploy`       | Deploy to Netlify production                                  |
+| `pnpm deploy:draft` | Deploy a draft URL (no prod traffic)                          |
+| `pnpm clean`        | Remove `dist` and `.astro` cache                              |
+| `pnpm purge`        | Remove `dist`, `.astro`, `.netlify`, and `node_modules`       |
 
 ### `pnpm detect` — CMS scanner
 
@@ -99,28 +108,28 @@ pnpm psi -- --limit=100              # cap number of sites (testing)
 pnpm psi -- --dry-run                # print what would be fetched, write nothing
 ```
 
-### `pnpm make-prs` — open showcase removal PRs
+### `pnpm make-prs` — prepare showcase removal PR branches
 
-Reads confirmed-gone domains from the latest `dns-check` run, matches each to its YAML file in `.showcase-cache`, batches them into groups of 50, and for each batch: creates a branch, deletes the YAMLs, appends to `blockedOrigins`, commits, pushes to the fork, and opens a PR on `withastro/astro.build` via `gh pr create`.
+Reads confirmed-gone domains from the latest `dns-check` run, matches each to its YAML file in `.showcase-cache`, batches them into groups of 50, and for each batch: creates a branch, deletes the YAMLs, appends to `blockedOrigins`, commits, and pushes to the fork. Saves a `pr-body-batch-N.md` file and prints the `gh pr create` command to submit manually.
 
 ```bash
-pnpm make-prs                       # open PRs for all gone domains (batches of 50)
+pnpm make-prs                       # prepare branches for all gone domains (batches of 50)
 pnpm make-prs -- --batch-size=25    # smaller batches
-pnpm make-prs -- --batch=2          # only create batch 2
-pnpm make-prs -- --dry-run          # print plan without touching git or gh
+pnpm make-prs -- --batch=2          # only process batch 2
+pnpm make-prs -- --dry-run          # print plan without touching git
 ```
 
 ### `pnpm dns-check` — triage error sites
 
 Queries `.scan-history.db` for persistently-erroring sites then classifies each one via a DNS over HTTPS lookup (Cloudflare + Google) followed by an HTTP HEAD request:
 
-| Result | Meaning |
-| :--- | :--- |
-| `GONE` | Both DoH resolvers return NXDOMAIN — domain likely expired or deleted |
-| `ALIVE` | DNS resolves + HEAD returns 2xx/3xx — transient error at scan time |
-| `BROKEN` | DNS resolves + HEAD returns 4xx/5xx — server up but site is broken |
-| `DEAD SERVER` | DNS resolves but connection refused or timed out |
-| `DNS ERROR` | DoH lookup itself failed (network issue) |
+| Result        | Meaning                                                               |
+| :------------ | :-------------------------------------------------------------------- |
+| `GONE`        | Both DoH resolvers return NXDOMAIN — domain likely expired or deleted |
+| `ALIVE`       | DNS resolves + HEAD returns 2xx/3xx — transient error at scan time    |
+| `BROKEN`      | DNS resolves + HEAD returns 4xx/5xx — server up but site is broken    |
+| `DEAD SERVER` | DNS resolves but connection refused or timed out                      |
+| `DNS ERROR`   | DoH lookup itself failed (network issue)                              |
 
 ```bash
 pnpm dns-check                        # check sites erroring in 3+ of last 5 scans
@@ -129,6 +138,14 @@ pnpm dns-check -- --min=5            # raise error threshold (default: 3)
 pnpm dns-check -- --concurrency=5   # parallel checks (default: 10)
 pnpm dns-check -- --limit=50        # cap sites checked (testing)
 pnpm dns-check -- --dry-run         # list sites without making network requests
+```
+
+### `pnpm db:init` — initialise the database
+
+Creates `.scan-history.db` and all tables. Safe to re-run (idempotent — uses `CREATE TABLE IF NOT EXISTS`). Run once before your first scan, or any time to verify the DB is healthy.
+
+```bash
+pnpm db:init
 ```
 
 ### `pnpm db:report` — scan history
