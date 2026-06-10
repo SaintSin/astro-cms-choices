@@ -202,7 +202,7 @@ const rows = db.prepare(`
     WHERE sr.cms = 'Error'
     GROUP BY s.id
   )
-  SELECT hostname, url, error_count, last_error
+  SELECT site_id, hostname, url, error_count, last_error
   FROM counts
   WHERE error_count >= ?
   ORDER BY error_count DESC, hostname
