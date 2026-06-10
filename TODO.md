@@ -4,6 +4,7 @@
 
 - [ ] **Record run duration in `crux_runs` and `psi_runs`** — add `finished_at` and `duration_ms` columns (matching `scans` table). Capture start time at script open, write both fields on completion. Useful for estimating remaining time on incremental `--new-only` runs and spotting API slowdowns. (`scans` already does this — bring `crux_runs` / `psi_runs` in line.)
 - [x] **`pnpm dns-check`** — DNS + HTTP triage for error sites (DoH + HEAD, classifies as gone/alive/broken/dead-server)
+- [x] **`pnpm make-prs`** — batched showcase removal PRs (50/batch, blockedOrigins update, gh pr create)
 - [ ] **Prevent duplicate concurrent runs** — both `psi.mjs` and `crux.mjs` can be started accidentally at the same time with no lock. Consider a simple lockfile (`/tmp/psi.lock`, `/tmp/crux.lock`) or a `running` flag in the DB runs table.
 - [ ] **Progress output** — print estimated time remaining during runs (sites done / total × avg ms per site).
 

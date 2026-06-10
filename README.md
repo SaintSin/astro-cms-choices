@@ -99,6 +99,17 @@ pnpm psi -- --limit=100              # cap number of sites (testing)
 pnpm psi -- --dry-run                # print what would be fetched, write nothing
 ```
 
+### `pnpm make-prs` — open showcase removal PRs
+
+Reads confirmed-gone domains from the latest `dns-check` run, matches each to its YAML file in `.showcase-cache`, batches them into groups of 50, and for each batch: creates a branch, deletes the YAMLs, appends to `blockedOrigins`, commits, pushes to the fork, and opens a PR on `withastro/astro.build` via `gh pr create`.
+
+```bash
+pnpm make-prs                       # open PRs for all gone domains (batches of 50)
+pnpm make-prs -- --batch-size=25    # smaller batches
+pnpm make-prs -- --batch=2          # only create batch 2
+pnpm make-prs -- --dry-run          # print plan without touching git or gh
+```
+
 ### `pnpm dns-check` — triage error sites
 
 Queries `.scan-history.db` for persistently-erroring sites then classifies each one via a DNS over HTTPS lookup (Cloudflare + Google) followed by an HTTP HEAD request:
