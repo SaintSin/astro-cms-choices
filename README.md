@@ -11,6 +11,7 @@ Scans every site in the [Astro showcase](https://astro.build/showcase/) and fing
 - Detects whether the site is still running on Astro
 - Displays results in a filterable, sortable, paginated table
 - [Insights page](/insights) with version distribution and submission trend charts
+- [CrUX page](/crux) with Chrome UX Report field data (LCP, INP, CLS, CWV) for Desktop, Phone, and Tablet
 
 ## Detection coverage
 
@@ -46,6 +47,8 @@ pnpm dev      # start dev server
 | `pnpm detect -- --limit 50`      | Scan first 50 sites only                                      |
 | `pnpm detect -- --resume`        | Skip already-processed URLs                                   |
 | `pnpm detect -- --concurrency 8` | Set fetch concurrency (default: 6)                            |
+| `pnpm crux`                      | Fetch CrUX field data for all confirmed Astro sites           |
+| `pnpm psi`                       | Fetch PageSpeed Insights scores for all confirmed Astro sites |
 | `pnpm build`                     | Build production site                                         |
 | `pnpm check`                     | Lint and format with Biome                                    |
 
@@ -79,6 +82,7 @@ rm -rf .astro && pnpm dev
 │   ├── pages/
 │   │   ├── index.astro         # Results UI
 │   │   ├── insights.astro      # Version distribution charts
+│   │   ├── crux.astro          # Chrome UX Report field data
 │   │   └── about.astro         # About page
 │   └── types/
 │       └── index.ts            # Shared TypeScript types
