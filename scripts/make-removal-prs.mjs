@@ -210,19 +210,25 @@ All removed domains added to \`blockedOrigins\` to prevent the weekly CI from re
 | :--- | :--- |
 ${tableRows}`;
 
-	// ── Open PR ───────────────────────────────────────────────────────────────
+	// ── Print PR command for manual submission ────────────────────────────────
 
 	const prTitle = `chore(showcase): remove ${batch.length} sites with expired/deleted domains (batch ${batchNum}/${totalBatches})`;
-	const prUrl = run(
-		`gh pr create --repo "${UPSTREAM}" --head "${FORK.split("/")[0]}:${branch}" --title "${prTitle}" --body ${JSON.stringify(prBody)}`
-	);
-	console.log(`\n  ✓ PR opened: ${prUrl}`);
+	const bodyFile = resolve(__dirname, `../pr-body-batch-${batchNum}.md`);
+	writeFileSync(bodyFile, prBody);
+
+	console.log(`\n  ✓ Branch pushed. Open the PR when ready:\n`);
+	console.log(`  gh pr create \\`);
+	console.log(`    --repo "${UPSTREAM}" \\`);
+	console.log(`    --head "${FORK.split("/")[0]}:${branch}" \\`);
+	console.log(`    --title "${prTitle}" \\`);
+	console.log(`    --body-file "pr-body-batch-${batchNum}.md"\n`);
+	console.log(`  PR body saved to: pr-body-batch-${batchNum}.md`);
 }
 
 console.log(`\n${hr()}`);
 if (DRY_RUN) {
 	console.log(`  Dry run complete — no changes made.`);
 } else {
-	console.log(`  Done. ${ONLY_BATCH !== null ? "1" : batches.length} PR${batches.length > 1 ? "s" : ""} opened on ${UPSTREAM}.`);
+	console.log(`  Branches pushed. Review the pr-body-batch-*.md files and submit PRs when ready.`);
 }
 console.log();

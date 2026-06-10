@@ -37,3 +37,4 @@ src/data/cms-results.json
 .scan-history.db-shm
 # Local Netlify folder
 .netlify
+pr-body-batch-*.md
