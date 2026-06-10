@@ -148,9 +148,42 @@ const ICON = {
 	"dns-error": "?",
 };
 
-// ── Main ──────────────────────────────────────────────────────────────────────
+// ── Database setup ────────────────────────────────────────────────────────────
 
-const db = new Database(DB_PATH, { readonly: true });
+const db = new Database(DB_PATH);
+db.pragma("journal_mode = WAL");
+db.pragma("foreign_keys = ON");
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS dns_check_runs (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    checked_at    TEXT    NOT NULL,
+    scans_window  INTEGER NOT NULL,
+    min_errors    INTEGER NOT NULL,
+    total_checked INTEGER NOT NULL,
+    gone_count    INTEGER NOT NULL,
+    alive_count   INTEGER NOT NULL,
+    broken_count  INTEGER NOT NULL,
+    dead_count    INTEGER NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS dns_check_results (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id       INTEGER NOT NULL REFERENCES dns_check_runs(id),
+    site_id      INTEGER NOT NULL REFERENCES sites(id),
+    result       TEXT    NOT NULL,  -- gone | alive | broken | dead-server | dns-error
+    doh_status   TEXT    NOT NULL,  -- nxdomain | found | error
+    http_status  INTEGER,
+    http_location TEXT,
+    checked_at   TEXT    NOT NULL
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_dns_results_run  ON dns_check_results(run_id);
+  CREATE INDEX IF NOT EXISTS idx_dns_results_site ON dns_check_results(site_id);
+  CREATE INDEX IF NOT EXISTS idx_dns_results_result ON dns_check_results(result);
+`);
+
+// ── Main ──────────────────────────────────────────────────────────────────────
 
 // Same query logic as db-report --errors
 const rows = db.prepare(`
@@ -242,3 +275,46 @@ if (goneCount) {
 	console.log(`\n  ${goneCount} domain${goneCount > 1 ? "s" : ""} appear gone — candidates for removal from the showcase.`);
 }
 console.log();
+
+// ── Persist to DB ─────────────────────────────────────────────────────────────
+
+const checkedAt = new Date().toISOString();
+const insertRun = db.prepare(`
+  INSERT INTO dns_check_runs
+    (checked_at, scans_window, min_errors, total_checked,
+     gone_count, alive_count, broken_count, dead_count)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+`);
+const insertResult = db.prepare(`
+  INSERT INTO dns_check_results
+    (run_id, site_id, result, doh_status, http_status, http_location, checked_at)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
+`);
+
+const { lastInsertRowid: runId } = insertRun.run(
+	checkedAt,
+	SCANS,
+	MIN_ERRORS,
+	checked.length,
+	groups.gone.length,
+	groups.alive.length,
+	groups.broken.length,
+	groups["dead-server"].length,
+);
+
+const writeAll = db.transaction(() => {
+	for (const r of checked) {
+		insertResult.run(
+			runId,
+			r.site_id,
+			r.result,
+			r.doh,
+			r.head?.status ?? null,
+			r.head?.location ?? null,
+			checkedAt,
+		);
+	}
+});
+writeAll();
+
+console.log(`  Results saved to DB (run #${runId}).\n`);
