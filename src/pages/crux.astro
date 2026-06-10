@@ -1,0 +1,643 @@
+---
+// src/pages/crux.astro
+// 2026-06-10T12:00:00Z
+
+import Database from "better-sqlite3";
+import Layout from "@layouts/BaseLayout.astro";
+
+const meta = {
+	title: "Core Web Vitals — Astro CMS Detector",
+	description:
+		"Real-user Chrome UX Report performance data for confirmed Astro sites across desktop, phone, and tablet.",
+};
+
+let sites: any[] = [];
+let generatedAt = "";
+let totalWithData = 0;
+let desktopCount = 0;
+let phoneCount = 0;
+let tabletCount = 0;
+let desktopCwvPass = 0;
+let phoneCwvPass = 0;
+
+try {
+	const db = new Database(".scan-history.db", { readonly: true });
+	const run = db
+		.prepare("SELECT id, started_at FROM crux_runs ORDER BY id DESC LIMIT 1")
+		.get() as { id: number; started_at: string };
+	const latestScan = db
+		.prepare("SELECT id FROM scans ORDER BY id DESC LIMIT 1")
+		.get() as { id: number };
+
+	generatedAt = run.started_at;
+
+	sites = db
+		.prepare(
+			`SELECT
+        s.hostname, s.url,
+        sr.title, sr.astro_version,
+        MAX(CASE WHEN cr.form_factor='DESKTOP' AND cr.status='success' THEN cr.lcp_p75 END) as d_lcp,
+        MAX(CASE WHEN cr.form_factor='DESKTOP' AND cr.status='success' THEN cr.inp_p75 END) as d_inp,
+        MAX(CASE WHEN cr.form_factor='DESKTOP' AND cr.status='success' THEN cr.cls_p75 END) as d_cls,
+        MAX(CASE WHEN cr.form_factor='DESKTOP' AND cr.status='success' THEN cr.lcp_rating END) as d_lcp_r,
+        MAX(CASE WHEN cr.form_factor='DESKTOP' AND cr.status='success' THEN cr.inp_rating END) as d_inp_r,
+        MAX(CASE WHEN cr.form_factor='DESKTOP' AND cr.status='success' THEN cr.cls_rating END) as d_cls_r,
+        MAX(CASE WHEN cr.form_factor='DESKTOP' AND cr.status='success' THEN cr.cwv_pass END) as d_cwv,
+        MAX(CASE WHEN cr.form_factor='PHONE' AND cr.status='success' THEN cr.lcp_p75 END) as p_lcp,
+        MAX(CASE WHEN cr.form_factor='PHONE' AND cr.status='success' THEN cr.inp_p75 END) as p_inp,
+        MAX(CASE WHEN cr.form_factor='PHONE' AND cr.status='success' THEN cr.cls_p75 END) as p_cls,
+        MAX(CASE WHEN cr.form_factor='PHONE' AND cr.status='success' THEN cr.lcp_rating END) as p_lcp_r,
+        MAX(CASE WHEN cr.form_factor='PHONE' AND cr.status='success' THEN cr.inp_rating END) as p_inp_r,
+        MAX(CASE WHEN cr.form_factor='PHONE' AND cr.status='success' THEN cr.cls_rating END) as p_cls_r,
+        MAX(CASE WHEN cr.form_factor='PHONE' AND cr.status='success' THEN cr.cwv_pass END) as p_cwv,
+        MAX(CASE WHEN cr.form_factor='TABLET' AND cr.status='success' THEN cr.lcp_p75 END) as t_lcp,
+        MAX(CASE WHEN cr.form_factor='TABLET' AND cr.status='success' THEN cr.inp_p75 END) as t_inp,
+        MAX(CASE WHEN cr.form_factor='TABLET' AND cr.status='success' THEN cr.cls_p75 END) as t_cls,
+        MAX(CASE WHEN cr.form_factor='TABLET' AND cr.status='success' THEN cr.lcp_rating END) as t_lcp_r,
+        MAX(CASE WHEN cr.form_factor='TABLET' AND cr.status='success' THEN cr.inp_rating END) as t_inp_r,
+        MAX(CASE WHEN cr.form_factor='TABLET' AND cr.status='success' THEN cr.cls_rating END) as t_cls_r,
+        MAX(CASE WHEN cr.form_factor='TABLET' AND cr.status='success' THEN cr.cwv_pass END) as t_cwv
+      FROM crux_results cr
+      JOIN sites s ON s.id = cr.site_id
+      LEFT JOIN scan_results sr ON sr.site_id = s.id AND sr.scan_id = ?
+      WHERE cr.run_id = ?
+      GROUP BY s.id
+      HAVING d_lcp IS NOT NULL OR p_lcp IS NOT NULL OR t_lcp IS NOT NULL
+      ORDER BY s.hostname`,
+		)
+		.all(latestScan.id, run.id) as any[];
+
+	totalWithData = sites.length;
+	desktopCount = sites.filter((s) => s.d_lcp !== null).length;
+	phoneCount = sites.filter((s) => s.p_lcp !== null).length;
+	tabletCount = sites.filter((s) => s.t_lcp !== null).length;
+	desktopCwvPass = sites.filter((s) => s.d_cwv === 1).length;
+	phoneCwvPass = sites.filter((s) => s.p_cwv === 1).length;
+
+	db.close();
+} catch (e) {
+	console.warn("CrUX DB not available:", e);
+}
+
+function fmtLcp(ms: number | null) {
+	if (ms === null) return null;
+	return (ms / 1000).toFixed(1) + "s";
+}
+function fmtInp(ms: number | null) {
+	if (ms === null) return null;
+	return ms + "ms";
+}
+function fmtCls(v: number | null) {
+	if (v === null) return null;
+	return v.toFixed(3);
+}
+---
+
+<Layout metaData={meta}>
+  <main class="crux-page">
+    <header class="page-header">
+      <h1>Core Web Vitals <span class="muted">Real-user data</span></h1>
+      <p class="page-desc">
+        28-day Chrome UX Report field data for confirmed Astro sites.
+        Data collected {new Date(generatedAt).toLocaleDateString("en-GB", { dateStyle: "medium" })}.
+        Only sites with sufficient Chrome traffic appear ({totalWithData.toLocaleString()} of ~2,100 confirmed Astro sites).
+      </p>
+    </header>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-value">{desktopCount}</span>
+        <span class="stat-label">Desktop</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{phoneCount}</span>
+        <span class="stat-label">Phone</span>
+      </div>
+      <div class="stat-card stat-card--muted">
+        <span class="stat-value">{tabletCount}</span>
+        <span class="stat-label">Tablet</span>
+      </div>
+      <div class="stat-card stat-card--pass">
+        <span class="stat-value">{desktopCwvPass}</span>
+        <span class="stat-label">Desktop CWV pass</span>
+      </div>
+      <div class="stat-card stat-card--pass">
+        <span class="stat-value">{phoneCwvPass}</span>
+        <span class="stat-label">Phone CWV pass</span>
+      </div>
+    </div>
+
+    <aside class="tablet-note">
+      <strong>Why is tablet data sparse?</strong>
+      CrUX only records data from Chrome users who have opted in to sync.
+      Tablets are dominated by iPad + Safari — Chrome on iOS uses Apple's WebKit engine
+      and has no telemetry access, and Safari usage simply doesn't appear in CrUX at all.
+      Missing tablet data reflects iPad/Safari dominance, not low traffic.
+    </aside>
+
+    <div class="toolbar">
+      <input
+        type="search"
+        id="crux-search"
+        class="search-input"
+        placeholder="Filter by site name or URL…"
+        autocomplete="off"
+      />
+      <span class="result-count" id="result-count">{totalWithData} sites</span>
+    </div>
+
+    <div class="table-wrap" id="crux-table-wrap">
+      <table class="crux-table" id="crux-table">
+        <thead>
+          <tr>
+            <th class="sortable col-site" data-col="title">Site</th>
+            <th class="sortable col-ver" data-col="version">Astro</th>
+            <th class="col-group-header" colspan="4">
+              <span class="device-icon">🖥</span> Desktop
+            </th>
+            <th class="col-group-header" colspan="4">
+              <span class="device-icon">📱</span> Phone
+            </th>
+            <th class="col-group-header" colspan="4">
+              <span class="device-icon">⬛</span> Tablet
+            </th>
+          </tr>
+          <tr class="subheader">
+            <th></th>
+            <th></th>
+            <th class="sortable metric-th" data-col="d_lcp">LCP</th>
+            <th class="sortable metric-th" data-col="d_inp">INP</th>
+            <th class="sortable metric-th" data-col="d_cls">CLS</th>
+            <th class="sortable metric-th cwv-th" data-col="d_cwv">CWV</th>
+            <th class="sortable metric-th" data-col="p_lcp">LCP</th>
+            <th class="sortable metric-th" data-col="p_inp">INP</th>
+            <th class="sortable metric-th" data-col="p_cls">CLS</th>
+            <th class="sortable metric-th cwv-th" data-col="p_cwv">CWV</th>
+            <th class="sortable metric-th" data-col="t_lcp">LCP</th>
+            <th class="sortable metric-th" data-col="t_inp">INP</th>
+            <th class="sortable metric-th" data-col="t_cls">CLS</th>
+            <th class="sortable metric-th cwv-th" data-col="t_cwv">CWV</th>
+          </tr>
+        </thead>
+        <tbody id="crux-tbody">
+          {sites.map((s) => (
+            <tr
+              data-title={(s.title ?? s.hostname).toLowerCase()}
+              data-url={s.url.toLowerCase()}
+              data-version={s.astro_version ?? ""}
+              data-d_lcp={s.d_lcp ?? ""}
+              data-d_inp={s.d_inp ?? ""}
+              data-d_cls={s.d_cls ?? ""}
+              data-d_cwv={s.d_cwv ?? ""}
+              data-p_lcp={s.p_lcp ?? ""}
+              data-p_inp={s.p_inp ?? ""}
+              data-p_cls={s.p_cls ?? ""}
+              data-p_cwv={s.p_cwv ?? ""}
+              data-t_lcp={s.t_lcp ?? ""}
+              data-t_inp={s.t_inp ?? ""}
+              data-t_cls={s.t_cls ?? ""}
+              data-t_cwv={s.t_cwv ?? ""}
+            >
+              <td class="col-site">
+                <a href={s.url} target="_blank" rel="noopener noreferrer">
+                  {s.title ?? s.hostname}
+                </a>
+              </td>
+              <td class="col-ver">
+                {s.astro_version ? <span class="ver-badge">v{s.astro_version}</span> : <span class="no-data">—</span>}
+              </td>
+              <!-- Desktop -->
+              <td class={`metric ${s.d_lcp_r ?? "none"}`}>{fmtLcp(s.d_lcp) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric ${s.d_inp_r ?? "none"}`}>{fmtInp(s.d_inp) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric ${s.d_cls_r ?? "none"}`}>{fmtCls(s.d_cls) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric cwv ${s.d_cwv === 1 ? "good" : s.d_cwv === 0 ? "poor" : "none"}`}>
+                {s.d_cwv === 1 ? "✓" : s.d_cwv === 0 ? "✗" : <span class="no-data">—</span>}
+              </td>
+              <!-- Phone -->
+              <td class={`metric ${s.p_lcp_r ?? "none"}`}>{fmtLcp(s.p_lcp) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric ${s.p_inp_r ?? "none"}`}>{fmtInp(s.p_inp) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric ${s.p_cls_r ?? "none"}`}>{fmtCls(s.p_cls) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric cwv ${s.p_cwv === 1 ? "good" : s.p_cwv === 0 ? "poor" : "none"}`}>
+                {s.p_cwv === 1 ? "✓" : s.p_cwv === 0 ? "✗" : <span class="no-data">—</span>}
+              </td>
+              <!-- Tablet -->
+              <td class={`metric ${s.t_lcp_r ?? "none"}`}>{fmtLcp(s.t_lcp) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric ${s.t_inp_r ?? "none"}`}>{fmtInp(s.t_inp) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric ${s.t_cls_r ?? "none"}`}>{fmtCls(s.t_cls) ?? <span class="no-data">—</span>}</td>
+              <td class={`metric cwv ${s.t_cwv === 1 ? "good" : s.t_cwv === 0 ? "poor" : "none"}`}>
+                {s.t_cwv === 1 ? "✓" : s.t_cwv === 0 ? "✗" : <span class="no-data">—</span>}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <nav id="crux-pagination" class="pagination" aria-label="Pagination"></nav>
+  </main>
+</Layout>
+
+<script is:inline>
+  function initCrux() {
+    const tbody = document.getElementById("crux-tbody");
+    const searchEl = document.getElementById("crux-search");
+    const countEl = document.getElementById("result-count");
+    const paginationEl = document.getElementById("crux-pagination");
+    const tableWrap = document.getElementById("crux-table-wrap");
+    if (!tbody || !searchEl || !countEl || !paginationEl) return;
+
+    const PAGE_SIZE = 50;
+    const allRows = Array.from(tbody.querySelectorAll("tr"));
+    let sortCol = null;
+    let sortAsc = true;
+    let currentPage = 1;
+
+    // data-d_lcp → dataset.d_lcp (underscores preserved by dataset API)
+    function numVal(row, col) {
+      const v = row.dataset[col];
+      return v === "" || v === undefined ? Infinity : parseFloat(v);
+    }
+
+    function sortRows(rows) {
+      if (!sortCol) return rows;
+      return [...rows].sort((a, b) => {
+        let cmp;
+        if (sortCol === "title") {
+          cmp = (a.dataset.title ?? "").localeCompare(b.dataset.title ?? "");
+        } else if (sortCol === "version") {
+          const av = a.dataset.version, bv = b.dataset.version;
+          if (!av && !bv) return 0;
+          if (!av) return 1;
+          if (!bv) return -1;
+          cmp = av.localeCompare(bv, undefined, { numeric: true });
+          return sortAsc ? cmp : -cmp;
+        } else if (sortCol.endsWith("cwv")) {
+          const va = numVal(a, sortCol), vb = numVal(b, sortCol);
+          // pass (1) first, fail (0) second, no-data (Infinity) last — always
+          const ra = va === Infinity ? 2 : va === 1 ? 0 : 1;
+          const rb = vb === Infinity ? 2 : vb === 1 ? 0 : 1;
+          cmp = ra - rb;
+          return sortAsc ? cmp : -cmp;
+        } else {
+          // LCP / INP / CLS — no-data always last regardless of direction
+          const va = numVal(a, sortCol), vb = numVal(b, sortCol);
+          const aEmpty = va === Infinity, bEmpty = vb === Infinity;
+          if (aEmpty && bEmpty) return 0;
+          if (aEmpty) return 1;
+          if (bEmpty) return -1;
+          cmp = va - vb;
+        }
+        return sortAsc ? cmp : -cmp;
+      });
+    }
+
+    function getFiltered() {
+      const query = searchEl.value.toLowerCase().trim();
+      return allRows.filter(r =>
+        !query || r.dataset.title.includes(query) || r.dataset.url.includes(query)
+      );
+    }
+
+    function renderPagination(total, page) {
+      const totalPages = Math.ceil(total / PAGE_SIZE);
+      if (totalPages <= 1) { paginationEl.innerHTML = ""; return; }
+
+      const numBtn = (p, active) =>
+        `<button class="page-num${active ? " active" : ""}" data-page="${p}">${p}</button>`;
+      const navBtn = (label, p, cls, disabled) =>
+        `<button class="${cls}" data-page="${p}" ${disabled ? "disabled" : ""}>${label}</button>`;
+
+      const items = [navBtn("Previous", page - 1, "page-prev", page === 1)];
+      const pages = new Set([1, totalPages]);
+      for (let p = Math.max(1, page - 2); p <= Math.min(totalPages, page + 2); p++) pages.add(p);
+      let prev = 0;
+      for (const p of [...pages].sort((a, b) => a - b)) {
+        if (prev && p - prev > 1) items.push(`<span class="page-ellipsis">…</span>`);
+        items.push(numBtn(p, p === page));
+        prev = p;
+      }
+      items.push(navBtn("Next", page + 1, "page-next", page === totalPages));
+      paginationEl.innerHTML = items.join("");
+
+      paginationEl.querySelectorAll("[data-page]:not([disabled])").forEach(b => {
+        b.addEventListener("click", () => {
+          currentPage = parseInt(b.dataset.page, 10);
+          applyView();
+          tableWrap?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
+    }
+
+    function applyView() {
+      const filtered = getFiltered();
+      const sorted = sortRows(filtered);
+      const start = (currentPage - 1) * PAGE_SIZE;
+      const pageSet = new Set(sorted.slice(start, start + PAGE_SIZE));
+
+      const domOrder = sortCol ? sortRows(allRows) : allRows;
+      for (const row of domOrder) tbody.appendChild(row);
+      for (const row of allRows) row.hidden = !pageSet.has(row);
+
+      const from = Math.min(start + 1, filtered.length);
+      const to = Math.min(start + PAGE_SIZE, filtered.length);
+      countEl.textContent = filtered.length
+        ? `Showing ${from}–${to} of ${filtered.length} site${filtered.length !== 1 ? "s" : ""}`
+        : "No results";
+
+      renderPagination(filtered.length, currentPage);
+
+      document.querySelectorAll(".sortable").forEach(th => {
+        const col = th.dataset.col;
+        th.classList.toggle("sort-asc", sortCol === col && sortAsc);
+        th.classList.toggle("sort-desc", sortCol === col && !sortAsc);
+      });
+    }
+
+    searchEl.addEventListener("input", () => { currentPage = 1; applyView(); });
+
+    document.querySelectorAll(".sortable").forEach(th => {
+      th.addEventListener("click", () => {
+        const col = th.dataset.col;
+        if (sortCol === col) { sortAsc = !sortAsc; } else { sortCol = col; sortAsc = true; }
+        currentPage = 1;
+        applyView();
+      });
+    });
+
+    applyView();
+  }
+
+  initCrux();
+  document.addEventListener("astro:page-load", initCrux);
+</script>
+
+<style>
+  .crux-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-l) var(--space-m);
+  }
+
+  .page-header {
+    margin-block-end: var(--space-l);
+  }
+
+  h1 { font-size: var(--step-2); margin: 0 0 var(--space-xs); }
+  .muted { color: var(--color-mid); font-weight: 400; }
+
+  .page-desc {
+    color: var(--color-mid);
+    font-size: var(--step--1);
+    max-width: 70ch;
+    margin: 0;
+  }
+
+  .stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    margin-block-end: var(--space-m);
+  }
+
+  .stat-card {
+    background: var(--color-light);
+    border: 1px solid var(--color-keyline);
+    border-radius: var(--space-3xs);
+    padding: var(--space-xs) var(--space-s);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 100px;
+  }
+
+  .stat-card--muted { opacity: 0.65; }
+  .stat-card--pass { border-color: #3a7d44; }
+
+  .stat-value {
+    font-size: var(--step-1);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-label {
+    font-size: var(--step--2);
+    color: var(--color-mid);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .tablet-note {
+    background: color-mix(in srgb, var(--color-brand) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-brand) 25%, transparent);
+    border-radius: var(--space-3xs);
+    padding: var(--space-xs) var(--space-s);
+    font-size: var(--step--1);
+    color: var(--color-text);
+    margin-block-end: var(--space-m);
+    max-width: 80ch;
+    line-height: 1.6;
+  }
+
+  .tablet-note strong { display: block; margin-block-end: 2px; }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    margin-block-end: var(--space-s);
+  }
+
+  .search-input {
+    flex: 1;
+    max-width: 320px;
+    padding: var(--space-2xs) var(--space-xs);
+    border: 1px solid var(--color-keyline);
+    border-radius: var(--space-3xs);
+    font-size: var(--step--1);
+    background: var(--color-light);
+    color: var(--color-text);
+  }
+
+  .result-count {
+    font-size: var(--step--1);
+    color: var(--color-mid);
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--color-keyline);
+    border-radius: var(--space-3xs);
+  }
+
+  .crux-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--step--1);
+    white-space: nowrap;
+  }
+
+  /* Header rows */
+  .crux-table thead tr:first-child th {
+    padding: var(--space-2xs) var(--space-xs);
+    text-align: left;
+    font-size: var(--step--2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    color: var(--color-text-subtle);
+    border-bottom: 1px solid var(--gray-2);
+    white-space: nowrap;
+  }
+
+  .crux-table .subheader th {
+    padding: var(--space-3xs) var(--space-xs);
+    font-size: var(--step--2);
+    color: var(--color-text-subtle);
+    border-bottom: 2px solid var(--gray-3);
+    text-align: center;
+    font-weight: 600;
+  }
+
+  .col-group-header {
+    text-align: center !important;
+    border-inline-start: 2px solid var(--gray-3);
+  }
+
+  /* Body rows */
+  .crux-table td {
+    padding: var(--space-3xs) var(--space-xs);
+    border-top: 1px solid var(--gray-2);
+    vertical-align: middle;
+  }
+
+  .crux-table tbody tr:nth-child(even) td { background: var(--color-surface); }
+  .crux-table tbody tr:hover td { background: color-mix(in srgb, var(--color-primary) 5%, transparent); }
+
+  /* Device group separators — Desktop starts at col 3, Phone at 7, Tablet at 11 */
+  .crux-table td:nth-child(3),
+  .crux-table td:nth-child(7),
+  .crux-table td:nth-child(11),
+  .crux-table .subheader th:nth-child(3),
+  .crux-table .subheader th:nth-child(7),
+  .crux-table .subheader th:nth-child(11) {
+    border-inline-start: 2px solid var(--gray-3);
+  }
+
+  .col-site { min-width: 180px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+  .col-site a { color: var(--color-text); text-decoration: none; font-weight: 500; }
+  .col-site a:hover { color: var(--color-primary); }
+
+  .col-ver { width: 80px; }
+  .ver-badge {
+    font-size: var(--step--2);
+    color: var(--color-text-subtle);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .metric {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    width: 64px;
+  }
+
+  .metric.good              { background: color-mix(in srgb, var(--green-6) 12%, transparent); color: var(--green-9); }
+  .metric.needs-improvement { background: color-mix(in srgb, var(--orange-5) 12%, transparent); color: var(--orange-9); }
+  .metric.poor              { background: color-mix(in srgb, var(--red-6) 12%, transparent); color: var(--red-9); }
+  .metric.none              { color: var(--color-text-subtle); }
+
+  .metric.cwv.good { font-weight: 700; }
+  .metric.cwv.poor { font-weight: 700; }
+
+  .no-data { color: var(--color-text-subtle); opacity: 0.35; }
+
+  .sortable { cursor: pointer; user-select: none; }
+  .sortable::after { content: " ⇅"; opacity: 0.4; font-size: 0.8em; }
+  .sortable.sort-asc::after { content: " ▲"; opacity: 1; }
+  .sortable.sort-desc::after { content: " ▼"; opacity: 1; }
+
+  .metric-th { text-align: center; }
+
+  /* Pagination — matches home page */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-s);
+    flex-wrap: wrap;
+    padding-block: var(--space-m);
+  }
+
+  .pagination :global(.page-num) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: var(--space-3xs);
+    font-size: var(--step--1);
+    font-weight: 400;
+    color: var(--color-text-subtle);
+    background: none;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  }
+
+  .pagination :global(.page-num:hover) {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--gray-3);
+  }
+
+  .pagination :global(.page-num.active) {
+    background: var(--violet-6);
+    color: white;
+    border-color: transparent;
+    font-weight: 600;
+    pointer-events: none;
+  }
+
+  .pagination :global(.page-ellipsis) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    font-size: var(--step--1);
+    color: var(--color-text-subtle);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .pagination :global(.page-prev),
+  .pagination :global(.page-next) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3xs);
+    padding: 0.45em 0.9em;
+    border-radius: var(--space-3xs);
+    border: 1px solid var(--gray-3);
+    font-size: var(--step--2);
+    font-weight: 400;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-text-subtle);
+    background: transparent;
+    cursor: pointer;
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+  }
+
+  .pagination :global(.page-prev:hover),
+  .pagination :global(.page-next:hover) {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border-color: var(--gray-4);
+  }
+
+  .pagination :global(.page-prev:disabled),
+  .pagination :global(.page-next:disabled) {
+    opacity: 0.35;
+    pointer-events: none;
+    cursor: default;
+  }
+</style>

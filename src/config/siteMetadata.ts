@@ -27,7 +27,8 @@ export const siteMetadata: SiteMetadata = {
 	logo: "/logo.svg",
 	menu: [
 		{ label: "Home", href: "/" },
-		{ label: "Insights", href: "/insights/" },
+		{ label: "Version Insights", href: "/insights/" },
+		{ label: "CrUX CWV", href: "/crux/" },
 	],
 	showcasePageSize: 50,
 };

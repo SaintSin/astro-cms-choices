@@ -2,6 +2,18 @@
 
 ## 2026-06-10 (continued)
 
+### CrUX page
+
+- Added `/crux/` page showing Chrome UX Report field data for 528 confirmed Astro sites
+  - Columns: site, Astro version, Desktop/Phone/Tablet — LCP, INP, CLS, CWV pass
+  - Metric cells colour-coded by rating (green/amber/red)
+  - Sortable columns: all metrics sort no-data rows to the bottom regardless of direction; CWV sorts pass → fail → no-data
+  - Search filter by site name or URL
+  - Pagination at 50 per page, matching home page style
+  - Note explaining sparse tablet data: iPad + Safari dominance means CrUX tablet coverage reflects Chrome-on-Android usage only
+  - Zebra-stripe rows, `border-top` row rules and `2px` column group separators matching home page table style
+- Added "CrUX CWV" link to site nav
+
 ### UI
 
 - Fixed Astro version column sort: sites with no Astro detected now always group at the bottom regardless of sort direction (ascending or descending)
