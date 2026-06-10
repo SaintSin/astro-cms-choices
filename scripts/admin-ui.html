@@ -1,462 +1,808 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Review Queue — CMS Detector</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Review Queue — CMS Detector</title>
+		<style>
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+			}
 
-    :root {
-      --bg:         #f1f5f9;
-      --surface:    #ffffff;
-      --border:     #e2e8f0;
-      --text:       #0f172a;
-      --muted:      #64748b;
-      --primary:    #7c3aed;
-      --primary-bg: #ede9fe;
-      --remove:     #dc2626;  --remove-bg:  #fef2f2;  --remove-bg2: #fee2e2;
-      --keep:       #16a34a;  --keep-bg:    #f0fdf4;  --keep-bg2:   #dcfce7;
-      --rescan:     #2563eb;  --rescan-bg:  #eff6ff;  --rescan-bg2: #dbeafe;
-      --skip:       #94a3b8;  --skip-bg:    #f8fafc;  --skip-bg2:   #f1f5f9;
-    }
+			:root {
+				--bg: #f1f5f9;
+				--surface: #ffffff;
+				--border: #e2e8f0;
+				--text: #0f172a;
+				--muted: #64748b;
+				--primary: #7c3aed;
+				--primary-bg: #ede9fe;
+				--remove: #dc2626;
+				--remove-bg: #fef2f2;
+				--remove-bg2: #fee2e2;
+				--keep: #16a34a;
+				--keep-bg: #f0fdf4;
+				--keep-bg2: #dcfce7;
+				--rescan: #2563eb;
+				--rescan-bg: #eff6ff;
+				--rescan-bg2: #dbeafe;
+				--skip: #94a3b8;
+				--skip-bg: #f8fafc;
+				--skip-bg2: #f1f5f9;
+			}
 
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 14px;
-      min-height: 100dvh;
-    }
+			body {
+				font-family:
+					system-ui,
+					-apple-system,
+					"Segoe UI",
+					sans-serif;
+				background: var(--bg);
+				color: var(--text);
+				font-size: 14px;
+				min-height: 100dvh;
+			}
 
-    /* ── Header ─────────────────────────────────────────────────────────── */
+			/* ── Header ─────────────────────────────────────────────────────────── */
 
-    .app-header {
-      position: sticky; top: 0; z-index: 20;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0.6rem 1.25rem;
-      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-    }
-    .header-left  { display: flex; align-items: baseline; gap: 0.75rem; }
-    .app-header h1 { font-size: 1rem; font-weight: 700; }
+			.app-header {
+				position: sticky;
+				top: 0;
+				z-index: 20;
+				background: var(--surface);
+				border-bottom: 1px solid var(--border);
+				padding: 0.6rem 1.25rem;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 1rem;
+			}
+			.header-left {
+				display: flex;
+				align-items: baseline;
+				gap: 0.75rem;
+			}
+			.app-header h1 {
+				font-size: 1rem;
+				font-weight: 700;
+			}
 
-    .stats { display: flex; gap: 0; font-size: 0.75rem; color: var(--muted); }
-    .stat  { padding: 0 0.6rem; border-left: 1px solid var(--border); }
-    .stat:first-child { border-left: none; padding-left: 0; }
-    .stat-remove { color: var(--remove); font-weight: 600; }
-    .stat-keep   { color: var(--keep);   font-weight: 600; }
+			.stats {
+				display: flex;
+				gap: 0;
+				font-size: 0.75rem;
+				color: var(--muted);
+			}
+			.stat {
+				padding: 0 0.6rem;
+				border-left: 1px solid var(--border);
+			}
+			.stat:first-child {
+				border-left: none;
+				padding-left: 0;
+			}
+			.stat-remove {
+				color: var(--remove);
+				font-weight: 600;
+			}
+			.stat-keep {
+				color: var(--keep);
+				font-weight: 600;
+			}
 
-    .btn-export {
-      padding: 0.4rem 0.9rem;
-      background: var(--primary); color: white;
-      border: none; border-radius: 6px;
-      font-size: 0.8125rem; font-weight: 600;
-      cursor: pointer; font-family: inherit;
-      transition: background 0.12s;
-    }
-    .btn-export:hover { background: #6d28d9; }
-    .btn-export:disabled { opacity: 0.45; cursor: default; }
+			.btn-export {
+				padding: 0.4rem 0.9rem;
+				background: var(--primary);
+				color: white;
+				border: none;
+				border-radius: 6px;
+				font-size: 0.8125rem;
+				font-weight: 600;
+				cursor: pointer;
+				font-family: inherit;
+				transition: background 0.12s;
+			}
+			.btn-export:hover {
+				background: #6d28d9;
+			}
+			.btn-export:disabled {
+				opacity: 0.45;
+				cursor: default;
+			}
 
-    /* ── Toolbar ────────────────────────────────────────────────────────── */
+			/* ── Toolbar ────────────────────────────────────────────────────────── */
 
-    .toolbar {
-      position: sticky; top: 47px; z-index: 19;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0.45rem 1.25rem;
-      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-      flex-wrap: wrap;
-    }
+			.toolbar {
+				position: sticky;
+				top: 47px;
+				z-index: 19;
+				background: var(--surface);
+				border-bottom: 1px solid var(--border);
+				padding: 0.45rem 1.25rem;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 1rem;
+				flex-wrap: wrap;
+			}
 
-    .filter-tabs { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+			.filter-tabs {
+				display: flex;
+				gap: 0.25rem;
+				flex-wrap: wrap;
+			}
 
-    .tab {
-      padding: 0.25rem 0.65rem;
-      border: 1px solid var(--border); border-radius: 99px;
-      background: none; cursor: pointer;
-      font-size: 0.75rem; font-family: inherit; color: var(--muted);
-      transition: all 0.1s;
-    }
-    .tab:hover  { background: var(--bg); color: var(--text); }
-    .tab.active { background: var(--primary-bg); border-color: var(--primary); color: var(--primary); font-weight: 600; }
+			.tab {
+				padding: 0.25rem 0.65rem;
+				border: 1px solid var(--border);
+				border-radius: 99px;
+				background: none;
+				cursor: pointer;
+				font-size: 0.75rem;
+				font-family: inherit;
+				color: var(--muted);
+				transition: all 0.1s;
+			}
+			.tab:hover {
+				background: var(--bg);
+				color: var(--text);
+			}
+			.tab.active {
+				background: var(--primary-bg);
+				border-color: var(--primary);
+				color: var(--primary);
+				font-weight: 600;
+			}
 
-    .toolbar-right { display: flex; gap: 0.5rem; align-items: center; }
+			.toolbar-right {
+				display: flex;
+				gap: 0.5rem;
+				align-items: center;
+			}
 
-    select, input[type="search"] {
-      padding: 0.3rem 0.55rem;
-      border: 1px solid var(--border); border-radius: 6px;
-      font-size: 0.8125rem; font-family: inherit;
-      background: var(--surface); color: var(--text);
-    }
-    input[type="search"] { min-width: 13rem; }
+			select,
+			input[type="search"] {
+				padding: 0.3rem 0.55rem;
+				border: 1px solid var(--border);
+				border-radius: 6px;
+				font-size: 0.8125rem;
+				font-family: inherit;
+				background: var(--surface);
+				color: var(--text);
+			}
+			input[type="search"] {
+				min-width: 13rem;
+			}
 
-    /* ── Table ──────────────────────────────────────────────────────────── */
+			/* ── Table ──────────────────────────────────────────────────────────── */
 
-    main { padding: 0.875rem 1.25rem 3rem; }
+			main {
+				padding: 0.875rem 1.25rem 3rem;
+			}
 
-    .queue-table {
-      width: 100%; border-collapse: collapse;
-      background: var(--surface);
-      border-radius: 8px; overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
-    }
-    .queue-table colgroup col:nth-child(1) { width: auto; }
-    .queue-table colgroup col:nth-child(2) { width: 11rem; }
-    .queue-table colgroup col:nth-child(3) { width: 6.5rem; }
-    .queue-table colgroup col:nth-child(4) { width: 21rem; }
+			.queue-table {
+				width: 100%;
+				border-collapse: collapse;
+				background: var(--surface);
+				border-radius: 8px;
+				overflow: hidden;
+				box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
+			}
+			.queue-table colgroup col:nth-child(1) {
+				width: auto;
+			}
+			.queue-table colgroup col:nth-child(2) {
+				width: 11rem;
+			}
+			.queue-table colgroup col:nth-child(3) {
+				width: 6.5rem;
+			}
+			.queue-table colgroup col:nth-child(4) {
+				width: 21rem;
+			}
 
-    .queue-table th {
-      text-align: left;
-      padding: 0.5rem 0.75rem;
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-      font-size: 0.7rem; font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.05em;
-      color: var(--muted);
-    }
-    .queue-table td {
-      padding: 0.55rem 0.75rem;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-    }
-    .queue-table tr:last-child td { border-bottom: none; }
-    .queue-table tbody tr:hover td { background: rgba(0,0,0,0.015); }
+			.queue-table th {
+				text-align: left;
+				padding: 0.5rem 0.75rem;
+				background: var(--bg);
+				border-bottom: 1px solid var(--border);
+				font-size: 0.7rem;
+				font-weight: 700;
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+				color: var(--muted);
+			}
+			.queue-table td {
+				padding: 0.55rem 0.75rem;
+				border-bottom: 1px solid var(--border);
+				vertical-align: top;
+			}
+			.queue-table tr:last-child td {
+				border-bottom: none;
+			}
+			.queue-table tbody tr:hover td {
+				background: rgba(0, 0, 0, 0.015);
+			}
 
-    /* Row tints by decision */
-    .row-remove td { background: var(--remove-bg); }
-    .row-remove:hover td { background: var(--remove-bg2) !important; }
-    .row-keep   td { background: var(--keep-bg); }
-    .row-keep:hover   td { background: var(--keep-bg2)   !important; }
-    .row-rescan td { background: var(--rescan-bg); }
-    .row-rescan:hover td { background: var(--rescan-bg2) !important; }
-    .row-skip   td { background: var(--skip-bg); }
+			/* Row tints by decision */
+			.row-remove td {
+				background: var(--remove-bg);
+			}
+			.row-remove:hover td {
+				background: var(--remove-bg2) !important;
+			}
+			.row-keep td {
+				background: var(--keep-bg);
+			}
+			.row-keep:hover td {
+				background: var(--keep-bg2) !important;
+			}
+			.row-rescan td {
+				background: var(--rescan-bg);
+			}
+			.row-rescan:hover td {
+				background: var(--rescan-bg2) !important;
+			}
+			.row-skip td {
+				background: var(--skip-bg);
+			}
 
-    /* Site cell */
-    .site-title {
-      font-weight: 500; font-size: 0.8125rem;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      max-width: 30rem;
-    }
-    .site-meta {
-      display: flex; align-items: center; gap: 0.35rem; flex-wrap: wrap;
-      font-size: 0.7rem; color: var(--muted); margin-top: 0.15rem;
-    }
-    .site-link {
-      color: var(--primary); text-decoration: none;
-      opacity: 0; transition: opacity 0.1s;
-    }
-    tr:hover .site-link { opacity: 1; }
-    .site-link:hover { text-decoration: underline; }
-    .site-redirect { font-size: 0.7rem; color: var(--muted); font-style: italic; margin-top: 0.1rem; }
+			/* Site cell */
+			.site-title {
+				font-weight: 500;
+				font-size: 0.8125rem;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				max-width: 30rem;
+			}
+			.site-meta {
+				display: flex;
+				align-items: center;
+				gap: 0.35rem;
+				flex-wrap: wrap;
+				font-size: 0.7rem;
+				color: var(--muted);
+				margin-top: 0.15rem;
+			}
+			.site-link {
+				color: var(--primary);
+				text-decoration: none;
+				opacity: 0;
+				transition: opacity 0.1s;
+			}
+			tr:hover .site-link {
+				opacity: 1;
+			}
+			.site-link:hover {
+				text-decoration: underline;
+			}
+			.site-redirect {
+				font-size: 0.7rem;
+				color: var(--muted);
+				font-style: italic;
+				margin-top: 0.1rem;
+			}
 
-    /* CMS / type cell */
-    .type-label { display: block; font-size: 0.68rem; color: var(--muted); margin-top: 0.2rem; }
+			/* CMS / type cell */
+			.type-label {
+				display: block;
+				font-size: 0.68rem;
+				color: var(--muted);
+				margin-top: 0.2rem;
+			}
 
-    /* Badges */
-    .cms-badge, .conf-badge {
-      display: inline-block;
-      padding: 0.12em 0.5em;
-      border-radius: 99px;
-      font-size: 0.7rem; font-weight: 600; white-space: nowrap;
-    }
-    .badge-full-site    { background: #fee2e2; color: #991b1b; }
-    .badge-page-builder { background: #f3e8ff; color: #7e22ce; }
-    .badge-headless-cms { background: #dbeafe; color: #1e40af; }
-    .badge-framework    { background: #cffafe; color: #155e75; }
-    .badge-static-gen   { background: #dcfce7; color: #166534; }
-    .badge-parked       { background: #fef9c3; color: #854d0e; }
-    .badge-high   { background: #dcfce7; color: #166534; }
-    .badge-medium { background: #fef9c3; color: #854d0e; }
-    .badge-low    { background: #f1f5f9; color: #64748b; }
+			/* Badges */
+			.cms-badge,
+			.conf-badge {
+				display: inline-block;
+				padding: 0.12em 0.5em;
+				border-radius: 99px;
+				font-size: 0.7rem;
+				font-weight: 600;
+				white-space: nowrap;
+			}
+			.badge-full-site {
+				background: #fee2e2;
+				color: #991b1b;
+			}
+			.badge-page-builder {
+				background: #f3e8ff;
+				color: #7e22ce;
+			}
+			.badge-headless-cms {
+				background: #dbeafe;
+				color: #1e40af;
+			}
+			.badge-framework {
+				background: #cffafe;
+				color: #155e75;
+			}
+			.badge-static-gen {
+				background: #dcfce7;
+				color: #166534;
+			}
+			.badge-parked {
+				background: #fef9c3;
+				color: #854d0e;
+			}
+			.badge-high {
+				background: #dcfce7;
+				color: #166534;
+			}
+			.badge-medium {
+				background: #fef9c3;
+				color: #854d0e;
+			}
+			.badge-low {
+				background: #f1f5f9;
+				color: #64748b;
+			}
 
-    /* Decision cell */
-    .btn-group { display: flex; gap: 0.2rem; flex-wrap: wrap; }
+			/* Decision cell */
+			.btn-group {
+				display: flex;
+				gap: 0.2rem;
+				flex-wrap: wrap;
+			}
 
-    .decision-btn {
-      padding: 0.25rem 0.5rem;
-      border: 1px solid var(--border); border-radius: 4px;
-      background: var(--surface); font-size: 0.7rem; font-weight: 500;
-      cursor: pointer; font-family: inherit; color: var(--muted);
-      transition: all 0.1s;
-    }
-    .decision-btn:hover { color: var(--text); border-color: #94a3b8; }
+			.decision-btn {
+				padding: 0.25rem 0.5rem;
+				border: 1px solid var(--border);
+				border-radius: 4px;
+				background: var(--surface);
+				font-size: 0.7rem;
+				font-weight: 500;
+				cursor: pointer;
+				font-family: inherit;
+				color: var(--muted);
+				transition: all 0.1s;
+			}
+			.decision-btn:hover {
+				color: var(--text);
+				border-color: #94a3b8;
+			}
 
-    .btn-remove { }
-    .btn-keep   { }
-    .btn-rescan { }
-    .btn-skip   { }
+			.btn-remove {
+			}
+			.btn-keep {
+			}
+			.btn-rescan {
+			}
+			.btn-skip {
+			}
 
-    .btn-remove:hover, .btn-remove.active { border-color: var(--remove); color: var(--remove); background: var(--remove-bg); }
-    .btn-keep:hover,   .btn-keep.active   { border-color: var(--keep);   color: var(--keep);   background: var(--keep-bg);   }
-    .btn-rescan:hover, .btn-rescan.active { border-color: var(--rescan); color: var(--rescan); background: var(--rescan-bg); }
-    .btn-skip:hover,   .btn-skip.active   { border-color: var(--skip);   color: var(--skip);   background: var(--skip-bg);   }
+			.btn-remove:hover,
+			.btn-remove.active {
+				border-color: var(--remove);
+				color: var(--remove);
+				background: var(--remove-bg);
+			}
+			.btn-keep:hover,
+			.btn-keep.active {
+				border-color: var(--keep);
+				color: var(--keep);
+				background: var(--keep-bg);
+			}
+			.btn-rescan:hover,
+			.btn-rescan.active {
+				border-color: var(--rescan);
+				color: var(--rescan);
+				background: var(--rescan-bg);
+			}
+			.btn-skip:hover,
+			.btn-skip.active {
+				border-color: var(--skip);
+				color: var(--skip);
+				background: var(--skip-bg);
+			}
 
-    .notes-input {
-      display: block; width: 100%; margin-top: 0.35rem;
-      padding: 0.25rem 0.45rem;
-      border: 1px solid var(--border); border-radius: 4px;
-      font-size: 0.7rem; font-family: inherit; color: var(--text);
-      background: transparent;
-    }
-    .notes-input:focus { outline: 2px solid var(--primary); border-color: transparent; background: white; }
-    .notes-input::placeholder { color: var(--muted); opacity: 0.5; }
+			.notes-input {
+				display: block;
+				width: 100%;
+				margin-top: 0.35rem;
+				padding: 0.25rem 0.45rem;
+				border: 1px solid var(--border);
+				border-radius: 4px;
+				font-size: 0.7rem;
+				font-family: inherit;
+				color: var(--text);
+				background: transparent;
+			}
+			.notes-input:focus {
+				outline: 2px solid var(--primary);
+				border-color: transparent;
+				background: white;
+			}
+			.notes-input::placeholder {
+				color: var(--muted);
+				opacity: 0.5;
+			}
 
-    .review-date { display: block; font-size: 0.65rem; color: var(--muted); margin-top: 0.25rem; }
+			.review-date {
+				display: block;
+				font-size: 0.65rem;
+				color: var(--muted);
+				margin-top: 0.25rem;
+			}
 
-    .empty { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+			.empty {
+				text-align: center;
+				padding: 3rem 1rem;
+				color: var(--muted);
+			}
 
-    /* ── Export dialog ──────────────────────────────────────────────────── */
+			/* ── Export dialog ──────────────────────────────────────────────────── */
 
-    dialog {
-      padding: 0; border: none;
-      border-radius: 12px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
-      max-width: 740px; width: 92vw;
-      max-height: 88vh; overflow: auto;
-    }
-    dialog::backdrop { background: rgba(0,0,0,0.35); }
+			dialog {
+				padding: 0;
+				border: none;
+				border-radius: 12px;
+				box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+				max-width: 740px;
+				width: 92vw;
+				max-height: 88vh;
+				overflow: auto;
+			}
+			dialog::backdrop {
+				background: rgba(0, 0, 0, 0.35);
+			}
 
-    .dialog-header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 0.9rem 1.25rem;
-      border-bottom: 1px solid var(--border);
-      position: sticky; top: 0; background: var(--surface);
-    }
-    .dialog-header h2 { font-size: 0.9375rem; font-weight: 700; }
-    .dialog-close {
-      background: none; border: none; font-size: 1.25rem;
-      cursor: pointer; color: var(--muted); padding: 0.2rem 0.45rem;
-      border-radius: 4px; font-family: inherit; line-height: 1;
-    }
-    .dialog-close:hover { background: var(--bg); }
+			.dialog-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 0.9rem 1.25rem;
+				border-bottom: 1px solid var(--border);
+				position: sticky;
+				top: 0;
+				background: var(--surface);
+			}
+			.dialog-header h2 {
+				font-size: 0.9375rem;
+				font-weight: 700;
+			}
+			.dialog-close {
+				background: none;
+				border: none;
+				font-size: 1.25rem;
+				cursor: pointer;
+				color: var(--muted);
+				padding: 0.2rem 0.45rem;
+				border-radius: 4px;
+				font-family: inherit;
+				line-height: 1;
+			}
+			.dialog-close:hover {
+				background: var(--bg);
+			}
 
-    .dialog-body { padding: 1.25rem; display: flex; flex-direction: column; gap: 1.1rem; }
+			.dialog-body {
+				padding: 1.25rem;
+				display: flex;
+				flex-direction: column;
+				gap: 1.1rem;
+			}
 
-    .export-section { display: flex; flex-direction: column; gap: 0.4rem; }
-    .export-section label { font-size: 0.75rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+			.export-section {
+				display: flex;
+				flex-direction: column;
+				gap: 0.4rem;
+			}
+			.export-section label {
+				font-size: 0.75rem;
+				font-weight: 700;
+				color: var(--muted);
+				text-transform: uppercase;
+				letter-spacing: 0.04em;
+			}
 
-    .export-field { position: relative; }
-    .export-pre {
-      background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
-      padding: 0.7rem 2.5rem 0.7rem 0.7rem;
-      font-family: "SF Mono", "Fira Code", ui-monospace, monospace;
-      font-size: 0.7rem; white-space: pre-wrap; word-break: break-all;
-      max-height: 11rem; overflow: auto; color: var(--text);
-    }
-    .copy-btn {
-      position: absolute; top: 0.45rem; right: 0.45rem;
-      padding: 0.2rem 0.5rem;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 4px; font-size: 0.68rem; cursor: pointer; font-family: inherit;
-      color: var(--muted); transition: all 0.1s;
-    }
-    .copy-btn:hover { background: var(--bg); color: var(--text); }
-    .copy-btn.copied { color: var(--keep); border-color: var(--keep); }
+			.export-field {
+				position: relative;
+			}
+			.export-pre {
+				background: var(--bg);
+				border: 1px solid var(--border);
+				border-radius: 6px;
+				padding: 0.7rem 2.5rem 0.7rem 0.7rem;
+				font-family: "SF Mono", "Fira Code", ui-monospace, monospace;
+				font-size: 0.7rem;
+				white-space: pre-wrap;
+				word-break: break-all;
+				max-height: 11rem;
+				overflow: auto;
+				color: var(--text);
+			}
+			.copy-btn {
+				position: absolute;
+				top: 0.45rem;
+				right: 0.45rem;
+				padding: 0.2rem 0.5rem;
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-radius: 4px;
+				font-size: 0.68rem;
+				cursor: pointer;
+				font-family: inherit;
+				color: var(--muted);
+				transition: all 0.1s;
+			}
+			.copy-btn:hover {
+				background: var(--bg);
+				color: var(--text);
+			}
+			.copy-btn.copied {
+				color: var(--keep);
+				border-color: var(--keep);
+			}
 
-    .export-count { font-size: 0.8125rem; color: var(--muted); }
-  </style>
-</head>
-<body>
+			.export-count {
+				font-size: 0.8125rem;
+				color: var(--muted);
+			}
+		</style>
+	</head>
+	<body>
+		<header class="app-header">
+			<div class="header-left">
+				<h1>🔍 Review Queue</h1>
+				<div class="stats" id="stats"></div>
+			</div>
+			<button
+				class="btn-export"
+				id="export-btn"
+				disabled
+				onclick="showExport()"
+			>
+				Export PR
+			</button>
+		</header>
 
-  <header class="app-header">
-    <div class="header-left">
-      <h1>🔍 Review Queue</h1>
-      <div class="stats" id="stats"></div>
-    </div>
-    <button class="btn-export" id="export-btn" disabled onclick="showExport()">Export PR</button>
-  </header>
+		<div class="toolbar">
+			<div class="filter-tabs" id="filter-tabs">
+				<button class="tab active" data-filter="all">All</button>
+				<button class="tab" data-filter="pending">Pending</button>
+				<button class="tab" data-filter="remove">Remove</button>
+				<button class="tab" data-filter="keep">Keep</button>
+				<button class="tab" data-filter="deferred">Rescan / Skip</button>
+			</div>
+			<div class="toolbar-right">
+				<select id="cms-filter" onchange="applyFilters()">
+					<option value="">All CMSs</option>
+				</select>
+				<input
+					type="search"
+					id="search-input"
+					placeholder="Search hostname or title…"
+					oninput="applyFilters()"
+				/>
+			</div>
+		</div>
 
-  <div class="toolbar">
-    <div class="filter-tabs" id="filter-tabs">
-      <button class="tab active" data-filter="all">All</button>
-      <button class="tab" data-filter="pending">Pending</button>
-      <button class="tab" data-filter="remove">Remove</button>
-      <button class="tab" data-filter="keep">Keep</button>
-      <button class="tab" data-filter="deferred">Rescan / Skip</button>
-    </div>
-    <div class="toolbar-right">
-      <select id="cms-filter" onchange="applyFilters()">
-        <option value="">All CMSs</option>
-      </select>
-      <input type="search" id="search-input" placeholder="Search hostname or title…" oninput="applyFilters()" />
-    </div>
-  </div>
+		<main>
+			<table class="queue-table">
+				<colgroup>
+					<col />
+					<col />
+					<col />
+					<col />
+				</colgroup>
+				<thead>
+					<tr>
+						<th>Site</th>
+						<th>CMS / Type</th>
+						<th>Confidence</th>
+						<th>Decision</th>
+					</tr>
+				</thead>
+				<tbody id="queue-body">
+					<tr>
+						<td colspan="4" class="empty">Loading…</td>
+					</tr>
+				</tbody>
+			</table>
+		</main>
 
-  <main>
-    <table class="queue-table">
-      <colgroup>
-        <col /><col /><col /><col />
-      </colgroup>
-      <thead>
-        <tr>
-          <th>Site</th>
-          <th>CMS / Type</th>
-          <th>Confidence</th>
-          <th>Decision</th>
-        </tr>
-      </thead>
-      <tbody id="queue-body">
-        <tr><td colspan="4" class="empty">Loading…</td></tr>
-      </tbody>
-    </table>
-  </main>
+		<!-- Export dialog -->
+		<dialog id="export-dialog">
+			<div class="dialog-header">
+				<h2>Export PR Content</h2>
+				<button
+					class="dialog-close"
+					onclick="document.getElementById('export-dialog').close()"
+				>
+					✕
+				</button>
+			</div>
+			<div class="dialog-body" id="export-body">
+				<p class="export-count">Loading…</p>
+			</div>
+		</dialog>
 
-  <!-- Export dialog -->
-  <dialog id="export-dialog">
-    <div class="dialog-header">
-      <h2>Export PR Content</h2>
-      <button class="dialog-close" onclick="document.getElementById('export-dialog').close()">✕</button>
-    </div>
-    <div class="dialog-body" id="export-body">
-      <p class="export-count">Loading…</p>
-    </div>
-  </dialog>
+		<script>
+			// ── State ─────────────────────────────────────────────────────────────────
 
-  <script>
-    // ── State ─────────────────────────────────────────────────────────────────
+			let allSites = [];
+			let activeFilter = "all";
+			let activeCms = "";
+			let searchQuery = "";
+			let exportData = null; // cached export response
 
-    let allSites    = [];
-    let activeFilter = 'all';
-    let activeCms    = '';
-    let searchQuery  = '';
-    let exportData   = null;   // cached export response
+			// ── Bootstrap ─────────────────────────────────────────────────────────────
 
-    // ── Bootstrap ─────────────────────────────────────────────────────────────
+			async function loadQueue() {
+				try {
+					const resp = await fetch("/admin/api/queue");
+					const data = await resp.json();
+					allSites = data.sites || [];
+					renderStats();
+					updateTabCounts();
+					populateCmsFilter();
+					renderTable();
+				} catch (err) {
+					document.getElementById("queue-body").innerHTML =
+						`<tr><td colspan="4" class="empty">Failed to load queue: ${err.message}</td></tr>`;
+				}
+			}
 
-    async function loadQueue() {
-      try {
-        const resp = await fetch('/admin/api/queue');
-        const data = await resp.json();
-        allSites = data.sites || [];
-        renderStats();
-        updateTabCounts();
-        populateCmsFilter();
-        renderTable();
-      } catch (err) {
-        document.getElementById('queue-body').innerHTML =
-          `<tr><td colspan="4" class="empty">Failed to load queue: ${err.message}</td></tr>`;
-      }
-    }
+			// ── Stats ─────────────────────────────────────────────────────────────────
 
-    // ── Stats ─────────────────────────────────────────────────────────────────
+			function renderStats() {
+				const total = allSites.length;
+				const pending = count("pending");
+				const remove = count("remove");
+				const keep = count("keep");
+				document.getElementById("stats").innerHTML = [
+					`<span class="stat">${total} sites</span>`,
+					`<span class="stat">${pending} pending</span>`,
+					`<span class="stat stat-remove">${remove} to remove</span>`,
+					`<span class="stat stat-keep">${keep} to keep</span>`,
+				].join("");
 
-    function renderStats() {
-      const total   = allSites.length;
-      const pending = count('pending');
-      const remove  = count('remove');
-      const keep    = count('keep');
-      document.getElementById('stats').innerHTML = [
-        `<span class="stat">${total} sites</span>`,
-        `<span class="stat">${pending} pending</span>`,
-        `<span class="stat stat-remove">${remove} to remove</span>`,
-        `<span class="stat stat-keep">${keep} to keep</span>`,
-      ].join('');
+				const btn = document.getElementById("export-btn");
+				btn.disabled = remove === 0;
+				btn.textContent = remove > 0 ? `Export PR (${remove}) ↗` : "Export PR";
+			}
 
-      const btn = document.getElementById('export-btn');
-      btn.disabled = remove === 0;
-      btn.textContent = remove > 0 ? `Export PR (${remove}) ↗` : 'Export PR';
-    }
+			function count(decision) {
+				return allSites.filter((s) => s.decision === decision).length;
+			}
 
-    function count(decision) {
-      return allSites.filter(s => s.decision === decision).length;
-    }
+			function updateTabCounts() {
+				const counts = {
+					all: allSites.length,
+					pending: count("pending"),
+					remove: count("remove"),
+					keep: count("keep"),
+					deferred: allSites.filter(
+						(s) => s.decision === "rescan" || s.decision === "skip",
+					).length,
+				};
+				document.querySelectorAll(".tab").forEach((tab) => {
+					const f = tab.dataset.filter;
+					const n = counts[f] ?? 0;
+					const label =
+						{
+							all: "All",
+							pending: "Pending",
+							remove: "Remove",
+							keep: "Keep",
+							deferred: "Rescan / Skip",
+						}[f] || f;
+					tab.textContent = `${label} (${n})`;
+				});
+			}
 
-    function updateTabCounts() {
-      const counts = {
-        all:      allSites.length,
-        pending:  count('pending'),
-        remove:   count('remove'),
-        keep:     count('keep'),
-        deferred: allSites.filter(s => s.decision === 'rescan' || s.decision === 'skip').length,
-      };
-      document.querySelectorAll('.tab').forEach(tab => {
-        const f = tab.dataset.filter;
-        const n = counts[f] ?? 0;
-        const label = { all: 'All', pending: 'Pending', remove: 'Remove', keep: 'Keep', deferred: 'Rescan / Skip' }[f] || f;
-        tab.textContent = `${label} (${n})`;
-      });
-    }
+			// ── Filters ───────────────────────────────────────────────────────────────
 
-    // ── Filters ───────────────────────────────────────────────────────────────
+			document.getElementById("filter-tabs").addEventListener("click", (e) => {
+				const tab = e.target.closest(".tab");
+				if (!tab) return;
+				document
+					.querySelectorAll(".tab")
+					.forEach((t) => t.classList.remove("active"));
+				tab.classList.add("active");
+				activeFilter = tab.dataset.filter;
+				renderTable();
+			});
 
-    document.getElementById('filter-tabs').addEventListener('click', e => {
-      const tab = e.target.closest('.tab');
-      if (!tab) return;
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      activeFilter = tab.dataset.filter;
-      renderTable();
-    });
+			function applyFilters() {
+				activeCms = document.getElementById("cms-filter").value;
+				searchQuery = document
+					.getElementById("search-input")
+					.value.toLowerCase();
+				renderTable();
+			}
 
-    function applyFilters() {
-      activeCms   = document.getElementById('cms-filter').value;
-      searchQuery = document.getElementById('search-input').value.toLowerCase();
-      renderTable();
-    }
+			function populateCmsFilter() {
+				const cmsList = [...new Set(allSites.map((s) => s.cms))].sort();
+				const sel = document.getElementById("cms-filter");
+				sel.innerHTML =
+					'<option value="">All CMSs</option>' +
+					cmsList
+						.map((c) => {
+							const n = allSites.filter((s) => s.cms === c).length;
+							return `<option value="${c}">${c} (${n})</option>`;
+						})
+						.join("");
+			}
 
-    function populateCmsFilter() {
-      const cmsList = [...new Set(allSites.map(s => s.cms))].sort();
-      const sel = document.getElementById('cms-filter');
-      sel.innerHTML = '<option value="">All CMSs</option>' +
-        cmsList.map(c => {
-          const n = allSites.filter(s => s.cms === c).length;
-          return `<option value="${c}">${c} (${n})</option>`;
-        }).join('');
-    }
+			function getFiltered() {
+				return allSites.filter((s) => {
+					if (activeFilter === "pending" && s.decision !== "pending")
+						return false;
+					if (activeFilter === "remove" && s.decision !== "remove")
+						return false;
+					if (activeFilter === "keep" && s.decision !== "keep") return false;
+					if (
+						activeFilter === "deferred" &&
+						s.decision !== "rescan" &&
+						s.decision !== "skip"
+					)
+						return false;
+					if (activeCms && s.cms !== activeCms) return false;
+					const q = searchQuery;
+					if (
+						q &&
+						!s.hostname.includes(q) &&
+						!(s.title || "").toLowerCase().includes(q)
+					)
+						return false;
+					return true;
+				});
+			}
 
-    function getFiltered() {
-      return allSites.filter(s => {
-        if (activeFilter === 'pending'  && s.decision !== 'pending')  return false;
-        if (activeFilter === 'remove'   && s.decision !== 'remove')   return false;
-        if (activeFilter === 'keep'     && s.decision !== 'keep')     return false;
-        if (activeFilter === 'deferred' && s.decision !== 'rescan' && s.decision !== 'skip') return false;
-        if (activeCms && s.cms !== activeCms) return false;
-        const q = searchQuery;
-        if (q && !s.hostname.includes(q) && !(s.title || '').toLowerCase().includes(q)) return false;
-        return true;
-      });
-    }
+			// ── Render ────────────────────────────────────────────────────────────────
 
-    // ── Render ────────────────────────────────────────────────────────────────
+			function renderTable() {
+				const sites = getFiltered();
+				const tbody = document.getElementById("queue-body");
+				if (sites.length === 0) {
+					tbody.innerHTML = `<tr><td colspan="4" class="empty">No sites match this filter.</td></tr>`;
+					return;
+				}
+				tbody.innerHTML = sites.map(renderRow).join("");
+			}
 
-    function renderTable() {
-      const sites = getFiltered();
-      const tbody = document.getElementById('queue-body');
-      if (sites.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" class="empty">No sites match this filter.</td></tr>`;
-        return;
-      }
-      tbody.innerHTML = sites.map(renderRow).join('');
-    }
+			function esc(s) {
+				return String(s ?? "")
+					.replace(/&/g, "&amp;")
+					.replace(/</g, "&lt;")
+					.replace(/>/g, "&gt;")
+					.replace(/"/g, "&quot;");
+			}
 
-    function esc(s) {
-      return String(s ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
+			function renderRow(site) {
+				const id = site.site_id;
+				const dec = site.decision || "pending";
+				const rowCls = dec !== "pending" ? `row-${dec}` : "";
 
-    function renderRow(site) {
-      const id  = site.site_id;
-      const dec = site.decision || 'pending';
-      const rowCls = dec !== 'pending' ? `row-${dec}` : '';
+				let finalHostname = "";
+				try {
+					if (site.final_url) finalHostname = new URL(site.final_url).hostname;
+				} catch {}
+				const redirectLine =
+					finalHostname && finalHostname !== site.hostname
+						? `<div class="site-redirect">↳ ${esc(finalHostname)}</div>`
+						: "";
 
-      let finalHostname = '';
-      try { if (site.final_url) finalHostname = new URL(site.final_url).hostname; } catch {}
-      const redirectLine = (finalHostname && finalHostname !== site.hostname)
-        ? `<div class="site-redirect">↳ ${esc(finalHostname)}</div>` : '';
+				const decBtns = ["remove", "keep", "rescan", "skip"]
+					.map(
+						(d) =>
+							`<button class="decision-btn btn-${d}${dec === d ? " active" : ""}"
+                 onclick="setDecision(${id}, '${d}')">${d.charAt(0).toUpperCase() + d.slice(1)}</button>`,
+					)
+					.join("");
 
-      const decBtns = ['remove', 'keep', 'rescan', 'skip'].map(d =>
-        `<button class="decision-btn btn-${d}${dec === d ? ' active' : ''}"
-                 onclick="setDecision(${id}, '${d}')">${d.charAt(0).toUpperCase() + d.slice(1)}</button>`
-      ).join('');
+				const reviewLine = site.review_date
+					? `<span class="review-date">Reviewed ${fmtDate(site.review_date)}</span>`
+					: "";
 
-      const reviewLine = site.review_date
-        ? `<span class="review-date">Reviewed ${fmtDate(site.review_date)}</span>` : '';
-
-      return `<tr class="site-row ${rowCls}" id="row-${id}">
+				return `<tr class="site-row ${rowCls}" id="row-${id}">
         <td>
           <div class="site-title" title="${esc(site.title || site.hostname)}">${esc(site.title || site.hostname)}</div>
           <div class="site-meta">
@@ -471,94 +817,103 @@
           <span class="type-label">${esc(site.cms_type)}</span>
         </td>
         <td>
-          <span class="conf-badge badge-${esc(site.confidence || 'low')}">${esc(site.confidence || '—')}</span>
+          <span class="conf-badge badge-${esc(site.confidence || "low")}">${esc(site.confidence || "—")}</span>
         </td>
         <td>
           <div class="btn-group">${decBtns}</div>
           <input class="notes-input" id="notes-${id}"
-                 value="${esc(site.notes || '')}"
+                 value="${esc(site.notes || "")}"
                  placeholder="Notes…"
                  onblur="saveNotes(${id})" />
           ${reviewLine}
         </td>
       </tr>`;
-    }
+			}
 
-    function fmtDate(iso) {
-      if (!iso) return '';
-      try { return new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: '2-digit' }); }
-      catch { return ''; }
-    }
+			function fmtDate(iso) {
+				if (!iso) return "";
+				try {
+					return new Date(iso).toLocaleDateString("en-GB", {
+						day: "numeric",
+						month: "short",
+						year: "2-digit",
+					});
+				} catch {
+					return "";
+				}
+			}
 
-    // ── Actions ───────────────────────────────────────────────────────────────
+			// ── Actions ───────────────────────────────────────────────────────────────
 
-    async function setDecision(siteId, decision) {
-      const site = allSites.find(s => s.site_id === siteId);
-      if (!site) return;
+			async function setDecision(siteId, decision) {
+				const site = allSites.find((s) => s.site_id === siteId);
+				if (!site) return;
 
-      // Click the active button to toggle back to pending
-      const newDecision = site.decision === decision ? 'pending' : decision;
-      const notes = document.getElementById(`notes-${siteId}`)?.value ?? site.notes ?? '';
+				// Click the active button to toggle back to pending
+				const newDecision = site.decision === decision ? "pending" : decision;
+				const notes =
+					document.getElementById(`notes-${siteId}`)?.value ?? site.notes ?? "";
 
-      // Optimistic update — re-render the row immediately
-      site.decision    = newDecision;
-      site.notes       = notes || null;
-      site.review_date = new Date().toISOString();
+				// Optimistic update — re-render the row immediately
+				site.decision = newDecision;
+				site.notes = notes || null;
+				site.review_date = new Date().toISOString();
 
-      const oldRow = document.getElementById(`row-${siteId}`);
-      if (oldRow) {
-        const tmp = document.createElement('tbody');
-        tmp.innerHTML = renderRow(site);
-        oldRow.replaceWith(tmp.firstElementChild);
-      }
+				const oldRow = document.getElementById(`row-${siteId}`);
+				if (oldRow) {
+					const tmp = document.createElement("tbody");
+					tmp.innerHTML = renderRow(site);
+					oldRow.replaceWith(tmp.firstElementChild);
+				}
 
-      renderStats();
-      updateTabCounts();
-      exportData = null; // invalidate cached export
+				renderStats();
+				updateTabCounts();
+				exportData = null; // invalidate cached export
 
-      // Persist to DB
-      await fetch('/admin/api/review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId, decision: newDecision, notes }),
-      }).catch(err => console.error('[admin] review save failed:', err));
-    }
+				// Persist to DB
+				await fetch("/admin/api/review", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ siteId, decision: newDecision, notes }),
+				}).catch((err) => console.error("[admin] review save failed:", err));
+			}
 
-    async function saveNotes(siteId) {
-      const site = allSites.find(s => s.site_id === siteId);
-      if (!site || site.decision === 'pending') return; // need a decision first
-      const notes = document.getElementById(`notes-${siteId}`)?.value ?? '';
-      if (notes === (site.notes ?? '')) return; // unchanged
-      site.notes = notes;
-      exportData = null;
-      await fetch('/admin/api/review', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ siteId, decision: site.decision, notes }),
-      }).catch(err => console.error('[admin] notes save failed:', err));
-    }
+			async function saveNotes(siteId) {
+				const site = allSites.find((s) => s.site_id === siteId);
+				if (!site || site.decision === "pending") return; // need a decision first
+				const notes = document.getElementById(`notes-${siteId}`)?.value ?? "";
+				if (notes === (site.notes ?? "")) return; // unchanged
+				site.notes = notes;
+				exportData = null;
+				await fetch("/admin/api/review", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({ siteId, decision: site.decision, notes }),
+				}).catch((err) => console.error("[admin] notes save failed:", err));
+			}
 
-    // ── Export ────────────────────────────────────────────────────────────────
+			// ── Export ────────────────────────────────────────────────────────────────
 
-    async function showExport() {
-      const dialog = document.getElementById('export-dialog');
-      document.getElementById('export-body').innerHTML = '<p class="export-count">Loading…</p>';
-      dialog.showModal();
+			async function showExport() {
+				const dialog = document.getElementById("export-dialog");
+				document.getElementById("export-body").innerHTML =
+					'<p class="export-count">Loading…</p>';
+				dialog.showModal();
 
-      if (!exportData) {
-        const resp = await fetch('/admin/api/export');
-        exportData = await resp.json();
-      }
+				if (!exportData) {
+					const resp = await fetch("/admin/api/export");
+					exportData = await resp.json();
+				}
 
-      const d = exportData;
-      if (d.count === 0) {
-        document.getElementById('export-body').innerHTML =
-          '<p class="export-count" style="color:var(--muted)">No sites marked for removal yet.</p>';
-        return;
-      }
+				const d = exportData;
+				if (d.count === 0) {
+					document.getElementById("export-body").innerHTML =
+						'<p class="export-count" style="color:var(--muted)">No sites marked for removal yet.</p>';
+					return;
+				}
 
-      document.getElementById('export-body').innerHTML = `
-        <p class="export-count">${d.count} site${d.count !== 1 ? 's' : ''} marked for removal</p>
+				document.getElementById("export-body").innerHTML = `
+        <p class="export-count">${d.count} site${d.count !== 1 ? "s" : ""} marked for removal</p>
 
         <div class="export-section">
           <label>PR title</label>
@@ -571,7 +926,7 @@
         <div class="export-section">
           <label>YAML files to delete (${d.yamlFiles.length})</label>
           <div class="export-field">
-            <pre class="export-pre">${d.yamlFiles.map(f => esc('src/content/showcase/' + f)).join('\n')}</pre>
+            <pre class="export-pre">${d.yamlFiles.map((f) => esc("src/content/showcase/" + f)).join("\n")}</pre>
             <button class="copy-btn" onclick="copySection('yamlPaths')">Copy</button>
           </div>
         </div>
@@ -593,26 +948,28 @@
         </div>
       `;
 
-      // Stash derived values on exportData for copySection
-      exportData.yamlPaths = d.yamlFiles.map(f => 'src/content/showcase/' + f).join('\n');
-    }
+				// Stash derived values on exportData for copySection
+				exportData.yamlPaths = d.yamlFiles
+					.map((f) => "src/content/showcase/" + f)
+					.join("\n");
+			}
 
-    function copySection(key) {
-      const text = exportData?.[key] ?? '';
-      navigator.clipboard.writeText(text).then(() => {
-        // Find the button that triggered this — highlight it briefly
-        event.target.textContent = 'Copied!';
-        event.target.classList.add('copied');
-        setTimeout(() => {
-          event.target.textContent = 'Copy';
-          event.target.classList.remove('copied');
-        }, 2000);
-      });
-    }
+			function copySection(key) {
+				const text = exportData?.[key] ?? "";
+				navigator.clipboard.writeText(text).then(() => {
+					// Find the button that triggered this — highlight it briefly
+					event.target.textContent = "Copied!";
+					event.target.classList.add("copied");
+					setTimeout(() => {
+						event.target.textContent = "Copy";
+						event.target.classList.remove("copied");
+					}, 2000);
+				});
+			}
 
-    // ── Init ──────────────────────────────────────────────────────────────────
+			// ── Init ──────────────────────────────────────────────────────────────────
 
-    loadQueue();
-  </script>
-</body>
+			loadQueue();
+		</script>
+	</body>
 </html>

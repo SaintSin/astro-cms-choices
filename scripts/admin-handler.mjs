@@ -16,8 +16,8 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const DB_PATH   = resolve(".scan-history.db");
-const UI_PATH   = resolve(__dirname, "admin-ui.html");
+const DB_PATH = resolve(".scan-history.db");
+const UI_PATH = resolve(__dirname, "admin-ui.html");
 
 // ── DB connection (lazily opened, cached for the process lifetime) ─────────────
 
@@ -192,10 +192,7 @@ function handleExport(res) {
 	const prTitle = `Remove ${count} site${count !== 1 ? "s" : ""} no longer running Astro`;
 
 	const tableRows = sites
-		.map(
-			(s) =>
-				`| [${s.hostname}](${s.url}) | ${s.cms} | ${s.notes ?? "—"} |`,
-		)
+		.map((s) => `| [${s.hostname}](${s.url}) | ${s.cms} | ${s.notes ?? "—"} |`)
 		.join("\n");
 
 	const prBody = `## Summary
@@ -208,9 +205,7 @@ ${tableRows}
 
 All removed domains have been added to \`blockedOrigins\` in \`scripts/update-showcase.mjs\` to prevent them being re-added by the weekly CI check.`;
 
-	const blockedOriginsBlock = sites
-		.map((s) => `  "${s.hostname}",`)
-		.join("\n");
+	const blockedOriginsBlock = sites.map((s) => `  "${s.hostname}",`).join("\n");
 
 	const yamlFiles = sites.map((s) => `${s.hostname}.yml`);
 
@@ -227,7 +222,7 @@ All removed domains have been added to \`blockedOrigins\` in \`scripts/update-sh
 // ── Main request handler (exported, mounted by astro.config.mjs) ──────────────
 
 export function handleRequest(req, res, next) {
-	const url  = new URL(req.url, "http://localhost");
+	const url = new URL(req.url, "http://localhost");
 	const path = url.pathname.replace(/\/$/, "") || "/admin";
 
 	// Serve the UI

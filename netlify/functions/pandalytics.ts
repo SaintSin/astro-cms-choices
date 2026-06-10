@@ -1,5 +1,5 @@
 // netlify/functions/pandalytics.ts
-// 2026-05-20T00:00:00Z
+// 2026-06-08T00:00:00Z
 
 import type { Handler, HandlerEvent } from "@netlify/functions";
 
@@ -22,7 +22,8 @@ interface MetricData {
 	duration_ms?: number;
 }
 
-// Truncate strings to prevent oversized payloads
+const JSON_HEADERS = { "Content-Type": "application/json" };
+
 function truncate(
 	val: string | undefined | null,
 	maxLen: number,
@@ -31,7 +32,6 @@ function truncate(
 	return val.length > maxLen ? val.slice(0, maxLen) : val;
 }
 
-// Parse browser from user agent
 function parseBrowser(userAgent: string | null | undefined): string {
 	if (!userAgent) return "Unknown";
 	const ua = userAgent.toLowerCase();
@@ -52,65 +52,21 @@ function parseBrowser(userAgent: string | null | undefined): string {
 	return "Other";
 }
 
-export const handler: Handler = async (event: HandlerEvent) => {
-	const method = event.httpMethod;
-
-	if (method !== "POST") {
-		return {
-			statusCode: 405,
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ error: "Method Not Allowed" }),
-		};
-	}
-
-	let bodyData: MetricData;
+function parseBody(raw: string | null): MetricData | null {
 	try {
-		bodyData = JSON.parse(event.body || "{}") as MetricData;
+		return JSON.parse(raw || "{}") as MetricData;
 	} catch {
-		return {
-			statusCode: 400,
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ error: "Invalid JSON" }),
-		};
+		return null;
 	}
+}
 
-	const {
-		session_id,
-		site_id,
-		url,
-		path,
-		referrer,
-		country_code,
-		screen_width,
-		screen_height,
-		user_agent,
-		browser: clientBrowser,
-		lcp,
-		cls,
-		fcp,
-		ttfb,
-		inp,
-		duration_ms,
-	} = bodyData;
+function buildStatements(
+	data: MetricData,
+	countryCode: string | null,
+	timestamp: number,
+) {
+	const browser = data.browser || parseBrowser(data.user_agent);
 
-	// Extract country from Netlify headers if not provided in data
-	const finalCountryCode = country_code || (event.headers["x-country"] ?? null);
-
-	if (!session_id || !site_id || !url) {
-		return {
-			statusCode: 400,
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({
-				error: "Missing required fields: session_id, site_id, url",
-			}),
-		};
-	}
-
-	// Use client-sent browser if available, fallback to server-side parsing
-	const browser = clientBrowser || parseBrowser(user_agent);
-	const timestamp = Date.now();
-
-	// SQL for upsert session
 	const sessionSql = `
     INSERT INTO sessions (
       session_id, site_id, start_time, country_code,
@@ -125,7 +81,6 @@ export const handler: Handler = async (event: HandlerEvent) => {
       updated_at = strftime('%s', 'now') * 1000
   `;
 
-	// SQL for pageview
 	const pageviewSql = `
     INSERT INTO pageviews (
       session_id, url, path, referrer, timestamp,
@@ -133,82 +88,122 @@ export const handler: Handler = async (event: HandlerEvent) => {
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
-	const sessionParams = [
-		truncate(session_id, 100),
-		truncate(site_id, 200),
-		timestamp,
-		truncate(finalCountryCode, 10),
-		screen_width ?? null,
-		screen_height ?? null,
-		truncate(user_agent, 500),
-		truncate(browser, 50),
+	return [
+		{
+			q: sessionSql,
+			params: [
+				truncate(data.session_id, 100),
+				truncate(data.site_id, 200),
+				timestamp,
+				truncate(countryCode, 10),
+				data.screen_width ?? null,
+				data.screen_height ?? null,
+				truncate(data.user_agent, 500),
+				truncate(browser, 50),
+			],
+		},
+		{
+			q: pageviewSql,
+			params: [
+				truncate(data.session_id, 100),
+				truncate(data.url, 2000),
+				truncate(data.path, 500),
+				truncate(data.referrer, 2000),
+				timestamp,
+				data.lcp ?? null,
+				data.cls ?? null,
+				data.fcp ?? null,
+				data.ttfb ?? null,
+				data.inp ?? null,
+				data.duration_ms ?? null,
+			],
+		},
 	];
+}
 
-	const pageviewParams = [
-		truncate(session_id, 100),
-		truncate(url, 2000),
-		truncate(path, 500),
-		truncate(referrer, 2000),
-		timestamp,
-		lcp ?? null,
-		cls ?? null,
-		fcp ?? null,
-		ttfb ?? null,
-		inp ?? null,
-		duration_ms ?? null,
-	];
+async function writeTurso(
+	endpoint: string,
+	token: string,
+	statements: object[],
+) {
+	const response = await fetch(endpoint, {
+		method: "POST",
+		headers: {
+			Authorization: `Bearer ${token}`,
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({ statements }),
+	});
 
-	// Check required environment variables
-	if (
-		!process.env.PANDALYTICS_TURSO_REST_ENDPOINT ||
-		!process.env.PANDALYTICS_TURSO_API_TOKEN
-	) {
+	if (!response.ok) {
+		const text = await response.text();
+		console.error("Database error:", response.status, text);
+		return {
+			statusCode: 500,
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ error: "Database error" }),
+		};
+	}
+	return null;
+}
+
+export const handler: Handler = async (event: HandlerEvent) => {
+	if (event.httpMethod !== "POST") {
+		return {
+			statusCode: 405,
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ error: "Method Not Allowed" }),
+		};
+	}
+
+	const data = parseBody(event.body);
+	if (!data) {
+		return {
+			statusCode: 400,
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ error: "Invalid JSON" }),
+		};
+	}
+
+	const { session_id, site_id, url, path } = data;
+	if (!session_id || !site_id || !url) {
+		return {
+			statusCode: 400,
+			headers: JSON_HEADERS,
+			body: JSON.stringify({
+				error: "Missing required fields: session_id, site_id, url",
+			}),
+		};
+	}
+
+	const endpoint = process.env.PANDALYTICS_TURSO_REST_ENDPOINT;
+	const token = process.env.PANDALYTICS_TURSO_API_TOKEN;
+	if (!endpoint || !token) {
 		console.error("Missing required environment variables");
 		return {
 			statusCode: 500,
-			headers: { "Content-Type": "application/json" },
+			headers: JSON_HEADERS,
 			body: JSON.stringify({ error: "Server configuration error" }),
 		};
 	}
 
+	const countryCode = data.country_code || (event.headers["x-country"] ?? null);
+	const statements = buildStatements(data, countryCode, Date.now());
+
 	try {
-		const requestBody = {
-			statements: [
-				{ q: sessionSql, params: sessionParams },
-				{ q: pageviewSql, params: pageviewParams },
-			],
-		};
-
-		const response = await fetch(process.env.PANDALYTICS_TURSO_REST_ENDPOINT, {
-			method: "POST",
-			headers: {
-				Authorization: `Bearer ${process.env.PANDALYTICS_TURSO_API_TOKEN}`,
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify(requestBody),
-		});
-
-		if (!response.ok) {
-			const text = await response.text();
-			console.error("Database error:", response.status, text);
-			return {
-				statusCode: 500,
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({ error: "Database error" }),
-			};
-		}
-
+		const dbError = await writeTurso(endpoint, token, statements);
+		if (dbError) return dbError;
 		console.log("Pageview recorded:", path || url);
 		return {
 			statusCode: 200,
-			headers: { "Content-Type": "application/json" },
+			headers: JSON_HEADERS,
 			body: JSON.stringify({ ok: true }),
 		};
 	} catch (err) {
 		console.error("Fetch error:", err);
 		return {
 			statusCode: 500,
-			headers: { "Content-Type": "application/json" },
+			headers: JSON_HEADERS,
 			body: JSON.stringify({ error: "Internal server error" }),
 		};
 	}

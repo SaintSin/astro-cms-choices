@@ -139,6 +139,21 @@ function parseShowcaseYaml(content: string): ShowcaseEntry | null {
 // CMS fingerprint rules
 // ---------------------------------------------------------------------------
 
+function makeParkedDetector(
+	cms: string,
+	htmlPattern: RegExp,
+	hostnamePattern: RegExp,
+): Rule {
+	return {
+		cms,
+		cmsType: "parked",
+		confidence: "high",
+		match: (_html, _h, _u, finalUrl) =>
+			htmlPattern.test(_html) ||
+			(!!finalUrl && hostnamePattern.test(new URL(finalUrl).hostname)),
+	};
+}
+
 interface Rule {
 	cms: string;
 	cmsType: CmsType;
@@ -536,41 +551,19 @@ const RULES: Rule[] = [
 	},
 
 	// ── Parked / expired / for-sale domains ───────────────────────────────────
-	{
-		cms: "GoDaddy",
-		cmsType: "parked",
-		confidence: "high",
-		// GoDaddy parking pages load assets from wsimg.com or trafficmanager
-		match: (html, _h, _u, finalUrl) =>
-			/wsimg\.com\/parking|godaddy\.com\/traf|Buy this domain.*GoDaddy|GoDaddy.*for sale/i.test(
-				html,
-			) ||
-			(!!finalUrl && /godaddy\.com/i.test(new URL(finalUrl).hostname)),
-	},
-	{
-		cms: "Sedo",
-		cmsType: "parked",
-		confidence: "high",
-		match: (html, _h, _u, finalUrl) =>
-			/sedo\.com|<div[^>]+id="sedo_/i.test(html) ||
-			(!!finalUrl && /sedo\.com/i.test(new URL(finalUrl).hostname)),
-	},
-	{
-		cms: "Dan.com",
-		cmsType: "parked",
-		confidence: "high",
-		match: (html, _h, _u, finalUrl) =>
-			/[^a-z]dan\.com\/|buy.*dan\.com/i.test(html) ||
-			(!!finalUrl && /\bdan\.com$/i.test(new URL(finalUrl).hostname)),
-	},
-	{
-		cms: "Afternic",
-		cmsType: "parked",
-		confidence: "high",
-		match: (html, _h, _u, finalUrl) =>
-			/afternic\.com/i.test(html) ||
-			(!!finalUrl && /afternic\.com/i.test(new URL(finalUrl).hostname)),
-	},
+	// GoDaddy parking pages load assets from wsimg.com or trafficmanager
+	makeParkedDetector(
+		"GoDaddy",
+		/wsimg\.com\/parking|godaddy\.com\/traf|Buy this domain.*GoDaddy|GoDaddy.*for sale/i,
+		/godaddy\.com/i,
+	),
+	makeParkedDetector("Sedo", /sedo\.com|<div[^>]+id="sedo_/i, /sedo\.com/i),
+	makeParkedDetector(
+		"Dan.com",
+		/[^a-z]dan\.com\/|buy.*dan\.com/i,
+		/\bdan\.com$/i,
+	),
+	makeParkedDetector("Afternic", /afternic\.com/i, /afternic\.com/i),
 	{
 		cms: "Namecheap",
 		cmsType: "parked",
@@ -877,45 +870,15 @@ function createQueue(concurrency: number) {
 }
 
 // ---------------------------------------------------------------------------
-// Main
+// Main helpers
 // ---------------------------------------------------------------------------
 
-async function main() {
-	const startMs = Date.now();
-
-	const { values: args } = parseArgs({
-		args: process.argv.slice(2),
-		options: {
-			source: {
-				type: "string",
-				default: ".showcase-cache/src/content/showcase",
-			},
-			output: {
-				type: "string",
-				default: "src/data/cms-results.json",
-			},
-			limit: { type: "string" },
-			concurrency: { type: "string", default: "6" },
-			resume: { type: "boolean", default: false },
-			timeout: { type: "string", default: "10000" },
-		},
-	});
-
-	const sourceDir = resolve(args.source as string);
-	const outputFile = resolve(args.output as string);
-	const concurrency = Number.parseInt(args.concurrency as string, 10);
-	const timeoutMs = Number.parseInt(args.timeout as string, 10);
-	const limit = args.limit
-		? Number.parseInt(args.limit as string, 10)
-		: undefined;
-	const resume = args.resume as boolean;
-
-	// Auto-clone the astro.build showcase if the source directory is missing.
-	// Uses a sparse checkout limited to *.yml files only — skips the 2,600+ webp screenshots.
+async function ensureShowcaseCache(
+	sourceDir: string,
+	cacheRoot: string,
+	isDefaultSource: boolean,
+): Promise<void> {
 	const showcaseRepo = "https://github.com/withastro/astro.build.git";
-	const cacheRoot = resolve(".showcase-cache");
-	const isDefaultSource =
-		sourceDir === resolve(".showcase-cache/src/content/showcase");
 	let sourceMissing = false;
 	try {
 		await access(sourceDir);
@@ -950,6 +913,178 @@ async function main() {
 			);
 		}
 	}
+}
+
+async function processSite(
+	entry: ShowcaseEntry,
+	timeoutMs: number,
+): Promise<CmsResult> {
+	try {
+		const { html, headers, finalUrl } = await fetchSite(entry.url, timeoutMs);
+		const hit = fingerprint(html, headers, entry.url, finalUrl);
+		const astro = detectAstro(html);
+		const resolvedUrl = finalUrl !== entry.url ? finalUrl : null;
+		// If Astro was detected, we got real content through —
+		// a "Blocked" label from a Cloudflare overlay on top of real HTML
+		// is misleading, so demote it to Unknown in that case.
+		const effectiveHit = hit?.cms === "Blocked" && astro.detected ? null : hit;
+		return {
+			title: entry.title,
+			url: entry.url,
+			cms: effectiveHit?.cms ?? "Unknown",
+			cmsType: effectiveHit?.cmsType ?? "unknown",
+			confidence: effectiveHit?.confidence ?? null,
+			evidence: effectiveHit?.evidence ?? [],
+			astroDetected: astro.detected,
+			astroVersion: astro.version,
+			starlightVersion: astro.starlightVersion,
+			astroSignals: astro.signals,
+			finalUrl: resolvedUrl,
+			categories: entry.categories ?? [],
+			dateAdded: entry.dateAdded,
+			fetchedAt: new Date().toISOString(),
+		};
+	} catch (err) {
+		return {
+			title: entry.title,
+			url: entry.url,
+			cms: "Error",
+			cmsType: "unknown",
+			confidence: null,
+			evidence: [],
+			astroDetected: false,
+			astroVersion: null,
+			starlightVersion: null,
+			astroSignals: [],
+			finalUrl: null,
+			categories: entry.categories ?? [],
+			dateAdded: entry.dateAdded,
+			fetchedAt: new Date().toISOString(),
+			error: err instanceof Error ? err.message : String(err),
+		};
+	}
+}
+
+function printSummary(allResults: CmsResult[], outputFile: string): void {
+	const cmsCounts = new Map<string, number>();
+	for (const r of allResults) {
+		cmsCounts.set(r.cms, (cmsCounts.get(r.cms) ?? 0) + 1);
+	}
+	const sorted = [...cmsCounts.entries()].sort((a, b) => b[1] - a[1]);
+
+	console.log("─── Results ───────────────────────────────");
+	for (const [cms, count] of sorted) {
+		const pct = ((count / allResults.length) * 100).toFixed(1);
+		console.log(
+			`  ${cms.padEnd(20)} ${count.toString().padStart(4)}  (${pct}%)`,
+		);
+	}
+	console.log(`\nWrote ${allResults.length} results → ${outputFile}`);
+}
+
+function printChanges(
+	allResults: CmsResult[],
+	previousResults: Map<string, CmsResult>,
+): void {
+	if (previousResults.size === 0) return;
+
+	const newAstro: string[] = [];
+	const lostAstro: string[] = [];
+	const versionChanged: string[] = [];
+	const cmsChanged: string[] = [];
+	const newSites: string[] = [];
+
+	for (const r of allResults) {
+		const prev = previousResults.get(r.url);
+		if (!prev) {
+			newSites.push(r.title || r.url);
+			continue;
+		}
+		if (!prev.astroDetected && r.astroDetected)
+			newAstro.push(
+				`  + ${r.title || r.url} → now Astro${r.astroVersion ? ` v${r.astroVersion}` : ""}`,
+			);
+		if (prev.astroDetected && !r.astroDetected)
+			lostAstro.push(`  - ${r.title || r.url} → ${r.cms}`);
+		if (
+			prev.astroVersion !== r.astroVersion &&
+			r.astroVersion &&
+			prev.astroVersion
+		)
+			versionChanged.push(
+				`  ~ ${r.title || r.url}: v${prev.astroVersion} → v${r.astroVersion}`,
+			);
+		if (prev.cms !== r.cms)
+			cmsChanged.push(`  ~ ${r.title || r.url}: ${prev.cms} → ${r.cms}`);
+	}
+
+	console.log("\n─── Changes vs previous run ───────────────");
+	if (newSites.length)
+		console.log(`  ${newSites.length} new site(s) added to showcase`);
+	if (newAstro.length) {
+		console.log(`\n  Newly detected as Astro (${newAstro.length}):`);
+		for (const l of newAstro) console.log(l);
+	}
+	if (lostAstro.length) {
+		console.log(`\n  No longer detected as Astro (${lostAstro.length}):`);
+		for (const l of lostAstro) console.log(l);
+	}
+	if (versionChanged.length) {
+		console.log(`\n  Astro version changed (${versionChanged.length}):`);
+		for (const l of versionChanged) console.log(l);
+	}
+	if (cmsChanged.length) {
+		console.log(`\n  CMS changed (${cmsChanged.length}):`);
+		for (const l of cmsChanged) console.log(l);
+	}
+	if (
+		!newSites.length &&
+		!newAstro.length &&
+		!lostAstro.length &&
+		!versionChanged.length &&
+		!cmsChanged.length
+	)
+		console.log("  No changes detected.");
+}
+
+// ---------------------------------------------------------------------------
+// Main
+// ---------------------------------------------------------------------------
+
+async function main() {
+	const startMs = Date.now();
+
+	const { values: args } = parseArgs({
+		args: process.argv.slice(2),
+		options: {
+			source: {
+				type: "string",
+				default: ".showcase-cache/src/content/showcase",
+			},
+			output: {
+				type: "string",
+				default: "src/data/cms-results.json",
+			},
+			limit: { type: "string" },
+			concurrency: { type: "string", default: "6" },
+			resume: { type: "boolean", default: false },
+			timeout: { type: "string", default: "10000" },
+		},
+	});
+
+	const sourceDir = resolve(args.source as string);
+	const outputFile = resolve(args.output as string);
+	const concurrency = Number.parseInt(args.concurrency as string, 10);
+	const timeoutMs = Number.parseInt(args.timeout as string, 10);
+	const limit = args.limit
+		? Number.parseInt(args.limit as string, 10)
+		: undefined;
+	const resume = args.resume as boolean;
+
+	const cacheRoot = resolve(".showcase-cache");
+	const isDefaultSource =
+		sourceDir === resolve(".showcase-cache/src/content/showcase");
+	await ensureShowcaseCache(sourceDir, cacheRoot, isDefaultSource);
 
 	console.log(`Source: ${sourceDir}`);
 	console.log(`Output: ${outputFile}`);
@@ -975,9 +1110,7 @@ async function main() {
 			const existing: ResultsFile = JSON.parse(
 				await readFile(outputFile, "utf8"),
 			);
-			for (const r of existing.results) {
-				existingResults.set(r.url, r);
-			}
+			for (const r of existing.results) existingResults.set(r.url, r);
 			console.log(`Resuming: ${existingResults.size} already processed`);
 		} catch {
 			console.log("No existing results found, starting fresh");
@@ -987,7 +1120,6 @@ async function main() {
 	// Read all showcase YAMLs
 	const files = (await readdir(sourceDir)).filter((f) => f.endsWith(".yml"));
 	const entries: ShowcaseEntry[] = [];
-
 	for (const file of files) {
 		const content = await readFile(join(sourceDir, file), "utf8");
 		const entry = parseShowcaseYaml(content);
@@ -1009,61 +1141,11 @@ async function main() {
 
 	const tasks = toFetch.map((entry) =>
 		enqueue(async () => {
-			let result: CmsResult;
-			try {
-				const { html, headers, finalUrl } = await fetchSite(
-					entry.url,
-					timeoutMs,
-				);
-				const hit = fingerprint(html, headers, entry.url, finalUrl);
-				const astro = detectAstro(html);
-				const resolvedUrl = finalUrl !== entry.url ? finalUrl : null;
-				// If Astro was detected, we got real content through —
-				// a "Blocked" label from a Cloudflare overlay on top of real HTML
-				// is misleading, so demote it to Unknown in that case.
-				const effectiveHit =
-					hit?.cms === "Blocked" && astro.detected ? null : hit;
-				result = {
-					title: entry.title,
-					url: entry.url,
-					cms: effectiveHit?.cms ?? "Unknown",
-					cmsType: effectiveHit?.cmsType ?? "unknown",
-					confidence: effectiveHit?.confidence ?? null,
-					evidence: effectiveHit?.evidence ?? [],
-					astroDetected: astro.detected,
-					astroVersion: astro.version,
-					starlightVersion: astro.starlightVersion,
-					astroSignals: astro.signals,
-					finalUrl: resolvedUrl,
-					categories: entry.categories ?? [],
-					dateAdded: entry.dateAdded,
-					fetchedAt: new Date().toISOString(),
-				};
-			} catch (err) {
-				result = {
-					title: entry.title,
-					url: entry.url,
-					cms: "Error",
-					cmsType: "unknown",
-					confidence: null,
-					evidence: [],
-					astroDetected: false,
-					astroVersion: null,
-					starlightVersion: null,
-					astroSignals: [],
-					finalUrl: null,
-					categories: entry.categories ?? [],
-					dateAdded: entry.dateAdded,
-					fetchedAt: new Date().toISOString(),
-					error: err instanceof Error ? err.message : String(err),
-				};
-			}
-
+			const result = await processSite(entry, timeoutMs);
 			fresh.push(result);
 			done++;
-			if (done % 50 === 0 || done === toFetch.length) {
+			if (done % 50 === 0 || done === toFetch.length)
 				process.stdout.write(`\r  ${done}/${toFetch.length}`);
-			}
 			return result;
 		}),
 	);
@@ -1083,28 +1165,14 @@ async function main() {
 
 	const output: ResultsFile = {
 		generated: new Date().toISOString(),
-		sourceDir: sourceDir.replace(process.cwd() + "/", ""),
+		sourceDir: sourceDir.replace(`${process.cwd()}/`, ""),
 		total: allResults.length,
 		results: allResults,
 	};
 
 	await writeFile(outputFile, JSON.stringify(output, null, "\t"), "utf8");
 
-	// Summary
-	const cmsCounts = new Map<string, number>();
-	for (const r of allResults) {
-		cmsCounts.set(r.cms, (cmsCounts.get(r.cms) ?? 0) + 1);
-	}
-	const sorted = [...cmsCounts.entries()].sort((a, b) => b[1] - a[1]);
-
-	console.log("─── Results ───────────────────────────────");
-	for (const [cms, count] of sorted) {
-		const pct = ((count / allResults.length) * 100).toFixed(1);
-		console.log(
-			`  ${cms.padEnd(20)} ${count.toString().padStart(4)}  (${pct}%)`,
-		);
-	}
-	console.log(`\nWrote ${allResults.length} results → ${outputFile}`);
+	printSummary(allResults, outputFile);
 
 	// ── Write scan to local history DB ───────────────────────────────────────
 	try {
@@ -1116,66 +1184,7 @@ async function main() {
 		);
 	}
 
-	// ── Comparison with previous run ─────────────────────────────────────────
-	if (previousResults.size > 0) {
-		const newAstro: string[] = [];
-		const lostAstro: string[] = [];
-		const versionChanged: string[] = [];
-		const cmsChanged: string[] = [];
-		const newSites: string[] = [];
-
-		for (const r of allResults) {
-			const prev = previousResults.get(r.url);
-			if (!prev) {
-				newSites.push(r.title || r.url);
-				continue;
-			}
-			if (!prev.astroDetected && r.astroDetected)
-				newAstro.push(
-					`  + ${r.title || r.url} → now Astro${r.astroVersion ? ` v${r.astroVersion}` : ""}`,
-				);
-			if (prev.astroDetected && !r.astroDetected)
-				lostAstro.push(`  - ${r.title || r.url} → ${r.cms}`);
-			if (
-				prev.astroVersion !== r.astroVersion &&
-				r.astroVersion &&
-				prev.astroVersion
-			)
-				versionChanged.push(
-					`  ~ ${r.title || r.url}: v${prev.astroVersion} → v${r.astroVersion}`,
-				);
-			if (prev.cms !== r.cms)
-				cmsChanged.push(`  ~ ${r.title || r.url}: ${prev.cms} → ${r.cms}`);
-		}
-
-		console.log("\n─── Changes vs previous run ───────────────");
-		if (newSites.length)
-			console.log(`  ${newSites.length} new site(s) added to showcase`);
-		if (newAstro.length) {
-			console.log(`\n  Newly detected as Astro (${newAstro.length}):`);
-			newAstro.forEach((l) => console.log(l));
-		}
-		if (lostAstro.length) {
-			console.log(`\n  No longer detected as Astro (${lostAstro.length}):`);
-			lostAstro.forEach((l) => console.log(l));
-		}
-		if (versionChanged.length) {
-			console.log(`\n  Astro version changed (${versionChanged.length}):`);
-			versionChanged.forEach((l) => console.log(l));
-		}
-		if (cmsChanged.length) {
-			console.log(`\n  CMS changed (${cmsChanged.length}):`);
-			cmsChanged.forEach((l) => console.log(l));
-		}
-		if (
-			!newSites.length &&
-			!newAstro.length &&
-			!lostAstro.length &&
-			!versionChanged.length &&
-			!cmsChanged.length
-		)
-			console.log("  No changes detected.");
-	}
+	printChanges(allResults, previousResults);
 }
 
 main().catch((err) => {

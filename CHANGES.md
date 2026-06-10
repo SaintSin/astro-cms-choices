@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-06-10
+
+### Code cleanup
+
+- Deleted unused `src/components/global/Link.astro` (not imported anywhere)
+- Removed `astro-icon` from `package.json` (unused dependency)
+- Added `.fallowrc.json` — suppresses `@astrojs/compiler-rs` false positive (Astro internal peer dep, not directly imported)
+
+### Refactor (`scripts/detect-cms.ts`)
+
+- Extracted `makeParkedDetector(cms, htmlPattern, hostnamePattern)` helper — eliminates repeated parked-domain detector structure across GoDaddy, Sedo, Dan.com, and Afternic entries
+- Split 297-line `main()` into four focused helpers:
+  - `ensureShowcaseCache()` — git clone/pull logic for the `.showcase-cache/` directory
+  - `processSite()` — per-site fetch, fingerprint, and result assembly (was a complex anonymous arrow in the queue)
+  - `printSummary()` — CMS frequency table printed after each run
+  - `printChanges()` — diff report comparing current run against previous results
+
 ## 2026-05-27 (continued)
 
 ### Scan history database
