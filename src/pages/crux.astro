@@ -100,7 +100,7 @@ function fmtCls(v: number | null) {
     <header class="page-header">
       <h1>Core Web Vitals <span class="muted">Real-user data</span></h1>
       <p class="page-desc">
-        28-day Chrome UX Report field data for confirmed Astro sites.
+        28-day <a href="https://developer.chrome.com/docs/crux" target="_blank" rel="noopener noreferrer">Chrome UX Report</a> field data for confirmed Astro sites.
         Data collected {new Date(generatedAt).toLocaleDateString("en-GB", { dateStyle: "medium" })}.
         Only sites with sufficient Chrome traffic appear ({totalWithData.toLocaleString()} of ~2,100 confirmed Astro sites).
       </p>
@@ -373,6 +373,11 @@ function fmtCls(v: number | null) {
     max-width: 70ch;
     margin: 0;
   }
+  .page-desc a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+  .page-desc a:hover { text-decoration: underline; }
 
   .stats-row {
     display: flex;
