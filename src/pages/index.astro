@@ -14,6 +14,8 @@ const PAGE_SIZE = siteMetadata.showcasePageSize ?? 50;
 const meta = {
 	title: "Astro Showcase — CMS Detector",
 	description: "Which CMS (if any) powers each site in the Astro showcase?",
+	imageOG: "og-home.png",
+	altOG: "Astro Showcase CMS Detector — 2,633 sites scanned, 2,133 Astro confirmed",
 };
 
 let data: ResultsFile | null = null;
@@ -84,28 +86,28 @@ const parkedCount = results.filter(
 
     {data && (
       <>
-        <section class="stats-grid" aria-label="Summary">
+        <section class="stats-row" aria-label="Summary">
           <div class="stat-card">
             <span class="stat-value">{total.toLocaleString()}</span>
             <span class="stat-label">Sites scanned</span>
           </div>
-          <div class="stat-card stat-card--astro">
+          <div class="stat-card">
             <span class="stat-value">{astroConfirmed.toLocaleString()}</span>
             <span class="stat-label">Astro confirmed</span>
           </div>
-          <div class="stat-card stat-card--migrated">
+          <div class="stat-card">
             <span class="stat-value">{noLongerAstro.toLocaleString()}</span>
             <span class="stat-label">Astro not detected</span>
           </div>
-          <div class="stat-card stat-card--detected">
+          <div class="stat-card">
             <span class="stat-value">{detected.toLocaleString()}</span>
             <span class="stat-label">Sites with CMS detected</span>
           </div>
-          <div class="stat-card stat-card--parked">
+          <div class="stat-card">
             <span class="stat-value">{(forwardedCount + parkedCount).toLocaleString()}</span>
             <span class="stat-label">Parked or forwarded</span>
           </div>
-          <div class="stat-card stat-card--error">
+          <div class="stat-card">
             <span class="stat-value">{errors.toLocaleString()}</span>
             <span class="stat-label">Fetch errors</span>
           </div>
@@ -240,10 +242,8 @@ const parkedCount = results.filter(
         if (sortCol === col) { sortAsc = !sortAsc; } else { sortCol = col; sortAsc = true; }
         document.querySelectorAll(".sortable").forEach((h) => {
           h.classList.remove("sort-asc", "sort-desc");
-          h.querySelector(".sort-icon").textContent = "⇅";
         });
         th.classList.add(sortAsc ? "sort-asc" : "sort-desc");
-        th.querySelector(".sort-icon").textContent = sortAsc ? "▲" : "▼";
         currentPage = 1;
         applyView();
       });
@@ -438,25 +438,6 @@ const parkedCount = results.filter(
   .about-body a { color: var(--color-primary); }
   .about-body strong { color: var(--color-text); }
 
-  .stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-    gap: var(--space-s);
-  }
-  .stat-card {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3xs);
-    padding: var(--space-s);
-    border-radius: var(--space-3xs);
-    background: var(--color-surface);
-    border-left: 4px solid var(--gray-4);
-  }
-  .stat-card--astro    { border-color: var(--violet-6); }
-  .stat-card--migrated { border-color: var(--orange-5); }
-  .stat-card--detected { border-color: var(--blue-6); }
-  .stat-card--parked   { border-color: var(--yellow-5); }
-  .stat-card--error    { border-color: var(--red-5); }
   .breakdown h2 { font-size: var(--step-1); }
   .bar-list {
     list-style: none;

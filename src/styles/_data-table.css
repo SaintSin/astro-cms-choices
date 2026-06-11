@@ -98,13 +98,13 @@
 	font-family: var(--font-ibm-plex-serif), Georgia, serif;
 
 	&.good {
-		color: var(--green-9);
+		color: var(--rating-good);
 	}
 	&.needs-improvement {
-		color: var(--orange-9);
+		color: var(--rating-mid);
 	}
 	&.poor {
-		color: var(--red-9);
+		color: var(--rating-poor);
 	}
 	&.none {
 		color: var(--color-text-subtle);
@@ -129,13 +129,13 @@
 
 /* Exceptions: Lighthouse rating thresholds */
 .score.good {
-	color: var(--green-7);
+	color: var(--rating-good);
 }
 .score.mid {
-	color: var(--orange-7);
+	color: var(--rating-mid);
 }
 .score.poor {
-	color: var(--red-7);
+	color: var(--rating-poor);
 }
 
 /* ── Utility: sortable column header ─────────────────────── */

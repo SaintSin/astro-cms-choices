@@ -68,4 +68,12 @@
 	--color-warning: var(--yellow-6);
 	--color-error: var(--red-6);
 	--color-info: var(--blue-6);
+
+	/* Rating / score colours (CrUX, PSI, legend chips) */
+	--rating-good: var(--green-7);
+	--rating-good-bg: var(--green-1);
+	--rating-mid: var(--orange-7);
+	--rating-mid-bg: var(--orange-1);
+	--rating-poor: var(--red-7);
+	--rating-poor-bg: var(--red-1);
 }

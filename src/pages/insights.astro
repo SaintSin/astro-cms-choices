@@ -119,26 +119,27 @@ const legacy =
 ---
 
 <Layout metaData={meta}>
-  <div class="wrapper">
+  <div class="wrapper flow"> 
+    <header class="page-header flow">
     <h1>Insights</h1>
-    <p class="lead">Version distribution and submission trends across {totalDetected.toLocaleString()} Astro-detected sites.</p>
-
-    <div class="stat-row">
+    <p class="page-lead">Version distribution and submission trends across {totalDetected.toLocaleString()} Astro-detected sites.</p>
+  </header>
+    <div class="stats-row">
       <div class="stat-card">
-        <div class="stat-value violet">{(versionCounts["v5"] ?? 0) + (versionCounts["v6"] ?? 0) + (versionCounts["v7"] ?? 0)}</div>
-        <div class="stat-label">On v5 or later</div>
+        <span class="stat-value violet">{(versionCounts["v5"] ?? 0) + (versionCounts["v6"] ?? 0) + (versionCounts["v7"] ?? 0)}</span>
+        <span class="stat-label">On v5 or later</span>
       </div>
       <div class="stat-card">
-        <div class="stat-value green">{current}</div>
-        <div class="stat-label">On v6 / v7 (current)</div>
+        <span class="stat-value green">{current}</span>
+        <span class="stat-label">On v6 / v7 (current)</span>
       </div>
       <div class="stat-card">
-        <div class="stat-value amber">{legacy}</div>
-        <div class="stat-label">Still on v1–v3</div>
+        <span class="stat-value amber">{legacy}</span>
+        <span class="stat-label">Still on v1–v3</span>
       </div>
       <div class="stat-card">
-        <div class="stat-value slate">{versionCounts["unknown"] ?? 0}</div>
-        <div class="stat-label">unknown detected</div>
+        <span class="stat-value slate">{versionCounts["unknown"] ?? 0}</span>
+        <span class="stat-label">Unknown detected</span>
       </div>
     </div>
 
@@ -292,43 +293,11 @@ const legacy =
 </script>
 
 <style>
-  h1 { font-size: var(--step-3); margin-block-end: var(--space-xs); }
-  .lead {
-    font-size: var(--step-0);
-    color: var(--color-text-subtle);
-    margin-block-end: var(--space-l);
-  }
-
-  .stat-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: var(--space-s);
-    margin-block-end: var(--space-xl);
-  }
-  .stat-card {
-    background: var(--color-surface);
-    border: 1px solid var(--gray-2);
-    border-radius: var(--space-3xs);
-    padding: var(--space-s);
-  }
-  .stat-value {
-    font-size: var(--step-3);
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1;
-    margin-block-end: var(--space-3xs);
-  }
+  /* Value colour variants — semantic meaning, not rating */
   .stat-value.violet { color: var(--violet-6); }
   .stat-value.green  { color: var(--green-6); }
   .stat-value.amber  { color: var(--orange-5); }
   .stat-value.slate  { color: var(--gray-5); }
-  .stat-label {
-    font-size: var(--step--2);
-    color: var(--color-text-subtle);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 500;
-  }
 
   .charts-grid {
     display: grid;

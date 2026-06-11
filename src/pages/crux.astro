@@ -10,6 +10,8 @@ const meta = {
 	title: "Core Web Vitals — Astro CMS Detector",
 	description:
 		"Real-user Chrome UX Report performance data for confirmed Astro sites across desktop, phone, and tablet.",
+	imageOG: "og-crux.png",
+	altOG: "Core Web Vitals — 514 desktop sites, 382 Desktop CWV pass, 253 Phone CWV pass",
 };
 
 let sites: any[] = [];
@@ -99,7 +101,7 @@ function fmtCls(v: number | null) {
   <main class="wrapper flow">
     <header class="page-header flow">
       <h1>Core Web Vitals <span class="muted">Real-user data</span></h1>
-      <p class="page-desc">
+      <p class="page-lead">
         28-day <a href="https://developer.chrome.com/docs/crux" target="_blank" rel="noopener noreferrer">Chrome UX Report</a> field data for confirmed Astro sites.
         Data collected {new Date(generatedAt).toLocaleDateString("en-GB", { dateStyle: "medium" })}.
         Only sites with sufficient Chrome traffic appear ({totalWithData.toLocaleString()} of ~2,100 confirmed Astro sites).

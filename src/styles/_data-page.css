@@ -16,6 +16,21 @@
 		}
 	}
 
+	.page-lead {
+		font-size: var(--step-0);
+		max-width: 70ch;
+		margin: 0;
+
+		a {
+			color: var(--color-primary);
+			text-decoration: none;
+
+			&:hover {
+				text-decoration: underline;
+			}
+		}
+	}
+
 	.page-desc {
 		color: var(--color-mid);
 		font-size: var(--step--1);
@@ -58,7 +73,9 @@
 		opacity: 0.65;
 	}
 	&--pass {
-		border-color: var(--green-7);
+		.stat-value {
+			color: var(--rating-good);
+		}
 	}
 
 	.stat-value {
@@ -113,16 +130,16 @@
 	font-weight: 600;
 
 	&.good {
-		background: var(--green-1);
-		color: var(--green-7);
+		background: var(--rating-good-bg);
+		color: var(--rating-good);
 	}
 	&.mid {
-		background: var(--orange-1);
-		color: var(--orange-7);
+		background: var(--rating-mid-bg);
+		color: var(--rating-mid);
 	}
 	&.poor {
-		background: var(--red-1);
-		color: var(--red-7);
+		background: var(--rating-poor-bg);
+		color: var(--rating-poor);
 	}
 }
 

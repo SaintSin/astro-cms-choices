@@ -20,54 +20,61 @@ const {
 ---
 
 <div class="toolbar">
-  <h2>Sites</h2>
-  <div class="toolbar-controls">
-    {starlightCount > 0 && (
-      <button id="starlight-filter" class="filter-btn filter-btn--starlight" type="button">
-        Starlight ({starlightCount})
+  <div class="toolbar-top">
+    <h2>Sites</h2>
+    <div class="toolbar-filters">
+      {starlightCount > 0 && (
+        <button id="starlight-filter" class="filter-btn filter-btn--starlight" type="button">
+          Starlight ({starlightCount})
+        </button>
+      )}
+      {frameworkCount > 0 && (
+        <button id="framework-filter" class="filter-btn filter-btn--framework" type="button">
+          JS Frameworks ({frameworkCount})
+        </button>
+      )}
+      {forwardedCount > 0 && (
+        <button id="forwarded-filter" class="filter-btn filter-btn--forwarded" type="button">
+          Redirected domains ({forwardedCount})
+        </button>
+      )}
+      {parkedCount > 0 && (
+        <button id="parked-filter" class="filter-btn filter-btn--parked" type="button">
+          Parked domains ({parkedCount})
+        </button>
+      )}
+      <button id="astro-filter" class="filter-btn filter-btn--astro" type="button">
+        Astro not detected ({noLongerAstro})
       </button>
-    )}
-    {frameworkCount > 0 && (
-      <button id="framework-filter" class="filter-btn filter-btn--framework" type="button">
-        JS Frameworks ({frameworkCount})
+      <button id="clear-filter" class="clear-btn" type="button" hidden>
+        Clear
       </button>
-    )}
-    {forwardedCount > 0 && (
-      <button id="forwarded-filter" class="filter-btn filter-btn--forwarded" type="button">
-        Redirected domains ({forwardedCount})
-      </button>
-    )}
-    {parkedCount > 0 && (
-      <button id="parked-filter" class="filter-btn filter-btn--parked" type="button">
-        Parked domains ({parkedCount})
-      </button>
-    )}
-    <button id="astro-filter" class="filter-btn filter-btn--astro" type="button">
-      Astro not detected ({noLongerAstro})
-    </button>
-    <input
-      id="search"
-      class="search-input"
-      type="search"
-      placeholder="Search title or URL…"
-      aria-label="Search sites"
-    />
-    <button id="clear-filter" class="clear-btn" type="button" hidden>
-      Clear
-    </button>
+    </div>
   </div>
+  <input
+    id="search"
+    class="search-input"
+    type="search"
+    placeholder="Search title or URL…"
+    aria-label="Search sites"
+  />
 </div>
 
 <style>
   .toolbar {
     display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-xs);
+  }
+  .toolbar-top {
+    display: flex;
     align-items: center;
     flex-wrap: wrap;
     gap: var(--space-s);
-    justify-content: space-between;
   }
-  .toolbar h2 { font-size: var(--step-1); margin: 0; }
-  .toolbar-controls {
+  .toolbar-top h2 { font-size: var(--step-1); margin: 0; }
+  .toolbar-filters {
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -110,7 +117,7 @@ const {
     border: 1px solid var(--gray-4);
     border-radius: var(--space-3xs);
     font-size: var(--step--1);
-    min-width: 16rem;
+    width: 24rem;
     background: var(--color-bg);
     color: var(--color-text);
   }

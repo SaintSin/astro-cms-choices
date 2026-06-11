@@ -10,6 +10,8 @@ const meta = {
 	title: "Lighthouse Scores — Astro CMS Detector",
 	description:
 		"PageSpeed Insights Lighthouse scores (performance, accessibility, best practices, SEO) for confirmed Astro sites on mobile and desktop.",
+	imageOG: "og-psi.png",
+	altOG: "Lighthouse Scores — 2,117 mobile tested, 1,004 mobile perf ≥90, 1,708 desktop perf ≥90",
 };
 
 let sites: any[] = [];
@@ -121,7 +123,7 @@ function scoreClass800(v: number | null): string {
   <main class="wrapper flow">
     <header class="page-header flow">
       <h1>Lighthouse Scores <span class="muted">PageSpeed Insights</span></h1>
-      <p class="page-desc">
+      <p class="page-lead">
         <a href="https://developer.chrome.com/docs/lighthouse/overview/" target="_blank" rel="noopener noreferrer">Lighthouse</a> scores
         for confirmed Astro sites via the PageSpeed Insights API — mobile and desktop strategies.
         Data collected {new Date(generatedAt).toLocaleDateString("en-GB", { dateStyle: "medium" })}.

@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-06-11 (continued)
+
+### UI polish — stat cards, toolbar, footer, social cards
+
+- Added CSS rating tokens `--rating-good/mid/poor` and `*-bg` variants to `_tokens.css`; updated `.score`, `.metric`, and `.legend` classes in `_data-table.css` and `_data-page.css` to use them
+- Added `.page-lead` style to `_data-page.css` (`step-0`, full text colour) alongside existing `.page-desc`; applied to CrUX, PSI, and insights pages
+- Stat cards made consistent across all pages (index, insights, CrUX, PSI) via shared `_data-page.css` styles — removed local overrides on index and insights pages
+- `stat-card--pass` simplified to colour the stat value green via `--rating-good`
+- Footer: added Netlify and Astro badges (flex row, `height="45"`) before the GitHub link
+- ShowcaseTable: reduced `.col-site` from `auto` to `35ch` to stop pushing the Conf column right
+- ShowcaseToolbar: moved search input onto its own line, left-aligned; fixed `align-items` bleed-through from shared layer
+- Fixed broken column sort on the home page table (removed stale `.sort-icon` querySelector calls)
+- OG social cards: updated home card stats (2,633 sites, 2,133 Astro confirmed); created new dark-theme cards for CrUX (`og-crux.png`) and PSI (`og-psi.png`) pages; images generated via Playwright screenshot
+
 ## 2026-06-11
 
 ### Run duration tracking
