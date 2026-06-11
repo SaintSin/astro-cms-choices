@@ -18,10 +18,10 @@
 //   node scripts/crux.mjs --limit=100           # cap number of sites (for testing)
 //   node scripts/crux.mjs --dry-run
 
-import Database from "better-sqlite3";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import Database from "better-sqlite3";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DB_PATH = resolve(__dirname, "../.scan-history.db");

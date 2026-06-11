@@ -1,0 +1,489 @@
+---
+// src/pages/psi.astro
+// 2026-06-11T00:00:00Z
+
+import ShowcasePagination from "@components/showcase/ShowcasePagination.astro";
+import Layout from "@layouts/BaseLayout.astro";
+import Database from "better-sqlite3";
+
+const meta = {
+	title: "Lighthouse Scores — Astro CMS Detector",
+	description:
+		"PageSpeed Insights Lighthouse scores (performance, accessibility, best practices, SEO) for confirmed Astro sites on mobile and desktop.",
+};
+
+let sites: any[] = [];
+let generatedAt = "";
+let mobileCount = 0;
+let desktopCount = 0;
+let mobilePerfHigh = 0;
+let desktopPerfHigh = 0;
+
+try {
+	const db = new Database(".scan-history.db", { readonly: true });
+
+	const latestScan = db
+		.prepare("SELECT id FROM scans ORDER BY id DESC LIMIT 1")
+		.get() as { id: number };
+
+	const latestRun = db
+		.prepare("SELECT id, started_at FROM psi_runs ORDER BY id DESC LIMIT 1")
+		.get() as { id: number; started_at: string };
+
+	generatedAt = latestRun.started_at;
+
+	// Latest successful result per site × strategy across all runs
+	sites = db
+		.prepare(
+			`WITH latest_mobile AS (
+        SELECT site_id, MAX(run_id) AS run_id
+        FROM psi_results WHERE status = 'success' AND strategy = 'mobile'
+        GROUP BY site_id
+      ),
+      latest_desktop AS (
+        SELECT site_id, MAX(run_id) AS run_id
+        FROM psi_results WHERE status = 'success' AND strategy = 'desktop'
+        GROUP BY site_id
+      )
+      SELECT
+        s.hostname, s.url,
+        sr.title, sr.astro_version,
+        m.performance   AS m_perf,
+        m.accessibility AS m_a11y,
+        m.best_practices AS m_bp,
+        m.seo           AS m_seo,
+        d.performance   AS d_perf,
+        d.accessibility AS d_a11y,
+        d.best_practices AS d_bp,
+        d.seo           AS d_seo
+      FROM sites s
+      JOIN scan_results sr ON sr.site_id = s.id
+        AND sr.scan_id = ?
+        AND sr.astro_detected = 1
+      LEFT JOIN latest_mobile lm ON lm.site_id = s.id
+      LEFT JOIN psi_results m ON m.site_id = lm.site_id
+        AND m.run_id = lm.run_id AND m.strategy = 'mobile'
+      LEFT JOIN latest_desktop ld ON ld.site_id = s.id
+      LEFT JOIN psi_results d ON d.site_id = ld.site_id
+        AND d.run_id = ld.run_id AND d.strategy = 'desktop'
+      WHERE m.performance IS NOT NULL OR d.performance IS NOT NULL
+      ORDER BY s.hostname`,
+		)
+		.all(latestScan.id) as any[];
+
+	mobileCount = sites.filter((s) => s.m_perf !== null).length;
+	desktopCount = sites.filter((s) => s.d_perf !== null).length;
+	mobilePerfHigh = sites.filter(
+		(s) => s.m_perf !== null && s.m_perf >= 90,
+	).length;
+	desktopPerfHigh = sites.filter(
+		(s) => s.d_perf !== null && s.d_perf >= 90,
+	).length;
+
+	db.close();
+} catch (e) {
+	console.warn("PSI DB not available:", e);
+}
+
+function scoreClass(v: number | null): string {
+	if (v === null) return "";
+	if (v >= 90) return "good";
+	if (v >= 50) return "mid";
+	return "poor";
+}
+
+function total400(
+	a: number | null,
+	b: number | null,
+	c: number | null,
+	d: number | null,
+): number | null {
+	if (a === null || b === null || c === null || d === null) return null;
+	return a + b + c + d;
+}
+
+function scoreClass400(v: number | null): string {
+	if (v === null) return "";
+	if (v >= 360) return "good";
+	if (v >= 200) return "mid";
+	return "poor";
+}
+
+function scoreClass800(v: number | null): string {
+	if (v === null) return "";
+	if (v >= 720) return "good";
+	if (v >= 400) return "mid";
+	return "poor";
+}
+---
+
+<Layout metaData={meta}>
+  <main class="psi-page">
+    <header class="page-header">
+      <h1>Lighthouse Scores <span class="muted">PageSpeed Insights</span></h1>
+      <p class="page-desc">
+        <a href="https://developer.chrome.com/docs/lighthouse/overview/" target="_blank" rel="noopener noreferrer">Lighthouse</a> scores
+        for confirmed Astro sites via the PageSpeed Insights API — mobile and desktop strategies.
+        Data collected {new Date(generatedAt).toLocaleDateString("en-GB", { dateStyle: "medium" })}.
+        Scores: <span class="legend good">≥ 90</span> <span class="legend mid">50–89</span> <span class="legend poor">&lt; 50</span>
+      </p>
+    </header>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-value">{mobileCount.toLocaleString()}</span>
+        <span class="stat-label">Mobile</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{desktopCount.toLocaleString()}</span>
+        <span class="stat-label">Desktop</span>
+      </div>
+      <div class="stat-card stat-card--pass">
+        <span class="stat-value">{mobilePerfHigh.toLocaleString()}</span>
+        <span class="stat-label">Mobile perf ≥ 90</span>
+      </div>
+      <div class="stat-card stat-card--pass">
+        <span class="stat-value">{desktopPerfHigh.toLocaleString()}</span>
+        <span class="stat-label">Desktop perf ≥ 90</span>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input
+        type="search"
+        id="psi-search"
+        class="search-input"
+        placeholder="Filter by site name or URL…"
+        autocomplete="off"
+      />
+      <span class="result-count" id="result-count">{sites.length} sites</span>
+    </div>
+
+    <div class="table-wrap" id="psi-table-wrap">
+      <table class="psi-table data-table" id="psi-table">
+        <colgroup>
+          <col class="col-site" />
+          <col class="col-ver" />
+          <col class="col-perf" /><col class="col-a11y" /><col class="col-bp" /><col class="col-seo" /><col class="col-total" />
+          <col class="col-perf" /><col class="col-a11y" /><col class="col-bp" /><col class="col-seo" /><col class="col-total" />
+          <col class="col-total800" />
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="sortable col-site" data-col="title">Site</th>
+            <th class="sortable col-ver" data-col="version">Astro</th>
+            <th class="col-group-header" colspan="5">Mobile</th>
+            <th class="col-group-header" colspan="5">Desktop</th>
+            <th class="col-group-header col-group-total">/ 800</th>
+          </tr>
+          <tr class="subheader">
+            <th></th>
+            <th></th>
+            <th class="sortable metric-th col-perf"    data-col="m_perf">Perf</th>
+            <th class="sortable metric-th col-a11y"    data-col="m_a11y">A11y</th>
+            <th class="sortable metric-th col-bp"      data-col="m_bp">BP</th>
+            <th class="sortable metric-th col-seo"     data-col="m_seo">SEO</th>
+            <th class="sortable metric-th col-total"   data-col="m_total">/ 400</th>
+            <th class="sortable metric-th col-perf"    data-col="d_perf">Perf</th>
+            <th class="sortable metric-th col-a11y"    data-col="d_a11y">A11y</th>
+            <th class="sortable metric-th col-bp"      data-col="d_bp">BP</th>
+            <th class="sortable metric-th col-seo"     data-col="d_seo">SEO</th>
+            <th class="sortable metric-th col-total"   data-col="d_total">/ 400</th>
+            <th class="sortable metric-th col-total800" data-col="total_800">/ 800</th>
+          </tr>
+        </thead>
+        <tbody id="psi-tbody">
+          {sites.map((s) => {
+            const mTotal = total400(s.m_perf, s.m_a11y, s.m_bp, s.m_seo);
+            const dTotal = total400(s.d_perf, s.d_a11y, s.d_bp, s.d_seo);
+            const t800   = mTotal !== null && dTotal !== null ? mTotal + dTotal : null;
+            return (
+            <tr
+              data-title={(s.title ?? s.hostname).toLowerCase()}
+              data-url={s.url.toLowerCase()}
+              data-version={s.astro_version ?? ""}
+              data-m_perf={s.m_perf ?? ""}
+              data-m_a11y={s.m_a11y ?? ""}
+              data-m_bp={s.m_bp ?? ""}
+              data-m_seo={s.m_seo ?? ""}
+              data-m_total={mTotal ?? ""}
+              data-d_perf={s.d_perf ?? ""}
+              data-d_a11y={s.d_a11y ?? ""}
+              data-d_bp={s.d_bp ?? ""}
+              data-d_seo={s.d_seo ?? ""}
+              data-d_total={dTotal ?? ""}
+              data-total_800={t800 ?? ""}
+            >
+              <td class="col-site">
+                <a href={s.url} target="_blank" rel="noopener noreferrer">
+                  {s.title ?? s.hostname}
+                </a>
+              </td>
+              <td class="col-ver">{s.astro_version ?? "—"}</td>
+              <td class={`col-perf score ${scoreClass(s.m_perf)}`}>{s.m_perf ?? "—"}</td>
+              <td class={`col-a11y score ${scoreClass(s.m_a11y)}`}>{s.m_a11y ?? "—"}</td>
+              <td class={`col-bp   score ${scoreClass(s.m_bp)}`}>{s.m_bp ?? "—"}</td>
+              <td class={`col-seo  score ${scoreClass(s.m_seo)}`}>{s.m_seo ?? "—"}</td>
+              <td class={`col-total score ${scoreClass400(mTotal)}`}>{mTotal ?? "—"}</td>
+              <td class={`col-perf score ${scoreClass(s.d_perf)}`}>{s.d_perf ?? "—"}</td>
+              <td class={`col-a11y score ${scoreClass(s.d_a11y)}`}>{s.d_a11y ?? "—"}</td>
+              <td class={`col-bp   score ${scoreClass(s.d_bp)}`}>{s.d_bp ?? "—"}</td>
+              <td class={`col-seo  score ${scoreClass(s.d_seo)}`}>{s.d_seo ?? "—"}</td>
+              <td class={`col-total score ${scoreClass400(dTotal)}`}>{dTotal ?? "—"}</td>
+              <td class={`col-total800 score ${scoreClass800(t800)}`}>{t800 ?? "—"}</td>
+            </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+
+    <ShowcasePagination id="psi-pagination" />
+  </main>
+</Layout>
+
+<style>
+  .psi-page {
+    container-type: inline-size;
+    padding-block-end: var(--space-xl);
+  }
+
+  .page-header {
+    margin-block-end: var(--space-m);
+  }
+
+  h1 {
+    font-size: var(--step-2);
+    margin-block-end: var(--space-2xs);
+    .muted { font-weight: 400; color: var(--gray-6); }
+  }
+
+  .page-desc {
+    color: var(--gray-7);
+    font-size: var(--step--1);
+    a { color: var(--color-primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  }
+
+  .legend {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: var(--step--2);
+    font-weight: 600;
+  }
+
+  /* ── Stats row ─────────────────────────────────────────────── */
+
+  .stats-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-s);
+    margin-block-end: var(--space-m);
+  }
+
+  .stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--space-xs) var(--space-m);
+    border: 1px solid var(--gray-3);
+    border-radius: var(--space-3xs);
+    min-width: 8ch;
+  }
+
+  .stat-value {
+    font-size: var(--step-2);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: var(--step--2);
+    color: var(--gray-6);
+    white-space: nowrap;
+  }
+
+  .stat-card--pass .stat-value { color: var(--green-7); }
+
+  /* ── Toolbar ───────────────────────────────────────────────── */
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--space-s);
+    margin-block-end: var(--space-s);
+  }
+
+  .search-input {
+    flex: 1;
+    max-width: 32ch;
+    padding: var(--space-2xs) var(--space-xs);
+    border: 1px solid var(--gray-4);
+    border-radius: var(--space-3xs);
+    font-size: var(--step--1);
+  }
+
+  .result-count {
+    font-size: var(--step--1);
+    color: var(--gray-6);
+    white-space: nowrap;
+  }
+
+  /* ── Table ─────────────────────────────────────────────────── */
+
+  .col-site  { width: 28ch; }
+  .col-ver   { width: 7ch; }
+  .col-perf, .col-a11y, .col-bp, .col-seo { width: 6ch; }
+  .col-total { width: 8ch; }
+  .col-total800 { width: 8ch; }
+
+  .col-group-header { width: 32ch; /* 4 × 6ch + 1 × 8ch */ }
+
+  .col-group-total {
+    width: 8ch;
+    font-weight: 700;
+  }
+
+  .metric-th {
+    border-inline-start: 1px solid var(--gray-2);
+    text-align: right !important;
+    font-size: var(--step--2);
+    color: var(--gray-6);
+  }
+
+  .subheader th { border-top: 1px solid var(--gray-3); }
+
+  .col-site a {
+    color: inherit;
+    text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+
+  /* Legend chips match score colours */
+  .legend.good { background: var(--green-1); color: var(--green-7); }
+  .legend.mid  { background: var(--orange-1); color: var(--orange-7); }
+  .legend.poor { background: var(--red-1); color: var(--red-7); }
+
+  /* Group dividers — desktop starts at col 8, /800 at col 13 */
+  .psi-table td:nth-child(8),
+  .psi-table th:nth-child(8),
+  .psi-table td:nth-child(13),
+  .psi-table th:nth-child(13) {
+    border-inline-start: 2px solid var(--gray-3);
+  }
+
+</style>
+
+<script is:inline>
+  function initPsi() {
+    const tbody    = document.getElementById("psi-tbody");
+    const searchEl = document.getElementById("psi-search");
+    const countEl  = document.getElementById("result-count");
+    const tableWrap = document.getElementById("psi-table-wrap");
+    const paginationEl = document.getElementById("psi-pagination");
+
+    if (!tbody) return;
+
+    const allRows = Array.from(tbody.querySelectorAll("tr"));
+    let filtered = allRows.slice();
+    let currentPage = 1;
+    const PAGE_SIZE = 50;
+
+    let sortCol = null;
+    let sortDir = "asc";
+
+    function applyView() {
+      const start = (currentPage - 1) * PAGE_SIZE;
+      const end   = start + PAGE_SIZE;
+      allRows.forEach((r) => r.setAttribute("data-hidden", ""));
+      filtered.slice(start, end).forEach((r) => r.removeAttribute("data-hidden"));
+      if (countEl) countEl.textContent = `${filtered.length} sites`;
+      renderPagination(paginationEl, filtered.length, currentPage, PAGE_SIZE, (p) => {
+        currentPage = p;
+        applyView();
+        tableWrap?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+
+    // Search
+    if (searchEl) {
+      searchEl.addEventListener("input", () => {
+        const q = searchEl.value.trim().toLowerCase();
+        filtered = q
+          ? allRows.filter(
+              (r) =>
+                r.dataset.title?.includes(q) || r.dataset.url?.includes(q),
+            )
+          : allRows.slice();
+        if (sortCol) doSort(false);
+        currentPage = 1;
+        applyView();
+      });
+    }
+
+    // Sort
+    function numVal(r, col) {
+      const v = r.dataset[col];
+      return v === "" || v === undefined ? null : parseFloat(v);
+    }
+
+    function strVal(r, col) {
+      return r.dataset[col] ?? "";
+    }
+
+    function doSort(resetPage = true) {
+      const col = sortCol;
+      filtered.sort((a, b) => {
+        let av, bv;
+        if (col === "title") {
+          av = strVal(a, "title"); bv = strVal(b, "title");
+          return sortDir === "asc"
+            ? av.localeCompare(bv)
+            : bv.localeCompare(av);
+        }
+        if (col === "version") {
+          av = strVal(a, "version"); bv = strVal(b, "version");
+          if (!av && !bv) return 0;
+          if (!av) return 1;
+          if (!bv) return -1;
+          return sortDir === "asc"
+            ? av.localeCompare(bv, undefined, { numeric: true })
+            : bv.localeCompare(av, undefined, { numeric: true });
+        }
+        // Numeric score columns
+        av = numVal(a, col); bv = numVal(b, col);
+        if (av === null && bv === null) return 0;
+        if (av === null) return 1;
+        if (bv === null) return -1;
+        return sortDir === "asc" ? av - bv : bv - av;
+      });
+      // Re-order rows in DOM
+      filtered.forEach((r) => tbody.appendChild(r));
+      if (resetPage) currentPage = 1;
+      applyView();
+    }
+
+    document.querySelectorAll(".psi-table .sortable").forEach((th) => {
+      th.addEventListener("click", () => {
+        const col = th.dataset.col;
+        if (sortCol === col) {
+          sortDir = sortDir === "asc" ? "desc" : "asc";
+        } else {
+          sortCol = col;
+          sortDir = col === "title" || col === "version" ? "asc" : "desc";
+        }
+        document.querySelectorAll(".psi-table .sortable").forEach((h) => {
+          h.classList.remove("sort-asc", "sort-desc");
+        });
+        th.classList.add(sortDir === "asc" ? "sort-asc" : "sort-desc");
+        doSort();
+      });
+    });
+
+    applyView();
+  }
+
+  initPsi();
+  document.addEventListener("astro:page-load", initPsi);
+</script>

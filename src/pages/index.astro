@@ -91,23 +91,23 @@ const parkedCount = results.filter(
             <span class="stat-label">Sites scanned</span>
           </div>
           <div class="stat-card stat-card--astro">
-            <span class="stat-value">{astroConfirmed}</span>
+            <span class="stat-value">{astroConfirmed.toLocaleString()}</span>
             <span class="stat-label">Astro confirmed</span>
           </div>
           <div class="stat-card stat-card--migrated">
-            <span class="stat-value">{noLongerAstro}</span>
+            <span class="stat-value">{noLongerAstro.toLocaleString()}</span>
             <span class="stat-label">Astro not detected</span>
           </div>
           <div class="stat-card stat-card--detected">
-            <span class="stat-value">{detected}</span>
+            <span class="stat-value">{detected.toLocaleString()}</span>
             <span class="stat-label">Sites with CMS detected</span>
           </div>
           <div class="stat-card stat-card--parked">
-            <span class="stat-value">{forwardedCount + parkedCount}</span>
+            <span class="stat-value">{(forwardedCount + parkedCount).toLocaleString()}</span>
             <span class="stat-label">Parked or forwarded</span>
           </div>
           <div class="stat-card stat-card--error">
-            <span class="stat-value">{errors}</span>
+            <span class="stat-value">{errors.toLocaleString()}</span>
             <span class="stat-label">Fetch errors</span>
           </div>
         </section>

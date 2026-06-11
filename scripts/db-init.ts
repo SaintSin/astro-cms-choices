@@ -7,8 +7,8 @@
 // Usage:
 //   pnpm db:init
 
-import { openDb, DB_PATH } from "./db-utils.ts";
 import { existsSync } from "node:fs";
+import { DB_PATH, openDb } from "./db-utils.ts";
 
 const existed = existsSync(DB_PATH);
 const db = openDb();

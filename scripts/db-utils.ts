@@ -6,8 +6,8 @@
 //
 // DB file: .scan-history.db  (gitignored, local only)
 
-import Database from "better-sqlite3";
 import { resolve } from "node:path";
+import Database from "better-sqlite3";
 import type { CmsResult, ResultsFile } from "./detect-cms.ts";
 
 export const DB_PATH = resolve(".scan-history.db");

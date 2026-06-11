@@ -16,10 +16,10 @@
 //   node scripts/psi.mjs --limit=100           # cap number of sites (for testing)
 //   node scripts/psi.mjs --dry-run
 
-import Database from "better-sqlite3";
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import Database from "better-sqlite3";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DB_PATH = resolve(__dirname, "../.scan-history.db");
@@ -217,7 +217,11 @@ const strategies = strategyFilter ? [strategyFilter] : ["mobile", "desktop"];
 let jobs;
 if (errorsOnly) {
 	const errored = db
-		.prepare("SELECT DISTINCT site_id, strategy FROM psi_results WHERE status = 'error'")
+		.prepare(
+			`SELECT DISTINCT site_id, strategy FROM psi_results WHERE status = 'error'
+       EXCEPT
+       SELECT DISTINCT site_id, strategy FROM psi_results WHERE status = 'success'`,
+		)
 		.all();
 	const retry = new Set(errored.map((r) => `${r.site_id}:${r.strategy}`));
 	jobs = [];

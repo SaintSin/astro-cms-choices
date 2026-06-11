@@ -13,9 +13,9 @@
 //   pnpm db:report -- --decay             — Astro sites still on v4 or older
 //   pnpm db:report -- --all               — run every report
 
-import { openDb, DB_PATH } from "./db-utils.ts";
 import { existsSync } from "node:fs";
 import { parseArgs } from "node:util";
+import { DB_PATH, openDb } from "./db-utils.ts";
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -14,7 +14,7 @@ const { results, pageSize } = Astro.props;
 ---
 
 <div class="table-wrap">
-  <table class="results-table" id="results-table" data-page-size={pageSize}>
+  <table class="results-table data-table" id="results-table" data-page-size={pageSize}>
     <colgroup>
       <col class="col-site" />
       <col class="col-astro" />
@@ -24,18 +24,10 @@ const { results, pageSize } = Astro.props;
     </colgroup>
     <thead>
       <tr>
-        <th scope="col" class="sortable" data-col="title">
-          Site <span class="sort-icon" aria-hidden="true">⇅</span>
-        </th>
-        <th scope="col" class="sortable" data-col="astro">
-          Astro version <span class="sort-icon" aria-hidden="true">⇅</span>
-        </th>
-        <th scope="col" class="sortable" data-col="cms">
-          CMS <span class="sort-icon" aria-hidden="true">⇅</span>
-        </th>
-        <th scope="col" class="sortable" data-col="cmstype">
-          Type <span class="sort-icon" aria-hidden="true">⇅</span>
-        </th>
+        <th scope="col" class="sortable" data-col="title">Site</th>
+        <th scope="col" class="sortable" data-col="astro">Astro version</th>
+        <th scope="col" class="sortable" data-col="cms">CMS</th>
+        <th scope="col" class="sortable" data-col="cmstype">Type</th>
         <th scope="col">Conf.</th>
       </tr>
     </thead>
@@ -126,50 +118,13 @@ const { results, pageSize } = Astro.props;
 </p>
 
 <style>
-  .table-wrap { overflow-x: auto; padding-block-end: 1px; }
-  .results-table { border-bottom: none; }
-
-  .results-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--step--1);
-    font-family: var(--font-ibm-plex), system-ui, sans-serif;
-    table-layout: fixed;
-  }
-
   .col-site  { width: auto; }
   .col-astro { width: 14ch; }
   .col-cms   { width: 16ch; }
   .col-type  { width: 18ch; }
   .col-conf  { width: 7ch;  }
 
-  .results-table th {
-    text-align: left;
-    padding: var(--space-2xs) var(--space-xs);
-    border-bottom: 2px solid var(--gray-3);
-    font-weight: 600;
-    white-space: nowrap;
-    color: var(--color-text-subtle);
-  }
-
-  .sortable { cursor: pointer; user-select: none; }
-  .sortable:hover { color: var(--color-text); }
-  .sortable.sort-asc,
-  .sortable.sort-desc { color: var(--color-primary); border-bottom-color: var(--color-primary); }
-  .sort-icon {
-    font-size: 0.75em;
-    opacity: 0.35;
-    margin-left: 0.2em;
-  }
-  .sortable.sort-asc .sort-icon,
-  .sortable.sort-desc .sort-icon { opacity: 1; }
-
-  .results-table td {
-    padding: var(--space-2xs) var(--space-xs);
-    border-top: 1px solid var(--gray-2);
-    vertical-align: middle;
-  }
-  .results-table tr:hover td { background: var(--color-surface); }
+  .results-table td { vertical-align: middle; }
 
   .cell-site a:not(.isastro-link) {
     display: block;

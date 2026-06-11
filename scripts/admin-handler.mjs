@@ -10,10 +10,10 @@
 //   POST /admin/api/review   → save a review decision
 //   GET  /admin/api/export   → PR-ready export for sites marked "remove"
 
-import Database from "better-sqlite3";
 import { readFileSync } from "node:fs";
-import { resolve, dirname } from "node:path";
+import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import Database from "better-sqlite3";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DB_PATH = resolve(".scan-history.db");

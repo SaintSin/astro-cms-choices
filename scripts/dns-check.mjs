@@ -20,9 +20,9 @@
 //   node scripts/dns-check.mjs --limit=50      # cap sites checked (testing)
 //   node scripts/dns-check.mjs --dry-run       # list sites, skip network checks
 
-import Database from "better-sqlite3";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import Database from "better-sqlite3";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DB_PATH = resolve(__dirname, "../.scan-history.db");
@@ -93,9 +93,7 @@ async function dohLookup(hostname) {
 			if (Status === 0 && Answer?.length) return "found";
 			// Status 0 but no Answer = domain exists, no A records
 			if (Status === 0) return "found";
-		} catch {
-			continue; // try next provider
-		}
+		} catch {}
 	}
 	return "error";
 }

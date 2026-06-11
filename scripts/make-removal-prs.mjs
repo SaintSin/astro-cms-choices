@@ -19,11 +19,11 @@
 //   node scripts/make-removal-prs.mjs --dry-run         # print plan, no git/gh actions
 //   node scripts/make-removal-prs.mjs --batch=2         # only create batch N
 
-import Database from "better-sqlite3";
 import { execSync } from "node:child_process";
-import { readFileSync, writeFileSync, readdirSync, existsSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import Database from "better-sqlite3";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DB_PATH = resolve(__dirname, "../.scan-history.db");

@@ -67,6 +67,12 @@ export default defineConfig({
 			cssVariable: "--font-ibm-plex",
 			weights: ["100 700"], // variable font range
 		},
+		{
+			provider: fontProviders.google(),
+			name: "IBM Plex Serif",
+			cssVariable: "--font-ibm-plex-serif",
+			weights: ["100 700"],
+		},
 	],
 	integrations: [sitemap(), robotsTxt()],
 	vite: {

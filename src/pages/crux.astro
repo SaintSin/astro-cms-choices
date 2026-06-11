@@ -2,9 +2,9 @@
 // src/pages/crux.astro
 // 2026-06-10T12:00:00Z
 
-import Database from "better-sqlite3";
-import Layout from "@layouts/BaseLayout.astro";
 import ShowcasePagination from "@components/showcase/ShowcasePagination.astro";
+import Layout from "@layouts/BaseLayout.astro";
+import Database from "better-sqlite3";
 
 const meta = {
 	title: "Core Web Vitals — Astro CMS Detector",
@@ -149,7 +149,7 @@ function fmtCls(v: number | null) {
     </div>
 
     <div class="table-wrap" id="crux-table-wrap">
-      <table class="crux-table" id="crux-table">
+      <table class="crux-table data-table" id="crux-table">
         <colgroup>
           <col class="col-site" />
           <col class="col-ver" />
@@ -405,6 +405,7 @@ function fmtCls(v: number | null) {
     font-weight: 700;
     line-height: 1;
     font-variant-numeric: tabular-nums;
+    font-family: var(--font-ibm-plex-serif), Georgia, serif;
   }
 
   .stat-label {
@@ -451,21 +452,6 @@ function fmtCls(v: number | null) {
     color: var(--color-mid);
   }
 
-  .table-wrap {
-    overflow-x: auto;
-    border: 1px solid var(--color-keyline);
-    border-radius: var(--space-3xs);
-  }
-
-  .crux-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--step--1);
-    font-family: var(--font-ibm-plex), system-ui, sans-serif;
-    table-layout: fixed;
-    white-space: nowrap;
-  }
-
   /* Header rows */
   .crux-table thead tr:first-child th {
     padding: var(--space-2xs) var(--space-xs);
@@ -488,11 +474,7 @@ function fmtCls(v: number | null) {
     font-weight: 600;
   }
 
-  .col-group-header {
-    width: 25ch;
-    text-align: center !important;
-    border-inline-start: 2px solid var(--gray-3);
-  }
+  .col-group-header { width: 25ch; }
 
   /* Body rows */
   .crux-table td {
@@ -539,6 +521,7 @@ function fmtCls(v: number | null) {
   .metric {
     text-align: center;
     font-variant-numeric: tabular-nums;
+    font-family: var(--font-ibm-plex-serif), Georgia, serif;
   }
 
   .metric.good              { color: var(--green-9); }
@@ -550,11 +533,6 @@ function fmtCls(v: number | null) {
   .metric.cwv.poor { font-weight: 700; }
 
   .no-data { color: var(--color-text-subtle); opacity: 0.35; }
-
-  .sortable { cursor: pointer; user-select: none; }
-  .sortable::after { content: " ⇅"; opacity: 0.4; font-size: 0.8em; }
-  .sortable.sort-asc::after { content: " ▲"; opacity: 1; }
-  .sortable.sort-desc::after { content: " ▼"; opacity: 1; }
 
   .metric-th { text-align: center; }
 
