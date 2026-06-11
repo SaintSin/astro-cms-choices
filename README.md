@@ -103,7 +103,8 @@ Requires `PAGESPEED_API_KEY` in `.env`.
 ```bash
 pnpm psi                              # fetch both strategies for every site
 pnpm psi -- --strategy=mobile        # mobile | desktop (default: both)
-pnpm psi -- --new-only               # skip site × strategy combos already fetched
+pnpm psi -- --new-only               # skip site × strategy combos already fetched (success or error)
+pnpm psi -- --errors-only            # retry only combos that previously errored
 pnpm psi -- --limit=100              # cap number of sites (testing)
 pnpm psi -- --dry-run                # print what would be fetched, write nothing
 ```

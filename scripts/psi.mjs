@@ -11,7 +11,8 @@
 // Usage:
 //   node scripts/psi.mjs
 //   node scripts/psi.mjs --strategy=mobile     # mobile | desktop (default: both)
-//   node scripts/psi.mjs --new-only            # skip sites already in psi_results
+//   node scripts/psi.mjs --new-only            # skip sites already in psi_results (success or error)
+//   node scripts/psi.mjs --errors-only         # retry only site × strategy combos that previously errored
 //   node scripts/psi.mjs --limit=100           # cap number of sites (for testing)
 //   node scripts/psi.mjs --dry-run
 
@@ -36,6 +37,7 @@ const strategyFilter = getArg("--strategy");
 const limitArg = getArg("--limit");
 const dryRun = args.includes("--dry-run");
 const newOnly = args.includes("--new-only");
+const errorsOnly = args.includes("--errors-only");
 const DELAY_MS = 700;
 
 // ── .env loader ───────────────────────────────────────────────────────────────
@@ -210,9 +212,23 @@ if (!latestScan) {
 const sites = loadSites(latestScan.id, limitArg);
 const strategies = strategyFilter ? [strategyFilter] : ["mobile", "desktop"];
 
-// --new-only: skip site_id × strategy combos already in psi_results
+// --new-only: skip site_id × strategy combos already in psi_results (success or error)
+// --errors-only: retry only site_id × strategy combos that previously errored
 let jobs;
-if (newOnly) {
+if (errorsOnly) {
+	const errored = db
+		.prepare("SELECT DISTINCT site_id, strategy FROM psi_results WHERE status = 'error'")
+		.all();
+	const retry = new Set(errored.map((r) => `${r.site_id}:${r.strategy}`));
+	jobs = [];
+	for (const site of sites) {
+		for (const strategy of strategies) {
+			if (retry.has(`${site.id}:${strategy}`)) {
+				jobs.push({ site, strategy });
+			}
+		}
+	}
+} else if (newOnly) {
 	const existing = db
 		.prepare("SELECT DISTINCT site_id, strategy FROM psi_results")
 		.all();
@@ -241,11 +257,13 @@ console.log(`  Strategies: ${strategies.join(", ")}`);
 console.log(
 	`  Total jobs: ${jobs.length}${newOnly && skipped ? ` (${skipped} already tested, skipped)` : ""}`,
 );
+// ~22s per job observed (PSI runs Lighthouse remotely; delay is only part of it)
+const EST_SECS_PER_JOB = 22;
 console.log(
-	`  Est. time:  ~${Math.round((jobs.length * (DELAY_MS / 1000)) / 60)} min`,
+	`  Est. time:  ~${Math.round((jobs.length * EST_SECS_PER_JOB) / 60)} min`,
 );
 console.log(
-	`  Mode:       ${dryRun ? "DRY RUN" : newOnly ? "NEW ONLY" : "APPLY"}\n`,
+	`  Mode:       ${dryRun ? "DRY RUN" : errorsOnly ? "ERRORS ONLY" : newOnly ? "NEW ONLY" : "APPLY"}\n`,
 );
 
 if (dryRun) {

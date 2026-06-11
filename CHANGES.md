@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-06-11
+
+### Run duration tracking
+
+- Added `finished_at` and `duration_ms` columns to `psi_runs` and `crux_runs` tables, matching the pattern already used by `scans`
+- Both scripts capture `Date.now()` before the fetch loop and UPDATE the run row on completion
+- Migration is automatic: `ALTER TABLE ADD COLUMN` wrapped in try/catch runs on every startup so existing DBs are upgraded silently
+- Duration is printed in the completion summary line: `Duration: N.N min`
+- Fixed PSI estimated time: was based on delay-only (700ms/job); now uses 22s/job derived from actual run 3 & 4 data (PSI runs Lighthouse remotely — response time dominates)
+
+### PSI `--errors-only` flag
+
+- `pnpm psi -- --errors-only` retries only site × strategy combos with `status = 'error'` in `psi_results`
+- `--new-only` already skipped errors (treated them as done) — `--errors-only` is the complement
+- Updated `--new-only` description in usage comment to clarify it skips both successes and errors
+- README updated with new flag
+
+### README & scripts
+
+- Commands table now includes all scripts: `dns-check`, `make-prs`, `db:init`, `db:report`, `preview`, `deploy`, `deploy:draft`, `clean`, `purge`
+- Added `### pnpm db:init` section documenting the idempotent DB initialisation
+- Corrected `make-prs` description: prepares branches and saves PR body for manual submission (does not auto-create PRs)
+
+### PR #2460 — showcase URL updates
+
+- Applied delucis's suggested title change: `eva.town.yml` `title: Eva Decker` → `title: Ky Decker`
+- Resolved merge conflict with PR #2459 (both inserted into `blockedOrigins` at the same point); rebased onto main with both entry sets preserved
+- Pushed updated branch to fork
+
 ## 2026-06-10 (continued 3)
 
 ### CrUX page — Astro-only filter
