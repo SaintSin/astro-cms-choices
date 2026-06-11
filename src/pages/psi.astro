@@ -118,8 +118,8 @@ function scoreClass800(v: number | null): string {
 ---
 
 <Layout metaData={meta}>
-  <main class="psi-page">
-    <header class="page-header">
+  <main class="wrapper flow">
+    <header class="page-header flow">
       <h1>Lighthouse Scores <span class="muted">PageSpeed Insights</span></h1>
       <p class="page-desc">
         <a href="https://developer.chrome.com/docs/lighthouse/overview/" target="_blank" rel="noopener noreferrer">Lighthouse</a> scores
@@ -219,7 +219,7 @@ function scoreClass800(v: number | null): string {
                   {s.title ?? s.hostname}
                 </a>
               </td>
-              <td class="col-ver">{s.astro_version ?? "—"}</td>
+              <td class="col-ver">{s.astro_version ? <span class="ver-badge">v{s.astro_version}</span> : <span class="no-data">—</span>}</td>
               <td class={`col-perf score ${scoreClass(s.m_perf)}`}>{s.m_perf ?? "—"}</td>
               <td class={`col-a11y score ${scoreClass(s.m_a11y)}`}>{s.m_a11y ?? "—"}</td>
               <td class={`col-bp   score ${scoreClass(s.m_bp)}`}>{s.m_bp ?? "—"}</td>
@@ -243,93 +243,8 @@ function scoreClass800(v: number | null): string {
 </Layout>
 
 <style>
-  .psi-page {
-    container-type: inline-size;
-    padding-block-end: var(--space-xl);
-  }
 
-  .page-header {
-    margin-block-end: var(--space-m);
-  }
-
-  h1 {
-    font-size: var(--step-2);
-    margin-block-end: var(--space-2xs);
-    .muted { font-weight: 400; color: var(--gray-6); }
-  }
-
-  .page-desc {
-    color: var(--gray-7);
-    font-size: var(--step--1);
-    a { color: var(--color-primary); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-  }
-
-  .legend {
-    display: inline-block;
-    padding: 1px 6px;
-    border-radius: 3px;
-    font-size: var(--step--2);
-    font-weight: 600;
-  }
-
-  /* ── Stats row ─────────────────────────────────────────────── */
-
-  .stats-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-s);
-    margin-block-end: var(--space-m);
-  }
-
-  .stat-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: var(--space-xs) var(--space-m);
-    border: 1px solid var(--gray-3);
-    border-radius: var(--space-3xs);
-    min-width: 8ch;
-  }
-
-  .stat-value {
-    font-size: var(--step-2);
-    font-weight: 700;
-    line-height: 1;
-  }
-
-  .stat-label {
-    font-size: var(--step--2);
-    color: var(--gray-6);
-    white-space: nowrap;
-  }
-
-  .stat-card--pass .stat-value { color: var(--green-7); }
-
-  /* ── Toolbar ───────────────────────────────────────────────── */
-
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: var(--space-s);
-    margin-block-end: var(--space-s);
-  }
-
-  .search-input {
-    flex: 1;
-    max-width: 32ch;
-    padding: var(--space-2xs) var(--space-xs);
-    border: 1px solid var(--gray-4);
-    border-radius: var(--space-3xs);
-    font-size: var(--step--1);
-  }
-
-  .result-count {
-    font-size: var(--step--1);
-    color: var(--gray-6);
-    white-space: nowrap;
-  }
-
+  
   /* ── Table ─────────────────────────────────────────────────── */
 
   .col-site  { width: 28ch; }
@@ -345,25 +260,7 @@ function scoreClass800(v: number | null): string {
     font-weight: 700;
   }
 
-  .metric-th {
-    border-inline-start: 1px solid var(--gray-2);
-    text-align: right !important;
-    font-size: var(--step--2);
-    color: var(--gray-6);
-  }
-
-  .subheader th { border-top: 1px solid var(--gray-3); }
-
-  .col-site a {
-    color: inherit;
-    text-decoration: none;
-    &:hover { text-decoration: underline; }
-  }
-
-  /* Legend chips match score colours */
-  .legend.good { background: var(--green-1); color: var(--green-7); }
-  .legend.mid  { background: var(--orange-1); color: var(--orange-7); }
-  .legend.poor { background: var(--red-1); color: var(--red-7); }
+  .metric-th { text-align: right; }
 
   /* Group dividers — desktop starts at col 8, /800 at col 13 */
   .psi-table td:nth-child(8),

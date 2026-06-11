@@ -96,8 +96,8 @@ function fmtCls(v: number | null) {
 ---
 
 <Layout metaData={meta}>
-  <main class="crux-page">
-    <header class="page-header">
+  <main class="wrapper flow">
+    <header class="page-header flow">
       <h1>Core Web Vitals <span class="muted">Real-user data</span></h1>
       <p class="page-desc">
         28-day <a href="https://developer.chrome.com/docs/crux" target="_blank" rel="noopener noreferrer">Chrome UX Report</a> field data for confirmed Astro sites.
@@ -129,13 +129,7 @@ function fmtCls(v: number | null) {
       </div>
     </div>
 
-    <aside class="tablet-note">
-      <strong>Why is tablet data sparse?</strong>
-      CrUX only records data from Chrome users who have opted in to sync.
-      Tablets are dominated by iPad + Safari — Chrome on iOS uses Apple's WebKit engine
-      and has no telemetry access, and Safari usage simply doesn't appear in CrUX at all.
-      Missing tablet data reflects iPad/Safari dominance, not low traffic.
-    </aside>
+
 
     <div class="toolbar">
       <input
@@ -242,6 +236,13 @@ function fmtCls(v: number | null) {
       </table>
     </div>
     <ShowcasePagination id="crux-pagination" />
+        <aside class="callout">
+      <strong>Why is tablet data sparse?</strong>
+      CrUX only records data from Chrome users who have opted in to sync.
+      Tablets are dominated by iPad + Safari — Chrome on iOS uses Apple's WebKit engine
+      and has no telemetry access, and Safari usage simply doesn't appear in CrUX at all.
+      Missing tablet data reflects iPad/Safari dominance, not low traffic.
+    </aside>
   </main>
 </Layout>
 
@@ -354,137 +355,8 @@ function fmtCls(v: number | null) {
 </script>
 
 <style>
-  .crux-page {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: var(--space-l) var(--space-m);
-  }
-
-  .page-header {
-    margin-block-end: var(--space-l);
-  }
-
-  h1 { font-size: var(--step-2); margin: 0 0 var(--space-xs); }
-  .muted { color: var(--color-mid); font-weight: 400; }
-
-  .page-desc {
-    color: var(--color-mid);
-    font-size: var(--step--1);
-    max-width: 70ch;
-    margin: 0;
-  }
-  .page-desc a {
-    color: var(--color-primary);
-    text-decoration: none;
-  }
-  .page-desc a:hover { text-decoration: underline; }
-
-  .stats-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-s);
-    margin-block-end: var(--space-m);
-  }
-
-  .stat-card {
-    background: var(--color-light);
-    border: 1px solid var(--color-keyline);
-    border-radius: var(--space-3xs);
-    padding: var(--space-xs) var(--space-s);
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 100px;
-  }
-
-  .stat-card--muted { opacity: 0.65; }
-  .stat-card--pass { border-color: #3a7d44; }
-
-  .stat-value {
-    font-size: var(--step-1);
-    font-weight: 700;
-    line-height: 1;
-    font-variant-numeric: tabular-nums;
-    font-family: var(--font-ibm-plex-serif), Georgia, serif;
-  }
-
-  .stat-label {
-    font-size: var(--step--2);
-    color: var(--color-mid);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-
-  .tablet-note {
-    background: color-mix(in srgb, var(--color-brand) 8%, transparent);
-    border: 1px solid color-mix(in srgb, var(--color-brand) 25%, transparent);
-    border-radius: var(--space-3xs);
-    padding: var(--space-xs) var(--space-s);
-    font-size: var(--step--1);
-    color: var(--color-text);
-    margin-block-end: var(--space-m);
-    max-width: 80ch;
-    line-height: 1.6;
-  }
-
-  .tablet-note strong { display: block; margin-block-end: 2px; }
-
-  .toolbar {
-    display: flex;
-    align-items: center;
-    gap: var(--space-s);
-    margin-block-end: var(--space-s);
-  }
-
-  .search-input {
-    flex: 1;
-    max-width: 320px;
-    padding: var(--space-2xs) var(--space-xs);
-    border: 1px solid var(--color-keyline);
-    border-radius: var(--space-3xs);
-    font-size: var(--step--1);
-    background: var(--color-light);
-    color: var(--color-text);
-  }
-
-  .result-count {
-    font-size: var(--step--1);
-    color: var(--color-mid);
-  }
-
-  /* Header rows */
-  .crux-table thead tr:first-child th {
-    padding: var(--space-2xs) var(--space-xs);
-    text-align: left;
-    font-size: var(--step--2);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 600;
-    color: var(--color-text-subtle);
-    border-bottom: 1px solid var(--gray-2);
-    white-space: nowrap;
-  }
-
-  .crux-table .subheader th {
-    padding: var(--space-3xs) var(--space-xs);
-    font-size: var(--step--2);
-    color: var(--color-text-subtle);
-    border-bottom: 2px solid var(--gray-3);
-    text-align: center;
-    font-weight: 600;
-  }
 
   .col-group-header { width: 25ch; }
-
-  /* Body rows */
-  .crux-table td {
-    padding: var(--space-3xs) var(--space-xs);
-    border-top: 1px solid var(--gray-2);
-    vertical-align: middle;
-  }
-
-  .crux-table tbody tr:nth-child(even) td { background: var(--color-surface); }
-  .crux-table tbody tr:hover td { background: color-mix(in srgb, var(--color-primary) 5%, transparent); }
 
   /* Device group separators — Desktop starts at col 3, Phone at 7, Tablet at 11 */
   .crux-table td:nth-child(3),
@@ -497,15 +369,8 @@ function fmtCls(v: number | null) {
   }
 
   .col-site { width: 28ch; overflow: hidden; text-overflow: ellipsis; }
-  .col-site a { color: var(--color-text); text-decoration: none; font-weight: 500; }
-  .col-site a:hover { color: var(--color-primary); }
 
   .col-ver { width: 8ch; }
-  .ver-badge {
-    font-size: var(--step--2);
-    color: var(--color-text-subtle);
-    font-variant-numeric: tabular-nums;
-  }
 
   /* Fixed widths prevent layout shift when sorting changes values per row */
   .col-lcp { width: 6ch; }
@@ -517,22 +382,6 @@ function fmtCls(v: number | null) {
     padding-inline-end: var(--space-xs);
     font-size: var(--step--2);
   }
-
-  .metric {
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-    font-family: var(--font-ibm-plex-serif), Georgia, serif;
-  }
-
-  .metric.good              { color: var(--green-9); }
-  .metric.needs-improvement { color: var(--orange-9); }
-  .metric.poor              { color: var(--red-9); }
-  .metric.none              { color: var(--color-text-subtle); }
-
-  .metric.cwv.good { font-weight: 700; }
-  .metric.cwv.poor { font-weight: 700; }
-
-  .no-data { color: var(--color-text-subtle); opacity: 0.35; }
 
   .metric-th { text-align: center; }
 

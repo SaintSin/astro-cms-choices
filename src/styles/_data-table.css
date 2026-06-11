@@ -28,16 +28,24 @@
 	color: var(--color-text-subtle);
 }
 
+/* Group/strategy label row */
+.data-table thead tr:first-child th {
+	font-size: var(--step--2);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
 /* Strong separator under the last thead row */
 .data-table thead tr:last-child th {
 	border-bottom: 2px solid var(--gray-3);
 }
 
 .data-table td {
-	padding: var(--space-2xs) var(--space-xs);
+	padding: var(--space-3xs) var(--space-xs);
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	vertical-align: middle;
 }
 
 .data-table tbody tr {
@@ -45,25 +53,30 @@
 }
 
 .data-table tbody tr:nth-child(even) {
-	background: var(--gray-0);
+	background: var(--gray-1);
 }
-
 .data-table tbody tr:hover {
-	background: var(--color-surface);
+	background: color-mix(in oklch, var(--color-primary) 5%, transparent);
 }
 
 /* ── Block: subheader row (second thead row in grouped tables) ── */
 
 .data-table tr.subheader th {
+	padding: var(--space-3xs) var(--space-xs);
+	font-size: var(--step--2);
+	color: var(--color-text-subtle);
 	border-top: 1px solid var(--gray-3);
-	font-weight: 400;
+	border-bottom: 2px solid var(--gray-3);
+	font-weight: 600;
 }
 
 /* ── Block: metric column header ─────────────────────────── */
 
 .metric-th {
 	border-inline-start: 1px solid var(--gray-2);
-	/* text-align set per-table: PSI uses right, CrUX uses center */
+	font-size: var(--step--2);
+	color: var(--color-text-subtle);
+	/* text-align set per-table */
 }
 
 /* ── Block: column group header (multi-strategy tables) ──── */
@@ -77,12 +90,40 @@
 	letter-spacing: 0.05em;
 }
 
+/* ── Block: CrUX field data rating cell ─────────────────── */
+
+.metric {
+	text-align: center;
+	font-variant-numeric: tabular-nums;
+	font-family: var(--font-ibm-plex-serif), Georgia, serif;
+
+	&.good {
+		color: var(--green-9);
+	}
+	&.needs-improvement {
+		color: var(--orange-9);
+	}
+	&.poor {
+		color: var(--red-9);
+	}
+	&.none {
+		color: var(--color-text-subtle);
+	}
+
+	&.cwv {
+		&.good,
+		&.poor {
+			font-weight: 700;
+		}
+	}
+}
+
 /* ── Block: score cell ───────────────────────────────────── */
 
 .score {
 	text-align: right;
 	font-variant-numeric: tabular-nums;
-	font-weight: 600;
+	font-family: var(--font-ibm-plex-serif), Georgia, serif;
 	border-inline-start: 1px solid var(--gray-2);
 }
 
@@ -128,6 +169,32 @@
 .sortable.sort-desc {
 	color: var(--color-primary);
 	border-bottom-color: var(--color-primary);
+}
+
+/* ── Block: version badge ────────────────────────────────── */
+
+.ver-badge {
+	font-size: var(--step--2);
+	color: var(--color-text-subtle);
+	font-variant-numeric: tabular-nums;
+}
+
+/* ── Utility: no data cell ───────────────────────────────── */
+
+.no-data {
+	color: var(--color-text-subtle);
+	opacity: 0.35;
+}
+
+/* ── Block: site link in table ───────────────────────────── */
+
+.col-site a {
+	color: var(--color-text);
+	text-decoration: none;
+	font-weight: 500;
+}
+.col-site a:hover {
+	color: var(--color-primary);
 }
 
 /* ── Utility ─────────────────────────────────────────────── */

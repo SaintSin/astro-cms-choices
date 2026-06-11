@@ -56,8 +56,7 @@ const parkedCount = results.filter(
 ---
 
 <Layout metaData={meta}>
-  <main class="wrapper flow" style="--flow-space: var(--space-l)">
-
+  <main class="wrapper flow">
     <header class="page-header flow">
       <h1>Astro Showcase <span class="muted">CMS Detector</span></h1>
       <p class="about-lead">
@@ -391,8 +390,7 @@ const parkedCount = results.filter(
 </script>
 
 <style>
-  .page-header h1 { font-size: var(--step-3); line-height: 1.1; padding-block: var(--space-s); }
-  .muted { color: var(--color-text-subtle); font-weight: 400; }
+  .page-header h1 { line-height: 1.1; padding-block: var(--space-s); }
   .about-lead {
     font-size: var(--step-0);
     max-width: 68ch;
@@ -459,9 +457,6 @@ const parkedCount = results.filter(
   .stat-card--detected { border-color: var(--blue-6); }
   .stat-card--parked   { border-color: var(--yellow-5); }
   .stat-card--error    { border-color: var(--red-5); }
-  .stat-value { font-size: var(--step-3); font-weight: 700; line-height: 1; }
-  .stat-label { font-size: var(--step--1); color: var(--color-text-subtle); }
-
   .breakdown h2 { font-size: var(--step-1); }
   .bar-list {
     list-style: none;

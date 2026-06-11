@@ -54,11 +54,15 @@
 	--color-primary: var(--blue-6);
 	--color-secondary: var(--purple-6);
 	--color-accent: var(--orange-6);
+	--color-brand: var(--color-primary);
 
 	--color-text: var(--gray-7);
-	--color-text-subtle: var(--gray-7);
+	--color-text-subtle: var(--gray-6);
+	--color-mid: var(--gray-6);
 	--color-bg: var(--gray-0);
-	--color-surface: oklch(87.61% 0.0001 271.152);
+	--color-light: var(--gray-0);
+	--color-keyline: var(--gray-3);
+	--color-surface: var(--gray-2);
 
 	--color-success: var(--green-6);
 	--color-warning: var(--yellow-6);

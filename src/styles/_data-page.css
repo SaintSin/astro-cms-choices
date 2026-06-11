@@ -1,0 +1,146 @@
+/* src/styles/_data-page.css */
+/* Shared page chrome for data/analytics pages — CUBE CSS */
+
+/* ── Block: page header ──────────────────────────────────── */
+
+.page-header {
+	margin-block-end: var(--space-l);
+
+	h1 {
+		font-size: var(--step-2);
+		margin: 0 0 var(--space-xs);
+
+		.muted {
+			color: var(--color-mid);
+			font-weight: 400;
+		}
+	}
+
+	.page-desc {
+		color: var(--color-mid);
+		font-size: var(--step--1);
+		max-width: 70ch;
+		margin: 0;
+
+		a {
+			color: var(--color-primary);
+			text-decoration: none;
+
+			&:hover {
+				text-decoration: underline;
+			}
+		}
+	}
+}
+
+/* ── Composition: stats row ──────────────────────────────── */
+
+.stats-row {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-s);
+	margin-block-end: var(--space-m);
+}
+
+/* ── Block: stat card ────────────────────────────────────── */
+
+.stat-card {
+	background: var(--color-light);
+	border: 1px solid var(--color-keyline);
+	border-radius: var(--space-3xs);
+	padding: var(--space-xs) var(--space-s);
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 100px;
+
+	&--muted {
+		opacity: 0.65;
+	}
+	&--pass {
+		border-color: var(--green-7);
+	}
+
+	.stat-value {
+		font-size: var(--step-1);
+		font-weight: 700;
+		line-height: 1;
+		font-variant-numeric: tabular-nums;
+		font-family: var(--font-ibm-plex-serif), Georgia, serif;
+	}
+
+	.stat-label {
+		font-size: var(--step--2);
+		color: var(--color-mid);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+}
+
+/* ── Composition: toolbar ────────────────────────────────── */
+
+.toolbar {
+	display: flex;
+	align-items: center;
+	gap: var(--space-s);
+	margin-block-end: var(--space-s);
+
+	.search-input {
+		flex: 1;
+		max-width: 320px;
+		padding: var(--space-2xs) var(--space-xs);
+		border: 1px solid var(--color-keyline);
+		border-radius: var(--space-3xs);
+		font-size: var(--step--1);
+		background: var(--color-light);
+		color: var(--color-text);
+	}
+
+	.result-count {
+		font-size: var(--step--1);
+		color: var(--color-mid);
+		white-space: nowrap;
+	}
+}
+
+/* ── Block: legend chip ──────────────────────────────────── */
+
+.legend {
+	display: inline-block;
+	padding: 1px 6px;
+	border-radius: 3px;
+	font-size: var(--step--2);
+	font-weight: 600;
+
+	&.good {
+		background: var(--green-1);
+		color: var(--green-7);
+	}
+	&.mid {
+		background: var(--orange-1);
+		color: var(--orange-7);
+	}
+	&.poor {
+		background: var(--red-1);
+		color: var(--red-7);
+	}
+}
+
+/* ── Block: callout / info aside ─────────────────────────── */
+
+.callout {
+	background: color-mix(in oklch, var(--color-brand) 8%, transparent);
+	border: 1px solid color-mix(in oklch, var(--color-brand) 25%, transparent);
+	border-radius: var(--space-3xs);
+	padding: var(--space-xs) var(--space-s);
+	font-size: var(--step--1);
+	color: var(--color-text);
+	margin-block-end: var(--space-m);
+	max-width: 80ch;
+	line-height: 1.6;
+
+	strong {
+		display: block;
+		margin-block-end: 2px;
+	}
+}

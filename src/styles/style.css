@@ -7,6 +7,7 @@
 @import "compositions/wrapper.css" layer(components);
 @import "compositions/grid.css" layer(components);
 @import "_data-table.css" layer(components);
+@import "_data-page.css" layer(components);
 
 .content {
 	height: 100%;
