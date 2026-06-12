@@ -178,118 +178,121 @@ const legacy =
   import { Chart, ArcElement, DoughnutController, BarElement, BarController, CategoryScale, LinearScale, Legend, Tooltip } from "chart.js";
   Chart.register(ArcElement, DoughnutController, BarElement, BarController, CategoryScale, LinearScale, Legend, Tooltip);
 
-  const raw = document.getElementById("insights-data")?.textContent ?? "{}";
-  const { versionLabels, versionData, versionColors, years, stackedDatasets, starlightLabels, starlightData, starlightColors } = JSON.parse(raw);
+  function initCharts() {
+    const dataEl = document.getElementById("insights-data");
+    if (!dataEl) return;
 
-  const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const textColor = isDark ? "#94a3b8" : "#64748b";
-  const gridColor = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
+    // Destroy any existing chart instances on these canvases before re-creating
+    for (const id of ["versionChart", "starlightChart", "yearChart"]) {
+      const existing = Chart.getChart(id);
+      if (existing) existing.destroy();
+    }
 
-  // Doughnut — version distribution
-  new Chart(document.getElementById("versionChart") as HTMLCanvasElement, {
-    type: "doughnut",
-    data: {
-      labels: versionLabels,
-      datasets: [{
-        data: versionData,
-        backgroundColor: versionColors,
-        borderWidth: 2,
-        borderColor: isDark ? "#1e293b" : "#ffffff",
-        hoverOffset: 8,
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      cutout: "62%",
-      plugins: {
-        legend: {
-          position: "right",
-          labels: { color: textColor, padding: 16, font: { size: 13 } },
-        },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => {
-              const total = (ctx.dataset.data as number[]).reduce((a, b) => a + b, 0);
-              const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : "0.0";
-              return ` ${ctx.label}: ${ctx.parsed.toLocaleString()} sites (${pct}%)`;
+    const { versionLabels, versionData, versionColors, years, stackedDatasets, starlightLabels, starlightData, starlightColors } = JSON.parse(dataEl.textContent ?? "{}");
+
+    const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const textColor = isDark ? "#94a3b8" : "#64748b";
+    const gridColor = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
+    const borderColor = isDark ? "#1e293b" : "#ffffff";
+
+    // Doughnut — version distribution
+    new Chart(document.getElementById("versionChart") as HTMLCanvasElement, {
+      type: "doughnut",
+      data: {
+        labels: versionLabels,
+        datasets: [{
+          data: versionData,
+          backgroundColor: versionColors,
+          borderWidth: 2,
+          borderColor,
+          hoverOffset: 8,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        cutout: "62%",
+        plugins: {
+          legend: {
+            position: "right",
+            labels: { color: textColor, padding: 16, font: { size: 13 } },
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const total = (ctx.dataset.data as number[]).reduce((a, b) => a + b, 0);
+                const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : "0.0";
+                return ` ${ctx.label}: ${ctx.parsed.toLocaleString()} sites (${pct}%)`;
+              },
             },
           },
         },
       },
-    },
-  });
+    });
 
-  // Doughnut — Starlight version distribution
-  new Chart(document.getElementById("starlightChart") as HTMLCanvasElement, {
-    type: "doughnut",
-    data: {
-      labels: starlightLabels,
-      datasets: [{
-        data: starlightData,
-        backgroundColor: starlightColors,
-        borderWidth: 2,
-        borderColor: isDark ? "#1e293b" : "#ffffff",
-        hoverOffset: 8,
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      cutout: "62%",
-      plugins: {
-        legend: {
-          position: "right",
-          labels: { color: textColor, padding: 16, font: { size: 13 } },
-        },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => {
-              const total = (ctx.dataset.data as number[]).reduce((a, b) => a + b, 0);
-              const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : "0.0";
-              return ` ${ctx.label}: ${ctx.parsed.toLocaleString()} sites (${pct}%)`;
+    // Doughnut — Starlight version distribution
+    new Chart(document.getElementById("starlightChart") as HTMLCanvasElement, {
+      type: "doughnut",
+      data: {
+        labels: starlightLabels,
+        datasets: [{
+          data: starlightData,
+          backgroundColor: starlightColors,
+          borderWidth: 2,
+          borderColor,
+          hoverOffset: 8,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        cutout: "62%",
+        plugins: {
+          legend: {
+            position: "right",
+            labels: { color: textColor, padding: 16, font: { size: 13 } },
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => {
+                const total = (ctx.dataset.data as number[]).reduce((a, b) => a + b, 0);
+                const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : "0.0";
+                return ` ${ctx.label}: ${ctx.parsed.toLocaleString()} sites (${pct}%)`;
+              },
             },
           },
         },
       },
-    },
-  });
+    });
 
-  // Stacked bar — year × version
-  new Chart(document.getElementById("yearChart") as HTMLCanvasElement, {
-    type: "bar",
-    data: {
-      labels: years,
-      datasets: stackedDatasets,
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: true,
-      scales: {
-        x: {
-          stacked: true,
-          ticks: { color: textColor },
-          grid: { color: gridColor },
+    // Stacked bar — year × version
+    new Chart(document.getElementById("yearChart") as HTMLCanvasElement, {
+      type: "bar",
+      data: { labels: years, datasets: stackedDatasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+          x: { stacked: true, ticks: { color: textColor }, grid: { color: gridColor } },
+          y: { stacked: true, ticks: { color: textColor }, grid: { color: gridColor } },
         },
-        y: {
-          stacked: true,
-          ticks: { color: textColor },
-          grid: { color: gridColor },
-        },
-      },
-      plugins: {
-        legend: {
-          position: "bottom",
-          labels: { color: textColor, padding: 12, font: { size: 12 } },
-        },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y} sites`,
+        plugins: {
+          legend: {
+            position: "bottom",
+            labels: { color: textColor, padding: 12, font: { size: 12 } },
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y} sites`,
+            },
           },
         },
       },
-    },
-  });
+    });
+  }
+
+  initCharts();
+  document.addEventListener("astro:page-load", initCharts);
 </script>
 
 <style>
