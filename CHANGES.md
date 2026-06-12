@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-06-12 (continued)
+
+### SEO, site naming, and layout
+
+- Renamed site to "Astro Showcase — What CMS? How Fast?" across siteMetadata, all page titles, and meta descriptions
+- Fixed `.wrapper` max-width token: `compositions/wrapper.css` had a hardcoded `80rem` cap in its `clamp()` that ignored `--max-content-width`; updated to use `var(--max-content-width, 80rem)` so the token in `_tokens.css` takes effect
+- Insights page: fixed charts not rendering after view transition — wrapped Chart.js init in a function called on both load and `astro:page-load`, with `Chart.getChart().destroy()` before re-creating
+
 ## 2026-06-12
 
 ### Data refresh — scan #11, CrUX and PSI updated
