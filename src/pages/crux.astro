@@ -11,7 +11,8 @@ const meta = {
 	description:
 		"Real-user Chrome UX Report performance data for confirmed Astro sites across desktop, phone, and tablet.",
 	imageOG: "og-crux.png",
-	altOG: "Core Web Vitals — 514 desktop sites, 382 Desktop CWV pass, 253 Phone CWV pass",
+	altOG:
+		"Core Web Vitals — 514 desktop sites, 382 Desktop CWV pass, 253 Phone CWV pass",
 };
 
 let sites: any[] = [];
@@ -36,40 +37,46 @@ try {
 
 	sites = db
 		.prepare(
-			`SELECT
+			`WITH latest_ff AS (
+        SELECT site_id, form_factor, MAX(run_id) AS run_id
+        FROM crux_results WHERE status = 'success'
+        GROUP BY site_id, form_factor
+      )
+      SELECT
         s.hostname, s.url,
         sr.title, sr.astro_version,
-        MAX(CASE WHEN cr.form_factor='DESKTOP' AND cr.status='success' THEN cr.lcp_p75 END) as d_lcp,
-        MAX(CASE WHEN cr.form_factor='DESKTOP' AND cr.status='success' THEN cr.inp_p75 END) as d_inp,
-        MAX(CASE WHEN cr.form_factor='DESKTOP' AND cr.status='success' THEN cr.cls_p75 END) as d_cls,
-        MAX(CASE WHEN cr.form_factor='DESKTOP' AND cr.status='success' THEN cr.lcp_rating END) as d_lcp_r,
-        MAX(CASE WHEN cr.form_factor='DESKTOP' AND cr.status='success' THEN cr.inp_rating END) as d_inp_r,
-        MAX(CASE WHEN cr.form_factor='DESKTOP' AND cr.status='success' THEN cr.cls_rating END) as d_cls_r,
-        MAX(CASE WHEN cr.form_factor='DESKTOP' AND cr.status='success' THEN cr.cwv_pass END) as d_cwv,
-        MAX(CASE WHEN cr.form_factor='PHONE' AND cr.status='success' THEN cr.lcp_p75 END) as p_lcp,
-        MAX(CASE WHEN cr.form_factor='PHONE' AND cr.status='success' THEN cr.inp_p75 END) as p_inp,
-        MAX(CASE WHEN cr.form_factor='PHONE' AND cr.status='success' THEN cr.cls_p75 END) as p_cls,
-        MAX(CASE WHEN cr.form_factor='PHONE' AND cr.status='success' THEN cr.lcp_rating END) as p_lcp_r,
-        MAX(CASE WHEN cr.form_factor='PHONE' AND cr.status='success' THEN cr.inp_rating END) as p_inp_r,
-        MAX(CASE WHEN cr.form_factor='PHONE' AND cr.status='success' THEN cr.cls_rating END) as p_cls_r,
-        MAX(CASE WHEN cr.form_factor='PHONE' AND cr.status='success' THEN cr.cwv_pass END) as p_cwv,
-        MAX(CASE WHEN cr.form_factor='TABLET' AND cr.status='success' THEN cr.lcp_p75 END) as t_lcp,
-        MAX(CASE WHEN cr.form_factor='TABLET' AND cr.status='success' THEN cr.inp_p75 END) as t_inp,
-        MAX(CASE WHEN cr.form_factor='TABLET' AND cr.status='success' THEN cr.cls_p75 END) as t_cls,
-        MAX(CASE WHEN cr.form_factor='TABLET' AND cr.status='success' THEN cr.lcp_rating END) as t_lcp_r,
-        MAX(CASE WHEN cr.form_factor='TABLET' AND cr.status='success' THEN cr.inp_rating END) as t_inp_r,
-        MAX(CASE WHEN cr.form_factor='TABLET' AND cr.status='success' THEN cr.cls_rating END) as t_cls_r,
-        MAX(CASE WHEN cr.form_factor='TABLET' AND cr.status='success' THEN cr.cwv_pass END) as t_cwv
-      FROM crux_results cr
+        MAX(CASE WHEN cr.form_factor='DESKTOP' THEN cr.lcp_p75 END)    as d_lcp,
+        MAX(CASE WHEN cr.form_factor='DESKTOP' THEN cr.inp_p75 END)    as d_inp,
+        MAX(CASE WHEN cr.form_factor='DESKTOP' THEN cr.cls_p75 END)    as d_cls,
+        MAX(CASE WHEN cr.form_factor='DESKTOP' THEN cr.lcp_rating END) as d_lcp_r,
+        MAX(CASE WHEN cr.form_factor='DESKTOP' THEN cr.inp_rating END) as d_inp_r,
+        MAX(CASE WHEN cr.form_factor='DESKTOP' THEN cr.cls_rating END) as d_cls_r,
+        MAX(CASE WHEN cr.form_factor='DESKTOP' THEN cr.cwv_pass END)   as d_cwv,
+        MAX(CASE WHEN cr.form_factor='PHONE' THEN cr.lcp_p75 END)      as p_lcp,
+        MAX(CASE WHEN cr.form_factor='PHONE' THEN cr.inp_p75 END)      as p_inp,
+        MAX(CASE WHEN cr.form_factor='PHONE' THEN cr.cls_p75 END)      as p_cls,
+        MAX(CASE WHEN cr.form_factor='PHONE' THEN cr.lcp_rating END)   as p_lcp_r,
+        MAX(CASE WHEN cr.form_factor='PHONE' THEN cr.inp_rating END)   as p_inp_r,
+        MAX(CASE WHEN cr.form_factor='PHONE' THEN cr.cls_rating END)   as p_cls_r,
+        MAX(CASE WHEN cr.form_factor='PHONE' THEN cr.cwv_pass END)     as p_cwv,
+        MAX(CASE WHEN cr.form_factor='TABLET' THEN cr.lcp_p75 END)     as t_lcp,
+        MAX(CASE WHEN cr.form_factor='TABLET' THEN cr.inp_p75 END)     as t_inp,
+        MAX(CASE WHEN cr.form_factor='TABLET' THEN cr.cls_p75 END)     as t_cls,
+        MAX(CASE WHEN cr.form_factor='TABLET' THEN cr.lcp_rating END)  as t_lcp_r,
+        MAX(CASE WHEN cr.form_factor='TABLET' THEN cr.inp_rating END)  as t_inp_r,
+        MAX(CASE WHEN cr.form_factor='TABLET' THEN cr.cls_rating END)  as t_cls_r,
+        MAX(CASE WHEN cr.form_factor='TABLET' THEN cr.cwv_pass END)    as t_cwv
+      FROM latest_ff lf
+      JOIN crux_results cr ON cr.site_id = lf.site_id
+        AND cr.form_factor = lf.form_factor AND cr.run_id = lf.run_id
       JOIN sites s ON s.id = cr.site_id
       JOIN scan_results sr ON sr.site_id = s.id AND sr.scan_id = ?
-      WHERE cr.run_id = ?
         AND sr.astro_detected = 1
       GROUP BY s.id
       HAVING d_lcp IS NOT NULL OR p_lcp IS NOT NULL OR t_lcp IS NOT NULL
       ORDER BY s.hostname`,
 		)
-		.all(latestScan.id, run.id) as any[];
+		.all(latestScan.id) as any[];
 
 	totalWithData = sites.length;
 	desktopCount = sites.filter((s) => s.d_lcp !== null).length;

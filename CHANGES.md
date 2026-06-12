@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-06-12
+
+### Data refresh — scan #11, CrUX and PSI updated
+
+- Switched `.showcase-cache` back to upstream `withastro/astro.build` `main` (was on PR branch `update-redirected-showcase-urls`) — data now reflects the live showcase, not our unmerged changes
+- Pulled 2 upstream commits: 6 sites removed from showcase (alexliesenfeld.github.io, antstack, internetoflife.org, offerte.be, portfolio-yuri.vercel.app, rodydavis.github.io)
+- Re-ran `pnpm detect` (scan #11): 2,624 sites processed, 72 newly confirmed Astro, 39 dropped, 36 new showcase additions
+- Fixed `crux.mjs --new-only` bug: was skipping only sites fetched _today_ (date-based filter) rather than sites with _any_ existing result — rewrote to query `SELECT DISTINCT site_id, form_factor FROM crux_results` with no date filter; matches the correct behaviour already in `psi.mjs`
+- Fixed corrupted entry in `cms-results.json`: "Hischool" record had `astroVersion`, `starlightVersion`, and `astroSignals` fields truncated mid-write; manually repaired and validated
+- Ran `pnpm crux --new-only` and `pnpm psi -- --new-only` to collect data for newly detected sites
+- CrUX page query rewritten to use `MAX(run_id)` CTE per site × form_factor (same pattern as PSI) instead of filtering to a single `run_id` — fixes page showing only 2 entries after an incremental CrUX run
+- PSI page: added two new stat cards — `Score ≥ 720 / 800` and `Perfect 800 / 800`
+- CrUX page: widened CLS column to `7ch`, trimmed CWV to `5ch`
+
 ## 2026-06-11 (continued)
 
 ### UI polish — stat cards, toolbar, footer, social cards

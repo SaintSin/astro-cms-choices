@@ -225,15 +225,12 @@ const formFactors = formFactorFilter
 	? [formFactorFilter]
 	: ["PHONE", "DESKTOP", "TABLET"];
 
-// --new-only: skip site_id × form_factor combos already fetched today
+// --new-only: skip site_id × form_factor combos that already have any result
 let jobs;
 if (newOnly) {
-	const today = new Date().toISOString().slice(0, 10);
 	const existing = db
-		.prepare(
-			"SELECT DISTINCT site_id, form_factor FROM crux_results WHERE fetched_at >= ?",
-		)
-		.all(`${today}T00:00:00.000Z`);
+		.prepare("SELECT DISTINCT site_id, form_factor FROM crux_results")
+		.all();
 	const done = new Set(existing.map((r) => `${r.site_id}:${r.form_factor}`));
 	jobs = [];
 	for (const site of sites) {
