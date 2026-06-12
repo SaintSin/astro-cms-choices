@@ -11,7 +11,8 @@ const meta = {
 	description:
 		"PageSpeed Insights Lighthouse scores (performance, accessibility, best practices, SEO) for confirmed Astro sites on mobile and desktop.",
 	imageOG: "og-psi.png",
-	altOG: "Lighthouse Scores — 2,117 mobile tested, 1,004 mobile perf ≥90, 1,708 desktop perf ≥90",
+	altOG:
+		"Lighthouse Scores — 2,117 mobile tested, 1,004 mobile perf ≥90, 1,708 desktop perf ≥90",
 };
 
 let sites: any[] = [];
@@ -20,6 +21,8 @@ let mobileCount = 0;
 let desktopCount = 0;
 let mobilePerfHigh = 0;
 let desktopPerfHigh = 0;
+let perfect800 = 0;
+let high800 = 0;
 
 try {
 	const db = new Database(".scan-history.db", { readonly: true });
@@ -81,6 +84,29 @@ try {
 	desktopPerfHigh = sites.filter(
 		(s) => s.d_perf !== null && s.d_perf >= 90,
 	).length;
+
+	const t800 = (s: any) => {
+		const m =
+			s.m_perf !== null &&
+			s.m_a11y !== null &&
+			s.m_bp !== null &&
+			s.m_seo !== null
+				? s.m_perf + s.m_a11y + s.m_bp + s.m_seo
+				: null;
+		const d =
+			s.d_perf !== null &&
+			s.d_a11y !== null &&
+			s.d_bp !== null &&
+			s.d_seo !== null
+				? s.d_perf + s.d_a11y + s.d_bp + s.d_seo
+				: null;
+		return m !== null && d !== null ? m + d : null;
+	};
+	perfect800 = sites.filter((s) => t800(s) === 800).length;
+	high800 = sites.filter((s) => {
+		const v = t800(s);
+		return v !== null && v >= 720;
+	}).length;
 
 	db.close();
 } catch (e) {
@@ -147,6 +173,14 @@ function scoreClass800(v: number | null): string {
       <div class="stat-card stat-card--pass">
         <span class="stat-value">{desktopPerfHigh.toLocaleString()}</span>
         <span class="stat-label">Desktop perf ≥ 90</span>
+      </div>
+      <div class="stat-card stat-card--pass">
+        <span class="stat-value">{high800.toLocaleString()}</span>
+        <span class="stat-label">Score ≥ 720 / 800</span>
+      </div>
+      <div class="stat-card stat-card--pass">
+        <span class="stat-value">{perfect800.toLocaleString()}</span>
+        <span class="stat-label">Perfect 800 / 800</span>
       </div>
     </div>
 
