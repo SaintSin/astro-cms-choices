@@ -22,8 +22,8 @@ export interface SiteMetadata {
 }
 
 export const siteMetadata: SiteMetadata = {
-	name: "Astro Showcase — CMS Detector",
-	description: "Which CMS (if any) powers each site in the Astro showcase?",
+	name: "Astro Showcase — What CMS? How Fast?",
+	description: "CMS detection, Core Web Vitals, and Lighthouse scores for every site in the Astro showcase.",
 	logo: "/logo.svg",
 	menu: [
 		{ label: "Home", href: "/" },
