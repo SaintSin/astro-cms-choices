@@ -1,87 +1,489 @@
-/* AUTO GRID
-Related Every Layout: https://every-layout.dev/layouts/grid/
-More info on the flexible nature: https://piccalil.li/tutorial/create-a-responsive-grid-layout-with-no-media-queries-using-css-grid/
-A flexible layout that will create an auto-fill grid with
-configurable grid item sizes
+/* /styles/components/form.css */
 
-CUSTOM PROPERTIES AND CONFIGURATION
---gutter (var(--space-s-m)): This defines the space
-between each item.
+.property-search {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: end;
+	gap: var(--gutter);
 
---grid-min-item-size (14rem): How large each item should be
-ideally, as a minimum.
+	@media (max-width: 63.9375rem) {
+		flex-direction: column;
+		gap: var(--space-xs);
+	}
 
---grid-placement (auto-fill): Set either auto-fit or auto-fill
-to change how empty grid tracks are handled */
-
-.grid {
-	display: grid;
-	grid-template-columns: repeat(
-		var(--grid-placement, auto-fill),
-		minmax(var(--grid-min-item-size, 16rem), 1fr)
-	);
-	gap: var(--gutter, var(--space-s-l));
-}
-
-/* A split 50/50 layout */
-.grid[data-layout="50-50"] {
-	--grid-placement: auto-fit;
-	--grid-min-item-size: clamp(16rem, 50vw, 30rem);
-}
-
-/* Three column grid layout */
-.grid[data-layout="thirds"] {
-	--grid-placement: auto-fit;
-	--grid-min-item-size: clamp(16rem, 33%, 20rem);
-}
-
-/* Twelve column grid layout */
-.grid[data-layout="twelfths"] {
-	display: grid;
-	grid-template-columns: repeat(12, 1fr);
-}
-
-/* Special layout for larger devices. Used on home page intro */
-.grid[data-layout="lg:10/2"] {
-	grid-template-columns: 100%;
-}
-
-@media screen(md) {
-	.grid[data-layout="lg:10/2"] {
-		grid-template-columns: clamp(40rem, 80vw, 60rem);
+	@media (max-width: 39.9375rem) {
+		gap: var(--space-2xs);
 	}
 }
 
-@media screen(lg) {
-	.grid[data-layout="lg:10/2"] {
-		grid-template-columns: 10fr 2fr;
+.search-field {
+	flex: 1;
+	min-width: 200px;
+
+	@media (max-width: 63.9375rem) {
+		min-width: 100%;
 	}
 }
-.span-2 {
-	grid-column: span 2;
+
+.filter-field {
+	min-width: 180px;
+
+	@media (max-width: 63.9375rem) {
+		min-width: 100%;
+	}
 }
 
-:root {
-	--gap: var(--space-s);
-	--start: minmax(0, 20rem);
-	--end: minmax(0, 20rem);
-	--full: minmax(var(--gap), 20rem);
-	--content: min(100%, 72ch);
-	--popout: minmax(0, var(--gap));
-	--feature: minmax(0, 12vw);
-	--content-inset: min(clamp(30rem, 52vw, 60rem), 100% - var(--gap));
+.filter-fieldset {
+	margin: 0;
+	border: none;
+	padding: 0;
+	min-width: 10ch;
+
+	@media (max-width: 63.9375rem) {
+		min-width: 100%;
+	}
+}
+.filter-legend {
+	color: var(--color-text-mid);
+}
+.filter-legend,
+label {
+	margin-bottom: var(--space-3xs);
+	font-weight: 600;
+	font-size: var(--step--2);
+	letter-spacing: var(--letter-spacing-relaxed);
+	text-transform: uppercase;
 }
 
-.content-grid {
-	display: grid;
-	grid-template-columns:
-		[full-start] var(--start) [feature-start] var(--feature) [popout-start] var(
-			--popout
-		)
-		[content-start] var(--content)
-		[content-end] var(--popout) [popout-end] var(--feature) [feature-end] var(
-			--end
-		)
-		[full-end];
-	grid-area: content;
+.price-fields {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-xl);
+	min-width: 200px;
+
+	@media (max-width: 63.9375rem) {
+		flex-direction: column;
+		gap: var(--space-2xs);
+		min-width: 100%;
+	}
+}
+
+.price-select-wrapper {
+	display: flex;
+	flex: 1;
+	flex-direction: column;
+	gap: var(--space-3xs);
+	min-width: 150px;
+
+	@media (max-width: 39.9375rem) {
+		min-width: 100%;
+	}
+}
+
+.price-label {
+	color: var(--color-text);
+	font-weight: 500;
+	font-size: var(--step--1);
+}
+
+.price-select {
+	appearance: none;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	transition: border-color 0.2s ease;
+	cursor: pointer;
+	border: 1px solid var(--color-keyline);
+	border-radius: var(--radius-1, 4px);
+	background:
+		var(--color-light)
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23666' class='size-6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A")
+		right 10px center / 16px no-repeat;
+	padding: var(--space-2xs) var(--space-l) var(--space-2xs) var(--space-xs);
+	color: var(--color-text);
+	font-size: var(--step--1);
+
+	&:hover {
+		border-color: var(--color-brand);
+	}
+
+	&:focus {
+		outline: 2px solid var(--color-brand);
+		outline-offset: 2px;
+		border-color: var(--color-brand);
+	}
+
+	@media (max-width: 39.9375rem) {
+		font-size: var(--step--2);
+	}
+}
+
+/* Top-level @supports avoids Chrome/esbuild nesting interaction bug (Vite 8 / esbuild 0.28+) */
+@supports (appearance: base-select) {
+	@media (hover: hover) {
+		.price-select,
+		.price-select::picker(select) {
+			appearance: base-select;
+		}
+	}
+}
+
+@media (hover: hover) {
+	@supports (appearance: base-select) {
+		.price-select {
+			background-image: none;
+			padding: var(--space-2xs) var(--space-xs);
+
+			&::picker-icon {
+				transition: rotate 0.2s ease-out;
+				background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23666' class='size-6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A");
+				width: 16px;
+				height: 16px;
+				content: "";
+			}
+
+			&:open::picker-icon {
+				rotate: 180deg;
+			}
+
+			&::picker(select) {
+				opacity: 0;
+				transition:
+					height 0.5s ease-out,
+					opacity 0.5s ease-out,
+					overlay 0.5s,
+					display 0.5s;
+				transition-behavior: allow-discrete;
+				margin-top: var(--space-3xs);
+				border: 1px solid var(--color-keyline);
+				border-radius: var(--radius-1, 4px);
+				background: var(--color-light);
+				padding: 0;
+				height: 0;
+				overflow: clip;
+			}
+
+			&:open::picker(select) {
+				opacity: 1;
+				height: calc-size(auto, size);
+				overflow: auto;
+
+				@starting-style {
+					opacity: 0;
+					height: 0;
+				}
+			}
+
+			option {
+				transition-duration: 0.2s;
+				transition-property: color, background;
+				transition-timing-function: ease-in-out;
+				cursor: pointer;
+				border-top: 1px solid var(--color-keyline);
+				padding: var(--space-2xs) var(--space-xs);
+
+				&:where(:hover, :focus, :active) {
+					background: var(--color-control-tint);
+					color: var(--color-control);
+				}
+
+				&:checked {
+					background: var(--color-brand);
+					color: var(--color-light);
+				}
+
+				&::checkmark {
+					display: none;
+				}
+
+				&:first-child {
+					border: 0;
+				}
+			}
+		}
+	}
+}
+
+.price-option {
+	padding: var(--space-2xs);
+}
+
+.button-group {
+	display: flex;
+	align-items: end;
+	gap: var(--space-xs);
+
+	@media (max-width: 63.9375rem) {
+		flex-direction: column;
+		min-width: 100%;
+	}
+}
+
+.search-input,
+.filter-select,
+.price-input,
+.search-button {
+	transition:
+		border-color 0.2s,
+		box-shadow 0.2s;
+	border: 1px solid var(--color-keyline);
+	border-radius: var(--space-3xs);
+	padding: var(--space-2xs) var(--space-xs);
+
+	@media (max-width: 63.9375rem) {
+		padding: var(--space-xs);
+		font-size: var(--step-0);
+	}
+}
+
+.search-input {
+	width: 100%;
+
+	&:focus {
+		outline: none;
+		box-shadow: 0 0 0 3px
+			color-mix(in oklch, var(--color-brand) 10%, transparent);
+		border-color: var(--color-control);
+	}
+}
+
+.filter-select {
+	appearance: none;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	cursor: pointer;
+	border: 1px solid var(--color-keyline);
+	border-radius: var(--border-radius-small, 4px);
+	background:
+		var(--color-control)
+		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23FFF' class='size-6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A")
+		right 10px center / 20px no-repeat;
+	padding-inline: var(--space-2xs);
+	padding-block: var(--space-2xs);
+	min-width: 200px;
+	color: var(--color-light);
+
+	&:focus {
+		outline: none;
+		box-shadow: 0 0 0 3px
+			color-mix(in oklch, var(--color-brand) 10%, transparent);
+		border-color: var(--color-control);
+	}
+
+	@media (max-width: 63.9375rem) {
+		min-width: 150px;
+		font-size: var(--step--1);
+	}
+}
+
+@supports (appearance: base-select) {
+	@media (hover: hover) {
+		.filter-select,
+		.filter-select::picker(select) {
+			appearance: base-select;
+		}
+	}
+}
+
+@media (hover: hover) {
+	@supports (appearance: base-select) {
+		.filter-select {
+			background-image: none;
+			padding-inline: var(--space-2xs);
+
+			&::picker-icon {
+				transition: rotate 0.2s ease-out;
+				background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23FFF' class='size-6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A");
+				width: var(--step--1);
+				height: var(--step--1);
+				content: "";
+			}
+
+			&:open::picker-icon {
+				rotate: 180deg;
+			}
+
+			&::picker(select) {
+				opacity: 0;
+				transition:
+					height 0.5s ease-out,
+					opacity 0.5s ease-out,
+					overlay 0.5s,
+					display 0.5s;
+				transition-behavior: allow-discrete;
+				margin-top: var(--space-3xs);
+				background: var(--color-light-shade);
+				padding: 0;
+				height: 0;
+				overflow: clip;
+			}
+
+			&:open::picker(select) {
+				opacity: 1;
+				height: calc-size(auto, size);
+				overflow: auto;
+
+				@starting-style {
+					opacity: 0;
+					height: 0;
+				}
+			}
+
+			option {
+				transition-duration: 0.2s;
+				transition-property: color, background;
+				transition-timing-function: var(--ease-in-out-4);
+				cursor: pointer;
+				border-top: 1px solid var(--color-control);
+				padding: var(--space-xs) var(--space-s);
+
+				&:where(:hover, :focus, :active) {
+					background: var(--color-control-muted);
+					color: var(--color-light);
+				}
+
+				&:checked {
+					background: var(--color-control);
+					color: var(--color-light);
+				}
+
+				&::checkmark {
+					display: none;
+				}
+
+				&:first-child {
+					border: 0;
+				}
+
+				&.location-province {
+					padding-inline-start: var(--space-xs);
+					font-weight: 600;
+				}
+
+				&.location-district {
+					padding-inline-start: var(--space-m);
+					padding-block-start: var(--space-2xs);
+					border-top: 2px solid var(--color-control-tint);
+					color: var(--color-mid);
+					font-style: italic;
+				}
+
+				&.location-locale {
+					padding-inline-start: var(--space-l);
+					color: var(--color-mid);
+					font-size: var(--step--1);
+				}
+			}
+
+			optgroup {
+				background: var(--color-control-tint);
+				padding: var(--space-3xs) var(--space-2xs);
+				color: var(--color-control);
+				font-size: var(--step--2);
+				font-weight: 700;
+				letter-spacing: var(--letter-spacing-relaxed);
+				text-transform: uppercase;
+				border-top: 1px solid var(--color-keyline);
+
+				&:first-child {
+					border-top: none;
+				}
+			}
+		}
+	}
+}
+
+.price-input {
+	flex: 1;
+	min-width: 0;
+
+	&:focus {
+		outline: none;
+		box-shadow: 0 0 0 3px
+			color-mix(in oklch, var(--color-brand) 10%, transparent);
+		border-color: var(--color-control);
+	}
+}
+
+.search-button {
+	cursor: pointer;
+	border-color: var(--color-brand);
+	background: var(--color-control);
+	padding: var(--space-xs) var(--space-m);
+	color: var(--color-light);
+	font-weight: 500;
+	white-space: nowrap;
+
+	&:hover {
+		border-color: var(--color-brand);
+		background: var(--color-brand);
+	}
+
+	&:active {
+		transform: translateY(1px);
+	}
+}
+
+.clear-button {
+	transition:
+		border-color 0.2s,
+		box-shadow 0.2s;
+	border: 1px solid var(--color-mid);
+	border-radius: var(--space-3xs);
+	cursor: pointer;
+	background: var(--color-mid);
+	padding: var(--space-xs) var(--space-s);
+	color: var(--color-light);
+	font-weight: 500;
+	white-space: nowrap;
+
+	&:hover {
+		border-color: var(--color-dark-glare);
+		background: var(--color-dark-glare);
+	}
+
+	&:active {
+		transform: translateY(1px);
+	}
+}
+
+/* Sort controls */
+.sort-controls {
+	display: flex;
+	align-items: center;
+
+	& label {
+		margin: 0;
+	}
+
+	& select {
+		transition:
+			border-color 0.2s,
+			box-shadow 0.2s;
+		cursor: pointer;
+		border: 1px solid var(--color-keyline);
+		background: var(--color-light);
+		padding: var(--space-2xs);
+		min-width: 180px;
+
+		&:hover {
+			border-color: var(--color-mid);
+		}
+
+		&:focus {
+			outline: none;
+		}
+	}
+
+	@media (max-width: 39.9375rem) {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: var(--space-3xs);
+
+		& select {
+			min-width: 100%;
+			font-size: var(--step--1);
+		}
+	}
 }

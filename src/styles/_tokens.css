@@ -1,6 +1,6 @@
 :root {
 	--maxchars: 69ch;
-	--max-content-width: 80rem;
+	--max-content-width: 85rem;
 	--gap: var(--space-s);
 	--gutter: var(--space-s);
 	--flow-space: var(--space-s);
