@@ -52,7 +52,9 @@ const noLongerAstro = results.filter(
 	(r) => !r.astroDetected && r.cms !== "Error" && r.cms !== "Blocked",
 ).length;
 const starlightCount = results.filter((r) => r.cms === "Starlight").length;
-const frameworkCount = results.filter((r) => r.cmsType === "framework" || r.framework).length;
+const frameworkCount = results.filter(
+	(r) => r.cmsType === "framework" || r.framework,
+).length;
 const forwardedCount = results.filter((r) => r.cms === "Forwarded").length;
 const parkedCount = results.filter(
 	(r) => r.cmsType === "parked" && r.cms !== "Forwarded",

@@ -13,3 +13,6 @@
   - Removes 3 sites that redirected away from Astro entirely, with their old domains added to `blockedOrigins` in `scripts/update-showcase.mjs`
   - Response to delucis's `blockedOrigins` question already posted — waiting on his sign-off
   - Branch is on fork, rebased and pushed after resolving merge conflict with PR #2459
+- [ ] **PR #2494** (`withastro/astro.build`) — open, awaiting review.
+  - Removes 7 sites confirmed to have migrated to Framer (YAML + webp deleted, domains added to `blockedOrigins`)
+  - Each site verified via isastro.dev link in PR body
