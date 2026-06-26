@@ -198,44 +198,49 @@ const RULES: Rule[] = [
 		cms: "DatoCMS",
 		cmsType: "headless-cms",
 		confidence: "high",
-		match: (html) => /datocms-assets\.com|dato-cms/i.test(html),
+		match: (html) => /datocms-assets\.com/i.test(html),
 	},
 	{
 		cms: "Hygraph",
 		cmsType: "headless-cms",
 		confidence: "high",
-		match: (html) => /hygraph\.com|graphcms\.com/i.test(html),
+		match: (html) => /media\.graphassets\.com|eu-central-1-shared-euc1-02\.graphassets\.com|graphcms\.com\/assets/i.test(html),
 	},
 	{
 		cms: "Directus",
 		cmsType: "headless-cms",
 		confidence: "medium",
-		match: (html) => /directus\.io|\/directus\//i.test(html),
+		match: (html) => /\/directus\/assets\/|directus\.io\/assets\//i.test(html),
 	},
 	{
 		cms: "Strapi",
 		cmsType: "headless-cms",
 		confidence: "medium",
-		match: (html) => /strapi\.io|\/strapi\//i.test(html),
+		match: (html) => /\/__strapi__|strapi-plugin|\"strapi\"\s*:\s*\{/i.test(html),
 	},
 	{
 		cms: "Payload CMS",
 		cmsType: "headless-cms",
 		confidence: "medium",
-		match: (html) => /payloadcms\.com|payload-cms/i.test(html),
+		match: (html) => /payload-cms|__PAYLOAD__|payloadcms\.com\/api/i.test(html),
 	},
 	{
 		cms: "Builder.io",
 		cmsType: "headless-cms",
 		confidence: "high",
-		match: (html) => /cdn\.builder\.io|builder\.io/i.test(html),
+		match: (html) =>
+			/cdn\.builder\.io|builder\.io\/api\/v\d|__builder_editing__|"@builder\.io\/sdk/i.test(
+				html,
+			),
 	},
 	{
 		cms: "Kontent.ai",
 		cmsType: "headless-cms",
 		confidence: "high",
 		match: (html) =>
-			/kontent\.ai|assets-us-01\.kc-usercontent\.com/i.test(html),
+			/assets-us-01\.kc-usercontent\.com|deliver\.kontent\.ai|preview-deliver\.kontent\.ai/i.test(
+				html,
+			),
 	},
 	{
 		cms: "Cosmic",
@@ -247,13 +252,13 @@ const RULES: Rule[] = [
 		cms: "Crystallize",
 		cmsType: "headless-cms",
 		confidence: "high",
-		match: (html) => /crystallize\.com|media\.crystallize\.com/i.test(html),
+		match: (html) => /media\.crystallize\.com|assets\.crystallize\.com/i.test(html),
 	},
 	{
 		cms: "Tina CMS",
 		cmsType: "headless-cms",
 		confidence: "high",
-		match: (html) => /tina\.io|tinacms/i.test(html),
+		match: (html) => /\/__tina__|tinacms\.io\/cloud|cdn\.tina\.io/i.test(html),
 	},
 	{
 		cms: "Decap CMS",
@@ -265,13 +270,13 @@ const RULES: Rule[] = [
 		cms: "Keystatic",
 		cmsType: "headless-cms",
 		confidence: "medium",
-		match: (html) => /keystatic/i.test(html),
+		match: (html) => /\/keystatic\/|keystatic-app\.pages\.dev|"keystatic"\s*:/i.test(html),
 	},
 	{
 		cms: "Caisy",
 		cmsType: "headless-cms",
 		confidence: "high",
-		match: (html) => /caisy\.io/i.test(html),
+		match: (html) => /caisy\.io\/v\d\/|assets\.caisy\.io/i.test(html),
 	},
 
 	// ── WordPress ──────────────────────────────────────────────────────────
@@ -306,9 +311,16 @@ const RULES: Rule[] = [
 		cms: "WordPress",
 		cmsType: "headless-cms",
 		confidence: "medium",
-		match: (html) =>
-			/\/wp-content\/uploads\//i.test(html) &&
-			!/\/wp-content\/(?:themes|plugins)\/|\/wp-includes\//i.test(html),
+		match: (html, _headers, url) => {
+			// Only count wp-content/uploads on the same origin — external references
+			// (e.g. partner logos in JSON-LD) are not a signal this site runs WP.
+			const origin = new URL(url).origin;
+			const sameOriginUpload = new RegExp(
+				`(["'\`]|\\()(${origin.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})?/wp-content/uploads/`,
+				"i",
+			);
+			return sameOriginUpload.test(html) && !/\/wp-content\/(?:themes|plugins)\/|\/wp-includes\//i.test(html);
+		},
 	},
 
 	// ── Other full-site CMSs ───────────────────────────────────────────────
@@ -323,7 +335,7 @@ const RULES: Rule[] = [
 		cms: "Ghost",
 		cmsType: "full-site",
 		confidence: "medium",
-		match: (html) => /ghost\.io|\/ghost\//i.test(html),
+		match: (html) => /cdn\.ghost\.io|ghost\.io\/content\/|\/ghost\/api\//i.test(html),
 	},
 	{
 		cms: "Substack",
@@ -341,7 +353,7 @@ const RULES: Rule[] = [
 		cms: "Drupal",
 		cmsType: "full-site",
 		confidence: "medium",
-		match: (html) => /sites\/default\/files\//i.test(html),
+		match: (html) => /\/sites\/default\/files\/|Drupal\.settings/i.test(html),
 	},
 	{
 		cms: "Joomla",
@@ -410,7 +422,7 @@ const RULES: Rule[] = [
 		cms: "Wix",
 		cmsType: "page-builder",
 		confidence: "high",
-		match: (html) => /static\.wixstatic\.com|wix\.com/i.test(html),
+		match: (html) => /static\.wixstatic\.com/i.test(html),
 	},
 	{
 		cms: "Framer",
@@ -981,8 +993,11 @@ async function processSite(
 		// If Astro was detected, we got real content through —
 		// a "Blocked" label or "parked" classification on top of real Astro HTML
 		// is misleading, so demote it to Unknown in that case.
+		// Demote classifications that are incompatible with a confirmed Astro site:
+		// parked/for-sale pages, full-site platforms (WordPress, Wix, etc.), and bot challenges.
 		const effectiveHit =
 			(hit?.cms === "Blocked" ||
+				hit?.cmsType === "full-site" ||
 				(hit?.cmsType === "parked" && hit?.cms !== "Forwarded")) &&
 			astro.detected
 				? null
