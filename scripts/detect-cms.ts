@@ -51,6 +51,7 @@ export interface CmsResult {
 	astroVersion: string | null;
 	starlightVersion: string | null;
 	astroSignals: string[];
+	framework: string | null;
 	finalUrl: string | null;
 	categories: string[];
 	dateAdded: string;
@@ -703,6 +704,7 @@ function fingerprint(
 	cmsType: CmsType;
 	confidence: Confidence;
 	evidence: string[];
+	framework: string | null;
 } | null {
 	if (isBotChallenge(html, headers)) {
 		return {
@@ -710,21 +712,44 @@ function fingerprint(
 			cmsType: "unknown",
 			confidence: "high",
 			evidence: ["Cloudflare challenge page"],
+			framework: null,
 		};
 	}
-	// Prefer high-confidence matches; return the first one found at that level
+	// Prefer high-confidence matches; collect best CMS hit and best framework hit separately
+	let cmsHit: (typeof RULES)[number] | null = null;
+	let frameworkHit: (typeof RULES)[number] | null = null;
 	for (const conf of ["high", "medium", "low"] as Confidence[]) {
 		for (const rule of RULES) {
 			if (rule.confidence !== conf) continue;
-			if (rule.match(html, headers, url, finalUrl)) {
-				return {
-					cms: rule.cms,
-					cmsType: rule.cmsType,
-					confidence: rule.confidence,
-					evidence: [`${rule.confidence} confidence rule matched`],
-				};
+			if (!rule.match(html, headers, url, finalUrl)) continue;
+			if (rule.cmsType === "framework") {
+				frameworkHit ??= rule;
+			} else {
+				cmsHit ??= rule;
 			}
 		}
+		if (cmsHit) break; // framework hits continue scanning lower confidence if needed
+	}
+	if (!frameworkHit) {
+		for (const conf of ["high", "medium", "low"] as Confidence[]) {
+			for (const rule of RULES) {
+				if (rule.cmsType !== "framework" || rule.confidence !== conf) continue;
+				if (rule.match(html, headers, url, finalUrl)) {
+					frameworkHit = rule;
+					break;
+				}
+			}
+			if (frameworkHit) break;
+		}
+	}
+	if (cmsHit) {
+		return {
+			cms: cmsHit.cms,
+			cmsType: cmsHit.cmsType,
+			confidence: cmsHit.confidence,
+			evidence: [`${cmsHit.confidence} confidence rule matched`],
+			framework: frameworkHit?.cms ?? null,
+		};
 	}
 	// Fallback: domain changed entirely = forwarded/sold to an unrecognised destination
 	if (finalUrl) {
@@ -737,6 +762,7 @@ function fingerprint(
 					cmsType: "parked",
 					confidence: "high",
 					evidence: [`Redirected to ${outHost}`],
+					framework: frameworkHit?.cms ?? null,
 				};
 			}
 		} catch {
@@ -953,9 +979,14 @@ async function processSite(
 
 		const resolvedUrl = deepFinalUrl !== entry.url ? deepFinalUrl : null;
 		// If Astro was detected, we got real content through —
-		// a "Blocked" label from a Cloudflare overlay on top of real HTML
+		// a "Blocked" label or "parked" classification on top of real Astro HTML
 		// is misleading, so demote it to Unknown in that case.
-		const effectiveHit = hit?.cms === "Blocked" && astro.detected ? null : hit;
+		const effectiveHit =
+			(hit?.cms === "Blocked" ||
+				(hit?.cmsType === "parked" && hit?.cms !== "Forwarded")) &&
+			astro.detected
+				? null
+				: hit;
 		return {
 			title: entry.title,
 			url: entry.url,
@@ -967,6 +998,7 @@ async function processSite(
 			astroVersion: astro.version,
 			starlightVersion: astro.starlightVersion,
 			astroSignals: astro.signals,
+			framework: effectiveHit?.framework ?? null,
 			finalUrl: resolvedUrl,
 			categories: entry.categories ?? [],
 			dateAdded: entry.dateAdded,
@@ -984,6 +1016,7 @@ async function processSite(
 			astroVersion: null,
 			starlightVersion: null,
 			astroSignals: [],
+			framework: null,
 			finalUrl: null,
 			categories: entry.categories ?? [],
 			dateAdded: entry.dateAdded,

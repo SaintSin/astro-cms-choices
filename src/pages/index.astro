@@ -52,7 +52,7 @@ const noLongerAstro = results.filter(
 	(r) => !r.astroDetected && r.cms !== "Error" && r.cms !== "Blocked",
 ).length;
 const starlightCount = results.filter((r) => r.cms === "Starlight").length;
-const frameworkCount = results.filter((r) => r.cmsType === "framework").length;
+const frameworkCount = results.filter((r) => r.cmsType === "framework" || r.framework).length;
 const forwardedCount = results.filter((r) => r.cms === "Forwarded").length;
 const parkedCount = results.filter(
 	(r) => r.cmsType === "parked" && r.cms !== "Forwarded",
@@ -257,7 +257,7 @@ const parkedCount = results.filter(
       const query = searchInput.value.toLowerCase();
       return allRows.filter((row) => {
         const matchesCms      = !activeCmsFilter     || row.dataset.cms === activeCmsFilter;
-        const matchesCmsType  = !activeCmsTypeFilter || row.dataset.cmstype === activeCmsTypeFilter;
+        const matchesCmsType  = !activeCmsTypeFilter || row.dataset.cmstype === activeCmsTypeFilter || (activeCmsTypeFilter === "framework" && !!row.dataset.framework);
         const matchesForwarded = !forwardedOnly || row.dataset.cms === "Forwarded";
         const matchesParked   = !parkedOnly || (row.dataset.cmstype === "parked" && row.dataset.cms !== "Forwarded");
         const matchesSearch   = !query || row.dataset.title.includes(query) || row.dataset.url.includes(query);

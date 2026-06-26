@@ -12,6 +12,7 @@ export interface CmsResult {
 	astroVersion: string | null;
 	starlightVersion: string | null;
 	astroSignals: string[];
+	framework: string | null;
 	finalUrl: string | null;
 	dateAdded: string;
 	fetchedAt: string;

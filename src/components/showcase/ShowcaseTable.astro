@@ -40,6 +40,7 @@ const { results, pageSize } = Astro.props;
           data-url={r.url.toLowerCase()}
           data-astro={r.astroDetected ? "true" : r.cms === "Error" || r.cms === "Blocked" ? "unknown" : "false"}
           data-astroversion={r.astroVersion ?? ""}
+          data-framework={r.framework ?? ""}
           class={r.cmsType === "full-site" ? "row--migrated" : ""}
         >
           <td class="cell-site">
@@ -91,6 +92,9 @@ const { results, pageSize } = Astro.props;
                     ? null
                     : <span class={`cms-badge cms-badge--${r.cmsType}`}>{r.cms}</span>
             }
+            {r.framework && r.framework !== r.cms && (
+              <span class="framework-badge" title={`Built with ${r.framework}`}>{r.framework}</span>
+            )}
           </td>
           <td class="cell-type">
             {r.cms === "Forwarded"
@@ -199,6 +203,18 @@ const { results, pageSize } = Astro.props;
   .cms-badge--framework    { background: var(--cyan-1);   color: var(--cyan-9); }
   .cms-badge--static-gen   { background: var(--green-1);  color: var(--green-9); }
   .cms-badge--parked       { background: var(--yellow-1); color: var(--yellow-9); }
+
+  .framework-badge {
+    display: inline-block;
+    margin-inline-start: var(--space-3xs);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: var(--step--3);
+    font-weight: 500;
+    background: var(--cyan-1);
+    color: var(--cyan-9);
+    vertical-align: middle;
+  }
 
   .status-badge {
     display: inline-block;
