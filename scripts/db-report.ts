@@ -11,6 +11,7 @@
 //   pnpm db:report -- --changes           — CMS / Astro changes between last 2 scans
 //   pnpm db:report -- --site example.com  — full history for one hostname
 //   pnpm db:report -- --decay             — Astro sites still on v4 or older
+//   pnpm db:report -- --lost-astro        — sites that migrated away from Astro, with PSI before/after
 //   pnpm db:report -- --all               — run every report
 
 import { existsSync } from "node:fs";
@@ -253,6 +254,109 @@ function reportChanges(db: ReturnType<typeof openDb>): void {
 	);
 }
 
+function reportLostAstro(db: ReturnType<typeof openDb>): void {
+	console.log(`\n${hr()}`);
+	console.log("  LOST ASTRO — sites that migrated away, with PSI before/after");
+	console.log(hr());
+
+	type LostRow = {
+		hostname: string;
+		url: string;
+		curr_cms: string;
+		lost_scan_id: number;
+		lost_at: string;
+		last_astro_scanned_at: string;
+	};
+
+	// Latest result per site vs the last scan where it was still Astro.
+	// Use the scanned_at timestamp (not scan_id) as the PSI cutoff below —
+	// a psi_run's scan_id records which scan *triggered* it, not when it
+	// actually fetched the page, and PSI runs can lag their scan by hours.
+	const rows = db
+		.prepare<[], LostRow>(
+			`WITH latest AS (
+        SELECT sr.* FROM scan_results sr
+        JOIN (SELECT site_id, MAX(scan_id) AS max_scan FROM scan_results GROUP BY site_id) m
+          ON m.site_id = sr.site_id AND m.max_scan = sr.scan_id
+      ),
+      last_astro AS (
+        SELECT sr.site_id, sr.scan_id, sc.scanned_at
+        FROM scan_results sr
+        JOIN scans sc ON sc.id = sr.scan_id
+        JOIN (SELECT site_id, MAX(scan_id) AS max_scan FROM scan_results WHERE astro_detected = 1 GROUP BY site_id) m
+          ON m.site_id = sr.site_id AND m.max_scan = sr.scan_id
+      )
+      SELECT
+        s.hostname, s.url,
+        latest.cms       AS curr_cms,
+        latest.scan_id   AS lost_scan_id,
+        sc.scanned_at    AS lost_at,
+        last_astro.scanned_at AS last_astro_scanned_at
+      FROM latest
+      JOIN last_astro ON last_astro.site_id = latest.site_id
+      JOIN sites s ON s.id = latest.site_id
+      JOIN scans sc ON sc.id = latest.scan_id
+      WHERE latest.astro_detected = 0
+        AND latest.cms NOT IN ('Error', 'Blocked')
+      ORDER BY sc.scanned_at DESC`,
+		)
+		.all();
+
+	if (rows.length === 0) {
+		console.log("  ✓ No sites have lost Astro detection.");
+		return;
+	}
+
+	console.log(
+		`  ${rows.length} site(s) previously Astro, now something else:\n`,
+	);
+
+	type PsiRow = { performance: number | null; fetched_at: string };
+	// Cutoff is the actual fetch timestamp, not scan_id — a PSI run can fire
+	// hours after the scan that triggered it, by which point the site may
+	// have already migrated off Astro.
+	const psiBeforeCutoff = db.prepare<[string, string], PsiRow>(
+		`SELECT pr.performance, pr.fetched_at
+     FROM psi_results pr
+     JOIN sites s ON s.id = pr.site_id
+     WHERE s.hostname = ? AND pr.fetched_at <= ? AND pr.strategy = 'mobile'
+       AND pr.performance IS NOT NULL
+     ORDER BY pr.fetched_at DESC LIMIT 1`,
+	);
+	const psiLatest = db.prepare<[string], PsiRow>(
+		`SELECT pr.performance, pr.fetched_at
+     FROM psi_results pr
+     JOIN sites s ON s.id = pr.site_id
+     WHERE s.hostname = ? AND pr.strategy = 'mobile'
+       AND pr.performance IS NOT NULL
+     ORDER BY pr.fetched_at DESC LIMIT 1`,
+	);
+
+	for (const r of rows) {
+		console.log(`  ${r.hostname}`);
+		console.log(`    ${r.url}`);
+		console.log(
+			`    Astro → ${r.curr_cms}   (lost as of ${fmtDate(r.lost_at)})`,
+		);
+
+		const before = psiBeforeCutoff.get(r.hostname, r.last_astro_scanned_at);
+		const after = psiLatest.get(r.hostname);
+
+		if (before?.performance != null && after?.performance != null) {
+			const delta = after.performance - before.performance;
+			const arrow = delta > 0 ? "▲" : delta < 0 ? "▼" : "▬";
+			console.log(
+				`    PSI performance: ${before.performance} → ${after.performance}  ${arrow} ${delta > 0 ? "+" : ""}${delta}`,
+			);
+		} else {
+			console.log(
+				"    PSI performance: no comparable data (run 'pnpm psi' to backfill)",
+			);
+		}
+		console.log();
+	}
+}
+
 function reportSite(db: ReturnType<typeof openDb>, hostname: string): void {
 	console.log(`\n${hr()}`);
 	console.log(`  HISTORY — ${hostname}`);
@@ -397,6 +501,7 @@ const { values: args } = parseArgs({
 		errors: { type: "boolean", default: false },
 		changes: { type: "boolean", default: false },
 		decay: { type: "boolean", default: false },
+		"lost-astro": { type: "boolean", default: false },
 		all: { type: "boolean", default: false },
 		site: { type: "string" },
 		scans: { type: "string", default: "5" }, // look-back window for --errors
@@ -415,16 +520,22 @@ const db = openDb();
 const runSummary =
 	args.all ||
 	args.summary ||
-	(!args.errors && !args.changes && !args.site && !args.decay);
+	(!args.errors &&
+		!args.changes &&
+		!args.site &&
+		!args.decay &&
+		!args["lost-astro"]);
 const runErrors = args.all || args.errors;
 const runChanges = args.all || args.changes;
 const runDecay = args.all || args.decay;
+const runLostAstro = args.all || args["lost-astro"];
 const runSite = args.site;
 
 if (runSummary) reportSummary(db);
 if (runErrors) reportErrors(db, Number(args.scans), Number(args.min));
 if (runChanges) reportChanges(db);
 if (runDecay) reportDecay(db);
+if (runLostAstro) reportLostAstro(db);
 if (runSite) reportSite(db, runSite);
 
 db.close();

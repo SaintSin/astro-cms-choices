@@ -204,7 +204,10 @@ const RULES: Rule[] = [
 		cms: "Hygraph",
 		cmsType: "headless-cms",
 		confidence: "high",
-		match: (html) => /media\.graphassets\.com|eu-central-1-shared-euc1-02\.graphassets\.com|graphcms\.com\/assets/i.test(html),
+		match: (html) =>
+			/media\.graphassets\.com|eu-central-1-shared-euc1-02\.graphassets\.com|graphcms\.com\/assets/i.test(
+				html,
+			),
 	},
 	{
 		cms: "Directus",
@@ -216,7 +219,7 @@ const RULES: Rule[] = [
 		cms: "Strapi",
 		cmsType: "headless-cms",
 		confidence: "medium",
-		match: (html) => /\/__strapi__|strapi-plugin|\"strapi\"\s*:\s*\{/i.test(html),
+		match: (html) => /\/__strapi__|strapi-plugin|"strapi"\s*:\s*\{/i.test(html),
 	},
 	{
 		cms: "Payload CMS",
@@ -252,7 +255,8 @@ const RULES: Rule[] = [
 		cms: "Crystallize",
 		cmsType: "headless-cms",
 		confidence: "high",
-		match: (html) => /media\.crystallize\.com|assets\.crystallize\.com/i.test(html),
+		match: (html) =>
+			/media\.crystallize\.com|assets\.crystallize\.com/i.test(html),
 	},
 	{
 		cms: "Tina CMS",
@@ -270,7 +274,8 @@ const RULES: Rule[] = [
 		cms: "Keystatic",
 		cmsType: "headless-cms",
 		confidence: "medium",
-		match: (html) => /\/keystatic\/|keystatic-app\.pages\.dev|"keystatic"\s*:/i.test(html),
+		match: (html) =>
+			/\/keystatic\/|keystatic-app\.pages\.dev|"keystatic"\s*:/i.test(html),
 	},
 	{
 		cms: "Caisy",
@@ -319,7 +324,10 @@ const RULES: Rule[] = [
 				`(["'\`]|\\()(${origin.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})?/wp-content/uploads/`,
 				"i",
 			);
-			return sameOriginUpload.test(html) && !/\/wp-content\/(?:themes|plugins)\/|\/wp-includes\//i.test(html);
+			return (
+				sameOriginUpload.test(html) &&
+				!/\/wp-content\/(?:themes|plugins)\/|\/wp-includes\//i.test(html)
+			);
 		},
 	},
 
@@ -335,7 +343,8 @@ const RULES: Rule[] = [
 		cms: "Ghost",
 		cmsType: "full-site",
 		confidence: "medium",
-		match: (html) => /cdn\.ghost\.io|ghost\.io\/content\/|\/ghost\/api\//i.test(html),
+		match: (html) =>
+			/cdn\.ghost\.io|ghost\.io\/content\/|\/ghost\/api\//i.test(html),
 	},
 	{
 		cms: "Substack",
