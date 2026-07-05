@@ -95,8 +95,7 @@ label {
 	cursor: pointer;
 	border: 1px solid var(--color-keyline);
 	border-radius: var(--radius-1, 4px);
-	background:
-		var(--color-light)
+	background: var(--color-light)
 		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23666' class='size-6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A")
 		right 10px center / 16px no-repeat;
 	padding: var(--space-2xs) var(--space-l) var(--space-2xs) var(--space-xs);
@@ -255,8 +254,7 @@ label {
 	cursor: pointer;
 	border: 1px solid var(--color-keyline);
 	border-radius: var(--border-radius-small, 4px);
-	background:
-		var(--color-control)
+	background: var(--color-control)
 		url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='%23FFF' class='size-6'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5' /%3E%3C/svg%3E%0A")
 		right 10px center / 20px no-repeat;
 	padding-inline: var(--space-2xs);

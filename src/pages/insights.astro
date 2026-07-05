@@ -67,35 +67,35 @@ const stackedDatasets = MAJORS.map((major) => ({
 
 // ── Starlight version distribution ───────────────────────────────────────────
 
-// Group Starlight versions into recency bands (latest = v0.39.x as of May 2026)
-// Bands: v1+, v0.37–v0.39 (recent), v0.32–v0.36 (mid), v0.25–v0.31, older / unknown
+// Group Starlight versions into recency bands (latest = v0.41.3 as of Jul 2026)
+// Bands: v1+, v0.39–v0.41 (recent), v0.34–v0.38 (mid), v0.27–v0.33, older / unknown
 function starlightBand(version: string | null): string {
 	if (!version) return "unknown";
 	const [major, minor] = version.split(".").map(Number);
 	if (major >= 1) return "v1+";
-	if (minor >= 37) return "v0.37–v0.39 (recent)";
-	if (minor >= 32) return "v0.32–v0.36";
-	if (minor >= 28) return "v0.28–v0.31";
-	if (minor >= 25) return "v0.25–v0.27";
-	return "v0.24 and older";
+	if (minor >= 39) return "v0.39–v0.41 (recent)";
+	if (minor >= 34) return "v0.34–v0.38";
+	if (minor >= 30) return "v0.30–v0.33";
+	if (minor >= 27) return "v0.27–v0.29";
+	return "v0.26 and older";
 }
 
 const BAND_ORDER = [
 	"v1+",
-	"v0.37–v0.39 (recent)",
-	"v0.32–v0.36",
-	"v0.28–v0.31",
-	"v0.25–v0.27",
-	"v0.24 and older",
+	"v0.39–v0.41 (recent)",
+	"v0.34–v0.38",
+	"v0.30–v0.33",
+	"v0.27–v0.29",
+	"v0.26 and older",
 	"unknown",
 ];
 const BAND_COLOURS: Record<string, string> = {
 	"v1+": "#34d399", // emerald
-	"v0.37–v0.39 (recent)": "#60a5fa", // blue
-	"v0.32–v0.36": "#a78bfa", // violet
-	"v0.28–v0.31": "#fbbf24", // amber
-	"v0.25–v0.27": "#fb923c", // orange
-	"v0.24 and older": "#f87171", // red
+	"v0.39–v0.41 (recent)": "#60a5fa", // blue
+	"v0.34–v0.38": "#a78bfa", // violet
+	"v0.30–v0.33": "#fbbf24", // amber
+	"v0.27–v0.29": "#fb923c", // orange
+	"v0.26 and older": "#f87171", // red
 	unknown: "#94a3b8", // slate
 };
 
