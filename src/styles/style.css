@@ -12,3 +12,7 @@
 .content {
 	height: 100%;
 }
+
+@view-transition {
+	navigation: auto;
+}

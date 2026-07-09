@@ -171,10 +171,17 @@ const parkedCount = results.filter(
     const parkedFilterBtn = document.getElementById("parked-filter");
     const countEl = document.getElementById("results-count");
     const paginationEl = document.getElementById("pagination");
-    if (!tbody || !searchInput || !table) return;
+    const template = document.getElementById("all-rows-template");
+    if (!tbody || !searchInput || !table || !template) return;
 
     const PAGE_SIZE = parseInt(table.dataset.pageSize ?? "50", 10);
-    const allRows = Array.from(tbody.querySelectorAll("tr"));
+    // Rows beyond page 1 live inert inside <template> (no layout/style cost
+    // until moved into the live tbody) — combine with the server-rendered
+    // first page to get the full sortable/filterable set.
+    const allRows = [
+      ...tbody.querySelectorAll("tr"),
+      ...template.content.querySelectorAll("tr"),
+    ];
 
     let activeCmsFilter = null;
     let activeCmsTypeFilter = null;
@@ -274,15 +281,12 @@ const parkedCount = results.filter(
       const filtered = getFilteredRows();
       const sorted   = sortRows(filtered);
       const start    = (currentPage - 1) * PAGE_SIZE;
-      const pageRows = new Set(sorted.slice(start, start + PAGE_SIZE));
+      const pageRows = sorted.slice(start, start + PAGE_SIZE);
 
-      // Reorder rows in the DOM so the visible rows appear in sort order.
-      // appendChild on an existing node moves it — iterating in sorted order
-      // places each row at the end in sequence, producing a fully sorted tbody.
-      const domOrder = sortCol ? sortRows(allRows) : allRows;
-      for (const row of domOrder) tbody.appendChild(row);
-
-      for (const row of allRows) row.hidden = !pageRows.has(row);
+      // Only the current page's rows ever touch the live DOM — everything
+      // else stays detached (or inert inside <template>), so this is one
+      // cheap DOM write instead of thousands of appendChild/hidden calls.
+      tbody.replaceChildren(...pageRows);
 
       if (countEl) {
         const from = Math.min(start + 1, filtered.length);
@@ -390,7 +394,6 @@ const parkedCount = results.filter(
   }
 
   initDetector();
-  document.addEventListener("astro:page-load", initDetector);
 </script>
 
 <style>
@@ -481,7 +484,7 @@ const parkedCount = results.filter(
      border-radius: 3px; min-width: 2px; }
   .bar-index {
     font-size: var(--step--2);
-    color: var(--gray-4);
+    color: var(--color-text-subtle);
     font-variant-numeric: tabular-nums;
     min-width: 1.5em;
     text-align: right;

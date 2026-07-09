@@ -51,14 +51,14 @@
 	--breakpoint-2xl: 1536px;
 
 	/* Semantic color tokens using Open Props */
-	--color-primary: var(--blue-6);
+	--color-primary: var(--blue-9);
 	--color-secondary: var(--purple-6);
 	--color-accent: var(--orange-6);
 	--color-brand: var(--color-primary);
 
 	--color-text: var(--gray-7);
-	--color-text-subtle: var(--gray-6);
-	--color-mid: var(--gray-6);
+	--color-text-subtle: var(--gray-7);
+	--color-mid: var(--gray-7);
 	--color-bg: var(--gray-0);
 	--color-light: var(--gray-0);
 	--color-keyline: var(--gray-3);

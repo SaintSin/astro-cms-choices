@@ -6,12 +6,13 @@ Scans every site in the [Astro showcase](https://astro.build/showcase/) and fing
 
 ## What it does
 
-- Fetches all ~2,600 sites listed in the Astro showcase
+- Fetches all ~2,700 sites listed in the Astro showcase
 - Fingerprints each site from HTML and HTTP headers
 - Detects whether the site is still running on Astro
 - Displays results in a filterable, sortable, paginated table
 - [Insights page](/insights) with version distribution and submission trend charts
 - [CrUX page](/crux) with Chrome UX Report field data (LCP, INP, CLS, CWV) for Desktop, Phone, and Tablet
+- [PSI page](/psi) with PageSpeed Insights Lighthouse scores and lab/field metrics for mobile and desktop
 
 ## Detection coverage
 
@@ -52,7 +53,8 @@ pnpm dev      # start dev server
 | `pnpm db:report`    | Query scan history for trends and anomalies                   |
 | `pnpm build`        | Build production site                                         |
 | `pnpm preview`      | Preview the production build locally                          |
-| `pnpm check`        | Lint and format with Biome                                    |
+| `pnpm check`        | Lint and format with Biome (`.astro`/`.ts`/`.js`)             |
+| `pnpm fmt`          | Format Markdown/MDX with oxfmt (Biome doesn't cover these)    |
 | `pnpm deploy`       | Deploy to Netlify production                                  |
 | `pnpm deploy:draft` | Deploy a draft URL (no prod traffic)                          |
 | `pnpm clean`        | Remove `dist` and `.astro` cache                              |
@@ -63,7 +65,7 @@ pnpm dev      # start dev server
 Scans every site in the Astro showcase and fingerprints its CMS stack. Clones `withastro/astro.build` as a sparse checkout into `.showcase-cache/` on first run (`.yml` files only, no screenshots); subsequent runs pull the latest changes.
 
 ```bash
-pnpm detect                           # scan all ~2,600 sites
+pnpm detect                           # scan all ~2,700 sites
 pnpm detect -- --limit 50             # scan first 50 only (testing)
 pnpm detect -- --concurrency 8        # parallel fetches (default: 6)
 pnpm detect -- --resume               # skip already-processed URLs
@@ -96,7 +98,7 @@ pnpm crux -- --dry-run                # print what would be fetched, write nothi
 
 ### `pnpm psi` — PageSpeed Insights
 
-Fetches Lighthouse scores (performance, accessibility, best-practices, SEO) plus lab and field metrics (LCP, CLS, INP, TBT) for both mobile and desktop strategies. Rate-limited to ~85 req/min. Estimated ~100 min for a full run (~2,100 sites × 2 strategies).
+Fetches Lighthouse scores (performance, accessibility, best-practices, SEO) plus lab and field metrics (LCP, CLS, INP, TBT) for both mobile and desktop strategies. Rate-limited to ~85 req/min. Estimated ~100 min for a full run (~2,300 sites × 2 strategies).
 
 Requires `PAGESPEED_API_KEY` in `.env`.
 
@@ -106,6 +108,7 @@ pnpm psi -- --strategy=mobile        # mobile | desktop (default: both)
 pnpm psi -- --new-only               # skip site × strategy combos already fetched (success or error)
 pnpm psi -- --errors-only            # retry only combos that previously errored
 pnpm psi -- --limit=100              # cap number of sites (testing)
+pnpm psi -- --url=https://example.com/  # run a single site only
 pnpm psi -- --dry-run                # print what would be fetched, write nothing
 ```
 
@@ -160,6 +163,7 @@ pnpm db:report -- --errors --scans 8  # same, look back 8 scans
 pnpm db:report -- --errors --min 5    # raise error threshold to 5
 pnpm db:report -- --changes           # CMS / Astro changes between last 2 scans
 pnpm db:report -- --decay             # Astro sites still on v4 or older
+pnpm db:report -- --lost-astro        # sites that migrated away from Astro, with PSI before/after
 pnpm db:report -- --site example.com  # full scan history for one hostname
 pnpm db:report -- --all               # run every report
 ```
@@ -173,7 +177,8 @@ pnpm db:report -- --all               # run every report
 ├── src/
 │   ├── components/
 │   │   └── showcase/
-│   │       ├── ShowcaseTable.astro       # Results table
+│   │       ├── ShowcaseTable.astro       # Results table (renders page 1 live + template)
+│   │       ├── ShowcaseRow.astro         # Single <tr> — used by ShowcaseTable and the <template>
 │   │       ├── ShowcaseToolbar.astro     # Filters and search
 │   │       └── ShowcasePagination.astro  # Pagination controls
 │   ├── config/
@@ -184,14 +189,14 @@ pnpm db:report -- --all               # run every report
 │   │   ├── index.astro         # Results UI
 │   │   ├── insights.astro      # Version distribution charts
 │   │   ├── crux.astro          # Chrome UX Report field data
-│   │   └── about.astro         # About page
+│   │   └── psi.astro           # PageSpeed Insights scores
 │   └── types/
 │       └── index.ts            # Shared TypeScript types
 ```
 
 ## Tech stack
 
-- [Astro 6](https://astro.build)
+- [Astro 7](https://astro.build)
 - [Chart.js 4](https://www.chartjs.org) for insights charts
 - [Biome](https://biomejs.dev) for linting and formatting
 - [Turso](https://turso.tech) for analytics storage (via Pandalytics)

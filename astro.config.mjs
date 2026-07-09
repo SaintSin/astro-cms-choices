@@ -74,6 +74,9 @@ export default defineConfig({
 	vite: {
 		plugins: [localAdminPlugin()],
 	},
+	build: {
+		inlineStylesheets: "always",
+	},
 	trailingSlash: "always",
 	site: "https://astro-what-cms.netlify.app",
 });

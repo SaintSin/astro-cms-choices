@@ -1,0 +1,188 @@
+---
+// src/components/showcase/ShowcaseRow.astro
+// 2026-07-09T00:00:00Z
+
+import type { CmsResult } from "../../types/index";
+import { CMS_TYPE_LABELS } from "../../types/index";
+
+interface Props {
+	r: CmsResult;
+}
+
+const { r } = Astro.props;
+---
+
+<tr
+  data-cms={r.cms}
+  data-cmstype={r.cmsType}
+  data-title={r.title.toLowerCase()}
+  data-url={r.url.toLowerCase()}
+  data-astro={r.astroDetected ? "true" : r.cms === "Error" || r.cms === "Blocked" ? "unknown" : "false"}
+  data-astroversion={r.astroVersion ?? ""}
+  data-framework={r.framework ?? ""}
+  class={r.cmsType === "full-site" ? "row--migrated" : ""}
+>
+  <td class="cell-site">
+    <a href={r.url} target="_blank" rel="noopener noreferrer">
+      {r.title || r.url}
+    </a>
+    <span class="url-hint">
+      {new URL(r.url).hostname}
+      <a
+        class="isastro-link"
+        href={r.finalUrl ?? r.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Visit site"
+      >visit ↗</a>
+      <a
+        class="isastro-link"
+        href={`https://isastro.pages.dev/?url=${new URL(r.url).hostname}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Test on isAstro"
+      >test ↗</a>
+    </span>
+    {r.finalUrl && new URL(r.finalUrl).hostname.replace(/^www\./, "") !== new URL(r.url).hostname.replace(/^www\./, "") && (
+      <span class="redirect-hint" title={`Redirects to ${r.finalUrl}`}>
+        ↳ {new URL(r.finalUrl).hostname}{new URL(r.finalUrl).pathname !== "/" ? new URL(r.finalUrl).pathname : ""}
+      </span>
+    )}
+  </td>
+  <td class="cell-astro">
+    {r.astroDetected
+      ? <>
+          <span class="astro-yes" title={r.astroSignals.join(", ")}>✓</span>
+          {r.astroVersion && <span class="astro-version">v{r.astroVersion}</span>}
+        </>
+      : r.cms !== "Error" && r.cms !== "Blocked"
+        ? <span class="astro-no" title="No Astro fingerprint found">✗</span>
+        : <span class="astro-unknown">—</span>
+    }
+  </td>
+  <td>
+    {r.cms === "Blocked"
+      ? <span class="status-badge status-badge--blocked" title="Bot challenge detected — content may be incomplete">Bot-protected</span>
+      : r.cms === "Error"
+        ? <span class="status-badge status-badge--error" title={r.error ?? "Fetch failed"}>Fetch error</span>
+        : r.cms === "Forwarded"
+          ? <span class="status-badge status-badge--forwarded" title={r.finalUrl ? `Redirects to ${r.finalUrl}` : "Domain redirected"}>Redirected</span>
+          : r.cms === "Unknown" || r.cmsType === "parked"
+            ? null
+            : <span class={`cms-badge cms-badge--${r.cmsType}`}>{r.cms}</span>
+    }
+    {r.framework && r.framework !== r.cms && (
+      <span class="framework-badge" title={`Built with ${r.framework}`}>{r.framework}</span>
+    )}
+  </td>
+  <td class="cell-type">
+    {r.cms === "Forwarded"
+      ? "Redirected domain"
+      : r.cmsType === "parked"
+        ? "Parked domain"
+        : r.cmsType !== "unknown"
+          ? CMS_TYPE_LABELS[r.cmsType] ?? r.cmsType
+          : ""}
+  </td>
+  <td>
+    {r.confidence && (
+      <span class={`conf-badge conf-badge--${r.confidence}`}>{r.confidence}</span>
+    )}
+  </td>
+</tr>
+
+<style>
+  td { vertical-align: middle; }
+
+  .cell-site a:not(.isastro-link) {
+    display: block;
+    font-weight: 500;
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .cell-site a:not(.isastro-link):hover { text-decoration: underline; color: var(--color-primary); }
+  .url-hint { display: block; color: var(--color-text-subtle); font-size: var(--step--2); white-space: nowrap; }
+  .isastro-link {
+    display: inline;
+    margin-inline-start: 0.5em;
+    color: var(--violet-7);
+    text-decoration: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    font-size: var(--step--2);
+  }
+  tr:hover .isastro-link { opacity: 1; }
+  .redirect-hint { display: block; color: var(--color-text-subtle); font-size: var(--step--2); font-style: italic; }
+
+  .cell-astro { text-align: center;
+     font-size: var(--step-0); white-space: nowrap; }
+  .astro-yes { color: var(--violet-7);
+     font-weight: 700; cursor: default; }
+  .astro-no      { color: var(--orange-5); font-weight: 700; cursor: default; }
+  .astro-unknown { color: var(--gray-4); cursor: default; }
+  .astro-version {
+    display: inline-block;
+    margin-left: 0.3em;
+    font-size: var(--step--2);
+    color: var(--violet-7);
+    font-weight: 400;
+    vertical-align: middle;
+  }
+
+  .cell-type { color: var(--color-text-subtle); white-space: nowrap; font-size: var(--step--2); }
+
+  .row--migrated td { background: var(--orange-0); }
+  .row--migrated:hover td { background: var(--orange-1); }
+
+  .cms-badge {
+    display: inline-block;
+    padding: 0.15em 0.6em;
+    border-radius: 999px;
+    font-size: var(--step--2);
+    font-weight: 600;
+    white-space: nowrap;
+    background: var(--gray-2);
+    color: var(--gray-8);
+  }
+  .cms-badge--headless-cms { background: var(--blue-1);   color: var(--blue-9); }
+  .cms-badge--page-builder { background: var(--purple-1); color: var(--purple-9); }
+  .cms-badge--full-site    { background: var(--red-1);    color: var(--red-10); }
+  .cms-badge--framework    { background: var(--cyan-1);   color: var(--cyan-9); }
+  .cms-badge--static-gen   { background: var(--green-1);  color: var(--green-10); }
+  .cms-badge--parked       { background: var(--yellow-1); color: var(--yellow-11); }
+
+  .framework-badge {
+    display: inline-block;
+    margin-inline-start: var(--space-3xs);
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-size: var(--step--3);
+    font-weight: 500;
+    background: var(--cyan-1);
+    color: var(--cyan-9);
+    vertical-align: middle;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 0.15em 0.6em;
+    border-radius: 999px;
+    font-size: var(--step--2);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .status-badge--blocked   { background: var(--yellow-1); color: var(--yellow-11); }
+  .status-badge--error     { background: var(--gray-1);   color: var(--gray-7);   }
+  .status-badge--forwarded { background: var(--blue-1);   color: var(--blue-9);   }
+
+  .conf-badge {
+    display: inline-block;
+    padding: 0.1em 0.45em;
+    border-radius: 999px;
+    font-size: var(--step--2);
+    font-weight: 500;
+  }
+  .conf-badge--high   { background: var(--green-1);  color: var(--green-10); }
+  .conf-badge--medium { background: var(--yellow-1); color: var(--yellow-11); }
+  .conf-badge--low    { background: var(--gray-1);   color: var(--gray-7); }
+</style>

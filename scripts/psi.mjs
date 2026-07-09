@@ -14,6 +14,7 @@
 //   node scripts/psi.mjs --new-only            # skip sites already in psi_results (success or error)
 //   node scripts/psi.mjs --errors-only         # retry only site × strategy combos that previously errored
 //   node scripts/psi.mjs --limit=100           # cap number of sites (for testing)
+//   node scripts/psi.mjs --url=https://example.com/   # run a single site only
 //   node scripts/psi.mjs --dry-run
 
 import { readFileSync } from "node:fs";
@@ -35,6 +36,7 @@ function getArg(name) {
 
 const strategyFilter = getArg("--strategy");
 const limitArg = getArg("--limit");
+const urlFilter = getArg("--url");
 const dryRun = args.includes("--dry-run");
 const newOnly = args.includes("--new-only");
 const errorsOnly = args.includes("--errors-only");
@@ -125,7 +127,15 @@ function loadLatestScan() {
 	return db.prepare("SELECT id FROM scans ORDER BY id DESC LIMIT 1").get();
 }
 
-function loadSites(scanId, limit) {
+function loadSites(scanId, limit, urlFilter) {
+	if (urlFilter) {
+		// Single-site lookup — bypass the astro_detected filter so this also
+		// works for a manual one-off check on a site not in the latest scan.
+		const row = db
+			.prepare("SELECT id, url, hostname FROM sites WHERE url = ? OR url = ?")
+			.get(urlFilter, urlFilter.replace(/\/$/, ""));
+		return row ? [row] : [];
+	}
 	let query = `
 		SELECT s.id, s.url, s.hostname
 		FROM scan_results sr
@@ -209,7 +219,11 @@ if (!latestScan) {
 	process.exit(1);
 }
 
-const sites = loadSites(latestScan.id, limitArg);
+const sites = loadSites(latestScan.id, limitArg, urlFilter);
+if (urlFilter && sites.length === 0) {
+	console.error(`\n  No site found in DB matching --url=${urlFilter}\n`);
+	process.exit(1);
+}
 const strategies = strategyFilter ? [strategyFilter] : ["mobile", "desktop"];
 
 // --new-only: skip site_id × strategy combos already in psi_results (success or error)

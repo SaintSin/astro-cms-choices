@@ -3,7 +3,7 @@
 // 2026-05-17T00:00:00Z
 
 import type { CmsResult } from "../../types/index";
-import { CMS_TYPE_LABELS } from "../../types/index";
+import ShowcaseRow from "./ShowcaseRow.astro";
 
 interface Props {
 	results: CmsResult[];
@@ -11,6 +11,11 @@ interface Props {
 }
 
 const { results, pageSize } = Astro.props;
+// Only the first page is rendered into the live DOM (fast initial paint, small
+// tree). The rest sits inert inside a <template> — parsed but never laid out
+// or style-computed until JS clones rows out of it for later pages.
+const firstPage = results.slice(0, pageSize);
+const restRows = results.slice(pageSize);
 ---
 
 <div class="table-wrap">
@@ -31,90 +36,15 @@ const { results, pageSize } = Astro.props;
         <th scope="col">Conf.</th>
       </tr>
     </thead>
-    <tbody>
-      {results.map((r) => (
-        <tr
-          data-cms={r.cms}
-          data-cmstype={r.cmsType}
-          data-title={r.title.toLowerCase()}
-          data-url={r.url.toLowerCase()}
-          data-astro={r.astroDetected ? "true" : r.cms === "Error" || r.cms === "Blocked" ? "unknown" : "false"}
-          data-astroversion={r.astroVersion ?? ""}
-          data-framework={r.framework ?? ""}
-          class={r.cmsType === "full-site" ? "row--migrated" : ""}
-        >
-          <td class="cell-site">
-            <a href={r.url} target="_blank" rel="noopener noreferrer">
-              {r.title || r.url}
-            </a>
-            <span class="url-hint">
-              {new URL(r.url).hostname}
-              <a
-                class="isastro-link"
-                href={r.finalUrl ?? r.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Visit site"
-              >visit ↗</a>
-              <a
-                class="isastro-link"
-                href={`https://isastro.pages.dev/?url=${new URL(r.url).hostname}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                title="Test on isAstro"
-              >test ↗</a>
-            </span>
-            {r.finalUrl && (
-              <span class="redirect-hint" title={`Redirects to ${r.finalUrl}`}>
-                ↳ {new URL(r.finalUrl).hostname}{new URL(r.finalUrl).pathname !== "/" ? new URL(r.finalUrl).pathname : ""}
-              </span>
-            )}
-          </td>
-          <td class="cell-astro">
-            {r.astroDetected
-              ? <>
-                  <span class="astro-yes" title={r.astroSignals.join(", ")}>✓</span>
-                  {r.astroVersion && <span class="astro-version">v{r.astroVersion}</span>}
-                </>
-              : r.cms !== "Error" && r.cms !== "Blocked"
-                ? <span class="astro-no" title="No Astro fingerprint found">✗</span>
-                : <span class="astro-unknown">—</span>
-            }
-          </td>
-          <td>
-            {r.cms === "Blocked"
-              ? <span class="status-badge status-badge--blocked" title="Bot challenge detected — content may be incomplete">Bot-protected</span>
-              : r.cms === "Error"
-                ? <span class="status-badge status-badge--error" title={r.error ?? "Fetch failed"}>Fetch error</span>
-                : r.cms === "Forwarded"
-                  ? <span class="status-badge status-badge--forwarded" title={r.finalUrl ? `Redirects to ${r.finalUrl}` : "Domain redirected"}>Redirected</span>
-                  : r.cms === "Unknown" || r.cmsType === "parked"
-                    ? null
-                    : <span class={`cms-badge cms-badge--${r.cmsType}`}>{r.cms}</span>
-            }
-            {r.framework && r.framework !== r.cms && (
-              <span class="framework-badge" title={`Built with ${r.framework}`}>{r.framework}</span>
-            )}
-          </td>
-          <td class="cell-type">
-            {r.cms === "Forwarded"
-              ? "Redirected domain"
-              : r.cmsType === "parked"
-                ? "Parked domain"
-                : r.cmsType !== "unknown"
-                  ? CMS_TYPE_LABELS[r.cmsType] ?? r.cmsType
-                  : ""}
-          </td>
-          <td>
-            {r.confidence && (
-              <span class={`conf-badge conf-badge--${r.confidence}`}>{r.confidence}</span>
-            )}
-          </td>
-        </tr>
-      ))}
+    <tbody id="results-tbody">
+      {firstPage.map((r) => <ShowcaseRow r={r} />)}
     </tbody>
   </table>
 </div>
+
+<template id="all-rows-template">
+  {restRows.map((r) => <ShowcaseRow r={r} />)}
+</template>
 
 <p class="table-key">
   <span class="key-swatch key-swatch--migrated"></span>
@@ -127,48 +57,6 @@ const { results, pageSize } = Astro.props;
   .col-cms   { width: 16ch; }
   .col-type  { width: 18ch; }
   .col-conf  { width: 7ch;  }
-
-  .results-table td { vertical-align: middle; }
-
-  .cell-site a:not(.isastro-link) {
-    display: block;
-    font-weight: 500;
-    color: var(--color-text);
-    text-decoration: none;
-  }
-  .cell-site a:not(.isastro-link):hover { text-decoration: underline; color: var(--color-primary); }
-  .url-hint { display: block; color: var(--color-text-subtle); font-size: var(--step--2); white-space: nowrap; }
-  .isastro-link {
-    display: inline;
-    margin-inline-start: 0.5em;
-    color: var(--violet-6);
-    text-decoration: none;
-    opacity: 0;
-    transition: opacity 0.15s;
-    font-size: var(--step--2);
-  }
-  .results-table tr:hover .isastro-link { opacity: 1; }
-  .redirect-hint { display: block; color: var(--color-text-subtle); font-size: var(--step--2); font-style: italic; }
-
-  .cell-astro { text-align: center;
-     font-size: var(--step-0); white-space: nowrap; }
-  .astro-yes { color: var(--violet-6);
-     font-weight: 700; cursor: default; }
-  .astro-no      { color: var(--orange-5); font-weight: 700; cursor: default; }
-  .astro-unknown { color: var(--gray-4); cursor: default; }
-  .astro-version {
-    display: inline-block;
-    margin-left: 0.3em;
-    font-size: var(--step--2);
-    color: var(--violet-6);
-    font-weight: 400;
-    vertical-align: middle;
-  }
-
-  .cell-type { color: var(--color-text-subtle); white-space: nowrap; font-size: var(--step--2); }
-
-  .row--migrated td { background: var(--orange-0); }
-  .row--migrated:hover td { background: var(--orange-1); }
 
   .table-key {
     display: flex;
@@ -186,56 +74,4 @@ const { results, pageSize } = Astro.props;
     flex-shrink: 0;
   }
   .key-swatch--migrated { background: var(--orange-0); border: 1px solid var(--orange-2); }
-
-  .cms-badge {
-    display: inline-block;
-    padding: 0.15em 0.6em;
-    border-radius: 999px;
-    font-size: var(--step--2);
-    font-weight: 600;
-    white-space: nowrap;
-    background: var(--gray-2);
-    color: var(--gray-8);
-  }
-  .cms-badge--headless-cms { background: var(--blue-1);   color: var(--blue-9); }
-  .cms-badge--page-builder { background: var(--purple-1); color: var(--purple-9); }
-  .cms-badge--full-site    { background: var(--red-1);    color: var(--red-9); }
-  .cms-badge--framework    { background: var(--cyan-1);   color: var(--cyan-9); }
-  .cms-badge--static-gen   { background: var(--green-1);  color: var(--green-9); }
-  .cms-badge--parked       { background: var(--yellow-1); color: var(--yellow-9); }
-
-  .framework-badge {
-    display: inline-block;
-    margin-inline-start: var(--space-3xs);
-    padding: 1px 5px;
-    border-radius: 3px;
-    font-size: var(--step--3);
-    font-weight: 500;
-    background: var(--cyan-1);
-    color: var(--cyan-9);
-    vertical-align: middle;
-  }
-
-  .status-badge {
-    display: inline-block;
-    padding: 0.15em 0.6em;
-    border-radius: 999px;
-    font-size: var(--step--2);
-    font-weight: 500;
-    white-space: nowrap;
-  }
-  .status-badge--blocked   { background: var(--yellow-1); color: var(--yellow-8); }
-  .status-badge--error     { background: var(--gray-1);   color: var(--gray-6);   }
-  .status-badge--forwarded { background: var(--blue-1);   color: var(--blue-7);   }
-
-  .conf-badge {
-    display: inline-block;
-    padding: 0.1em 0.45em;
-    border-radius: 999px;
-    font-size: var(--step--2);
-    font-weight: 500;
-  }
-  .conf-badge--high   { background: var(--green-1);  color: var(--green-8); }
-  .conf-badge--medium { background: var(--yellow-1); color: var(--yellow-8); }
-  .conf-badge--low    { background: var(--gray-1);   color: var(--gray-7); }
 </style>

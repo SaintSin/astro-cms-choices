@@ -1,5 +1,58 @@
 # Changelog
 
+## 2026-07-09
+
+### Home page performance — PSI 80 → 100/100/100/100 (desktop), 98 mobile
+
+- Root cause: `ShowcaseTable.astro` rendered all 2,732 results into the live DOM on every load, and the client filter/sort script (`index.astro`) re-`appendChild`'d all 2,732 rows plus toggled `hidden` on all 2,732 rows on every `applyView()` call — forced reflow, ~1.7s of Style & Layout work, and a ~3s LCP element render delay that had nothing to do with fonts or network
+- Extracted per-row markup into `ShowcaseRow.astro` (Astro scopes `<style>` per-component, so this was required before splitting the markup) — only `results.slice(0, pageSize)` (50 rows) renders into the live `<tbody>`; the remaining ~2,682 rows sit inside a `<template id="all-rows-template">`, parsed but never laid out or style-computed by the browser until JS moves rows out of it
+- `applyView()` rewritten: `allRows` is now built once from both the live tbody and the template's inert content; the old reorder-loop + per-row `hidden` toggle is replaced with a single `tbody.replaceChildren(...pageRows)` per view update
+- Confirmed in-browser: 50 live rows / 2,682 inert / 904 total DOM nodes on initial load (was ~15–20k); pagination, sort, and search all verified working against the new structure
+- `astro.config.mjs`: added `build: { inlineStylesheets: "always" }` — the two small render-blocking stylesheets (2.6 + 4.7 KiB) are now inlined into `<head>` instead of separate blocking requests (`"auto"` wasn't enough — `BaseLayout.css` at 4.7 KiB sits just above the default 4 KB auto-inline threshold)
+- Removed the dead `document.addEventListener("astro:page-load", initDetector)` — `ClientRouter` was removed from the project (replaced with native CSS `@view-transition { navigation: auto; }`), so that event no longer fires; the plain top-level `initDetector()` call is sufficient since navigations are full page loads again
+- Mobile (98/100, Slow 4G): remaining gap is ~220 KiB of inert-template markup that still costs network transfer time even though it costs zero layout/CPU — 99.3% of the built `index.html` (3.27 of 3.29 MiB uncompressed) is that `<template>` block. Fixing this fully would mean moving rows 51+ to a lazy-fetched JSON endpoint instead of embedding them; decided not to do this — 98/100 under an artificially harsh throttling profile is a strong real-world result and the added architecture (JSON endpoint, client-side row rendering duplicating `ShowcaseRow.astro`, losing instant offline search across all sites) isn't worth it for 2 points on a synthetic benchmark
+
+### Home page: fixed false "redirect" indicator
+
+- `ShowcaseTable.astro` showed a `↳ hostname` redirect hint whenever `r.finalUrl` was set at all, with no comparison to the original hostname — a bare trailing-slash normalization (e.g. `aureliendossantos.com` → `aureliendossantos.com/`) was enough to trigger it, wrongly implying the site had moved off its own domain
+- Added the same hostname comparison (`www.` stripped) already used by the admin queue's `renderRow`, so the hint only appears for genuine cross-domain redirects
+
+### `db:report` — `--lost-astro` report
+
+- New report: finds sites whose latest scan shows `astro_detected = 0` but had an earlier scan with `astro_detected = 1` — catches migrations across any scan gap, not just the last two scans (unlike the existing `--changes` report)
+- For each, compares mobile PSI performance from the last scan while still Astro against the most recent PSI run, so a platform switch's before/after performance impact is visible in one pass
+- Folded into `--all`
+- Fixed a false-positive comparison bug: the PSI lookup originally joined on `psi_runs.scan_id`, but a PSI run's `scan_id` only records which scan _triggered_ it — the actual fetch (`fetched_at`) can lag hours behind, long enough for a site to migrate off Astro in between. Switched the "before" cutoff to compare against the real `fetched_at` timestamp vs. the last-Astro scan's `scanned_at` instead
+
+### Showcase PRs — astro.build fork
+
+- **PR #2510** — removed 11 sites confirmed migrated to Next.js (`/_next/static/`, `__NEXT_DATA__` on all 11), same format as the merged Framer PR (#2494): YAML + webp deleted, domains added to `blockedOrigins`
+- **PR #2460** — resolved a merge conflict in `scripts/update-showcase.mjs` after syncing the fork with upstream (which had merged both PR #2459 and #2494's `blockedOrigins` entries in the interim); rebased with all entry sets preserved and force-pushed
+
+### Insights page — Starlight version legend
+
+- Recency bands were hardcoded assuming v0.39 was latest; Starlight is now on v0.41.3 — shifted all bands up by the same two-version offset: `v0.39–v0.41 (recent)`, `v0.34–v0.38`, `v0.30–v0.33`, `v0.27–v0.29`, `v0.26 and older`
+
+## 2026-06-26
+
+### Framework secondary detection + CMS false-positive fixes
+
+- Added `framework` field to `CmsResult`, populated when a JS framework (Next.js, SvelteKit, etc.) is detected alongside a primary CMS — shown as a secondary badge in `ShowcaseTable.astro`; "JS Frameworks" filter count now includes sites with `framework` set as well as `cmsType === "framework"`
+- Fixed parked-demotion logic to not suppress `Forwarded` entries (was incorrectly grouped with parked/for-sale pages)
+- Fixed false GoDaddy-parked classification for real Astro sites that happened to mention GoDaddy in page content
+- Tightened detection rules that were matching on bare domain mentions in body text rather than actual platform signals:
+  - Builder.io, Kontent.ai: now require CDN/API/SDK-specific URLs, not a bare domain mention (was flagging sites like docs.astro.build and our own site)
+  - Hygraph, Crystallize, Wix, Ghost, Caisy: CDN-only matches
+  - Strapi, Tina CMS, Keystatic: platform-specific globals/paths only
+  - WordPress `/uploads/` rule: same-origin only (was matching partner logo URLs in unrelated JSON-LD)
+  - DatoCMS: dropped the `dato-cms` class-name match
+  - Drupal (medium confidence): added `Drupal.settings` as an alternative signal
+- Demoted `full-site` CMS classifications (not just `parked`) when Astro is confirmed — fixes false WordPress-full-site hits on Astro sites that are _about_ WordPress migration (e.g. a WP→Astro conversion tool)
+
+### Showcase PRs — astro.build fork
+
+- **PR #2494** — removed 7 sites confirmed migrated to Framer (`/_framer/` asset path, `__framer_*` globals), submitted and merged
+
 ## 2026-06-12 (continued)
 
 ### SEO, site naming, and layout
