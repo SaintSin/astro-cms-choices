@@ -302,7 +302,7 @@ const RULES: Rule[] = [
 		cms: "WordPress",
 		cmsType: "full-site",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*WordPress/i.test(html),
+		match: (html) => hasGeneratorTag(html, /WordPress/i),
 	},
 	{
 		cms: "WordPress",
@@ -337,7 +337,7 @@ const RULES: Rule[] = [
 		cms: "Ghost",
 		cmsType: "full-site",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Ghost/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Ghost/i),
 	},
 	{
 		cms: "Ghost",
@@ -356,7 +356,7 @@ const RULES: Rule[] = [
 		cms: "Drupal",
 		cmsType: "full-site",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Drupal/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Drupal/i),
 	},
 	{
 		cms: "Drupal",
@@ -368,31 +368,31 @@ const RULES: Rule[] = [
 		cms: "Joomla",
 		cmsType: "full-site",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Joomla/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Joomla/i),
 	},
 	{
 		cms: "Craft CMS",
 		cmsType: "full-site",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Craft CMS/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Craft CMS/i),
 	},
 	{
 		cms: "Kirby",
 		cmsType: "full-site",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Kirby/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Kirby/i),
 	},
 	{
 		cms: "TYPO3",
 		cmsType: "full-site",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*TYPO3/i.test(html),
+		match: (html) => hasGeneratorTag(html, /TYPO3/i),
 	},
 	{
 		cms: "Statamic",
 		cmsType: "full-site",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Statamic/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Statamic/i),
 	},
 
 	// ── Page builders / hosted platforms ──────────────────────────────────
@@ -400,14 +400,14 @@ const RULES: Rule[] = [
 		cms: "Webflow",
 		cmsType: "page-builder",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Webflow/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Webflow/i),
 	},
 	{
 		cms: "Webflow",
 		cmsType: "page-builder",
 		confidence: "high",
-		// Platform-specific meta tags Webflow injects on every page
-		match: (html) => /<meta[^>]+name="wf-(?:page|site)"/i.test(html),
+		// Webflow sets these as attributes on <html>, not a meta tag
+		match: (html) => /data-wf-(?:page|site)=/i.test(html),
 	},
 	{
 		cms: "Webflow",
@@ -419,13 +419,13 @@ const RULES: Rule[] = [
 		cms: "Squarespace",
 		cmsType: "page-builder",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Squarespace/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Squarespace/i),
 	},
 	{
 		cms: "Wix",
 		cmsType: "page-builder",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Wix\.com/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Wix\.com/i),
 	},
 	{
 		cms: "Wix",
@@ -463,9 +463,7 @@ const RULES: Rule[] = [
 		cmsType: "page-builder",
 		confidence: "high",
 		match: (html) =>
-			/<meta[^>]+(?:name="generator"[^>]*content="HubSpot|name="hub-spot-id")/i.test(
-				html,
-			),
+			hasGeneratorTag(html, /HubSpot/i) || /name="hub-spot-id"/i.test(html),
 	},
 	{
 		cms: "HubSpot",
@@ -481,7 +479,7 @@ const RULES: Rule[] = [
 		cms: "Starlight",
 		cmsType: "static-gen",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Starlight/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Starlight/i),
 	},
 
 	// ── Static site generators (useful signal even if not a "CMS") ─────────
@@ -489,25 +487,25 @@ const RULES: Rule[] = [
 		cms: "Hugo",
 		cmsType: "static-gen",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Hugo/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Hugo/i),
 	},
 	{
 		cms: "Eleventy",
 		cmsType: "static-gen",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Eleventy/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Eleventy/i),
 	},
 	{
 		cms: "Jekyll",
 		cmsType: "static-gen",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Jekyll/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Jekyll/i),
 	},
 	{
 		cms: "Gatsby",
 		cmsType: "static-gen",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Gatsby/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Gatsby/i),
 	},
 	{
 		cms: "Gatsby",
@@ -520,19 +518,19 @@ const RULES: Rule[] = [
 		cms: "Hexo",
 		cmsType: "static-gen",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Hexo/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Hexo/i),
 	},
 	{
 		cms: "VitePress",
 		cmsType: "static-gen",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*VitePress/i.test(html),
+		match: (html) => hasGeneratorTag(html, /VitePress/i),
 	},
 	{
 		cms: "Umbraco",
 		cmsType: "full-site",
 		confidence: "high",
-		match: (html) => /<meta[^>]+generator[^>]*Umbraco/i.test(html),
+		match: (html) => hasGeneratorTag(html, /Umbraco/i),
 	},
 
 	// ── JS frameworks (not CMSs, but indicate the site is no longer Astro) ──

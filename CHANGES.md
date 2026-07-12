@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-07-12
+
+### Detection — attribute-order bugs ported back from `astralcoders.com`
+
+- `scripts/detect-cms.ts`'s rule engine was ported into `astralcoders.com` as a live single-URL checker; two bugs found and fixed there are now ported back so the next `pnpm detect` scan picks them up
+- Fixed 20 generator-meta-tag rules (WordPress, Ghost, Drupal, Joomla, Craft CMS, Kirby, TYPO3, Statamic, Webflow, Squarespace, Wix, HubSpot, Starlight, Hugo, Eleventy, Jekyll, Gatsby, Hexo, VitePress, Umbraco) that used an attribute-order-sensitive regex (`/<meta[^>]+generator[^>]*NAME/i`) requiring `generator` to appear before the CMS name — failed on any site whose HTML has `content` before `name` (e.g. webflow.com ships `<meta content="Webflow" name="generator"/>`). Switched all of them to the existing order-agnostic `hasGeneratorTag()` helper, previously only used by Astro/Starlight detection. HubSpot's compound rule split into `hasGeneratorTag(html, /HubSpot/i) || /name="hub-spot-id"/i.test(html)`
+- Fixed Webflow's `wf-page`/`wf-site` rule: was checking for a meta tag (`/<meta[^>]+name="wf-(?:page|site)"/i`) that Webflow doesn't emit — it actually sets `data-wf-page`/`data-wf-site` as attributes on `<html>`. Now `/data-wf-(?:page|site)=/i`
+- Verified against live sites while building the original fix: `webflow.com` (was `Unknown`, now correctly `Webflow`/`page-builder`/`high`), `wordpress.org` (unaffected — already had a non-meta fallback path), `astralcoders.com` and `curryphuket.com` (both correctly Astro, no CMS)
+
 ## 2026-07-09
 
 ### Home page performance — PSI 80 → 100/100/100/100 (desktop), 98 mobile
