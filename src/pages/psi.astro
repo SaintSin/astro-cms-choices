@@ -9,7 +9,7 @@ import Database from "better-sqlite3";
 const meta = {
 	title: "Lighthouse Scores — Astro Showcase | What CMS? How Fast?",
 	description:
-		"PageSpeed Insights Lighthouse scores — performance, accessibility, best practices, and SEO — for confirmed Astro showcase sites on mobile and desktop.",
+		"PageSpeed Insights Lighthouse scores — performance, accessibility, best practices, SEO, and Agentic Browsing — for confirmed Astro showcase sites on mobile and desktop.",
 	imageOG: "og-psi.png",
 	altOG:
 		"Lighthouse Scores — 2,117 mobile tested, 1,004 mobile perf ≥90, 1,708 desktop perf ≥90",
@@ -57,10 +57,14 @@ try {
         m.accessibility AS m_a11y,
         m.best_practices AS m_bp,
         m.seo           AS m_seo,
+        m.agentic_passed     AS m_agentic_passed,
+        m.agentic_applicable AS m_agentic_applicable,
         d.performance   AS d_perf,
         d.accessibility AS d_a11y,
         d.best_practices AS d_bp,
-        d.seo           AS d_seo
+        d.seo           AS d_seo,
+        d.agentic_passed     AS d_agentic_passed,
+        d.agentic_applicable AS d_agentic_applicable
       FROM sites s
       JOIN scan_results sr ON sr.site_id = s.id
         AND sr.scan_id = ?
@@ -143,6 +147,41 @@ function scoreClass800(v: number | null): string {
 	if (v >= 400) return "mid";
 	return "poor";
 }
+
+// Agentic Browsing is shown as "passed/applicable" (PSI's own convention —
+// most of its audits, like WebMCP tools or llms.txt, are notApplicable unless
+// the site implements that feature, so a 0-100 score would be misleading).
+function agenticLabel(
+	passed: number | null,
+	applicable: number | null,
+): string {
+	if (passed === null || applicable === null || applicable === 0) return "—";
+	return `${passed}/${applicable}`;
+}
+
+function agenticClass(
+	passed: number | null,
+	applicable: number | null,
+): string {
+	if (passed === null || applicable === null || applicable === 0) return "";
+	const ratio = passed / applicable;
+	if (ratio === 1) return "good";
+	if (ratio >= 0.5) return "mid";
+	return "poor";
+}
+
+function agenticSortValue(
+	passed: number | null,
+	applicable: number | null,
+): number | null {
+	if (passed === null || applicable === null || applicable === 0) return null;
+	// Ratio alone ties "2/2" and "3/3" at exactly 1 — break ties by applicable
+	// count so a fuller pass (more audits, all passing) ranks higher. The
+	// epsilon is far smaller than the gap between any two distinct ratios
+	// with denominators this small (max applicable is 6), so it only ever
+	// affects genuine ties.
+	return passed / applicable + applicable * 0.0001;
+}
 ---
 
 <Layout metaData={meta}>
@@ -200,16 +239,16 @@ function scoreClass800(v: number | null): string {
         <colgroup>
           <col class="col-site" />
           <col class="col-ver" />
-          <col class="col-perf" /><col class="col-a11y" /><col class="col-bp" /><col class="col-seo" /><col class="col-total" />
-          <col class="col-perf" /><col class="col-a11y" /><col class="col-bp" /><col class="col-seo" /><col class="col-total" />
+          <col class="col-perf" /><col class="col-a11y" /><col class="col-bp" /><col class="col-seo" /><col class="col-total" /><col class="col-agentic" />
+          <col class="col-perf" /><col class="col-a11y" /><col class="col-bp" /><col class="col-seo" /><col class="col-total" /><col class="col-agentic" />
           <col class="col-total800" />
         </colgroup>
         <thead>
           <tr>
             <th class="sortable col-site" data-col="title">Site</th>
             <th class="sortable col-ver" data-col="version">Astro</th>
-            <th class="col-group-header" colspan="5">Mobile</th>
-            <th class="col-group-header" colspan="5">Desktop</th>
+            <th class="col-group-header" colspan="6">Mobile</th>
+            <th class="col-group-header" colspan="6">Desktop</th>
             <th class="col-group-header col-group-total">/ 800</th>
           </tr>
           <tr class="subheader">
@@ -220,11 +259,13 @@ function scoreClass800(v: number | null): string {
             <th class="sortable metric-th col-bp"      data-col="m_bp">BP</th>
             <th class="sortable metric-th col-seo"     data-col="m_seo">SEO</th>
             <th class="sortable metric-th col-total"   data-col="m_total">/ 400</th>
+            <th class="sortable metric-th col-agentic" data-col="m_agentic" title="Agentic Browsing — audits passed / applicable">Agentic</th>
             <th class="sortable metric-th col-perf"    data-col="d_perf">Perf</th>
             <th class="sortable metric-th col-a11y"    data-col="d_a11y">A11y</th>
             <th class="sortable metric-th col-bp"      data-col="d_bp">BP</th>
             <th class="sortable metric-th col-seo"     data-col="d_seo">SEO</th>
             <th class="sortable metric-th col-total"   data-col="d_total">/ 400</th>
+            <th class="sortable metric-th col-agentic" data-col="d_agentic" title="Agentic Browsing — audits passed / applicable">Agentic</th>
             <th class="sortable metric-th col-total800" data-col="total_800">/ 800</th>
           </tr>
         </thead>
@@ -243,11 +284,13 @@ function scoreClass800(v: number | null): string {
               data-m_bp={s.m_bp ?? ""}
               data-m_seo={s.m_seo ?? ""}
               data-m_total={mTotal ?? ""}
+              data-m_agentic={agenticSortValue(s.m_agentic_passed, s.m_agentic_applicable) ?? ""}
               data-d_perf={s.d_perf ?? ""}
               data-d_a11y={s.d_a11y ?? ""}
               data-d_bp={s.d_bp ?? ""}
               data-d_seo={s.d_seo ?? ""}
               data-d_total={dTotal ?? ""}
+              data-d_agentic={agenticSortValue(s.d_agentic_passed, s.d_agentic_applicable) ?? ""}
               data-total_800={t800 ?? ""}
             >
               <td class="col-site">
@@ -261,11 +304,13 @@ function scoreClass800(v: number | null): string {
               <td class={`col-bp   score ${scoreClass(s.m_bp)}`}>{s.m_bp ?? "—"}</td>
               <td class={`col-seo  score ${scoreClass(s.m_seo)}`}>{s.m_seo ?? "—"}</td>
               <td class={`col-total score ${scoreClass400(mTotal)}`}>{mTotal ?? "—"}</td>
+              <td class={`col-agentic score ${agenticClass(s.m_agentic_passed, s.m_agentic_applicable)}`}>{agenticLabel(s.m_agentic_passed, s.m_agentic_applicable)}</td>
               <td class={`col-perf score ${scoreClass(s.d_perf)}`}>{s.d_perf ?? "—"}</td>
               <td class={`col-a11y score ${scoreClass(s.d_a11y)}`}>{s.d_a11y ?? "—"}</td>
               <td class={`col-bp   score ${scoreClass(s.d_bp)}`}>{s.d_bp ?? "—"}</td>
               <td class={`col-seo  score ${scoreClass(s.d_seo)}`}>{s.d_seo ?? "—"}</td>
               <td class={`col-total score ${scoreClass400(dTotal)}`}>{dTotal ?? "—"}</td>
+              <td class={`col-agentic score ${agenticClass(s.d_agentic_passed, s.d_agentic_applicable)}`}>{agenticLabel(s.d_agentic_passed, s.d_agentic_applicable)}</td>
               <td class={`col-total800 score ${scoreClass800(t800)}`}>{t800 ?? "—"}</td>
             </tr>
             );
@@ -286,10 +331,11 @@ function scoreClass800(v: number | null): string {
   .col-site  { width: 28ch; }
   .col-ver   { width: 7ch; }
   .col-perf, .col-a11y, .col-bp, .col-seo { width: 6ch; }
-  .col-total { width: 8ch; }
-  .col-total800 { width: 8ch; }
+  .col-agentic { width: 9ch; } /* fits "Agentic ⇅" sort control */
+  .col-total { width: 6ch; }
+  .col-total800 { width: 6ch; }
 
-  .col-group-header { width: 32ch; /* 4 × 6ch + 1 × 8ch */ }
+  .col-group-header { width: 39ch; /* 4 × 6ch + 6ch total + 9ch agentic */ }
 
   .col-group-total {
     width: 8ch;
@@ -298,11 +344,11 @@ function scoreClass800(v: number | null): string {
 
   .metric-th { text-align: right; }
 
-  /* Group dividers — desktop starts at col 8, /800 at col 13 */
-  .psi-table td:nth-child(8),
-  .psi-table th:nth-child(8),
-  .psi-table td:nth-child(13),
-  .psi-table th:nth-child(13) {
+  /* Group dividers — desktop starts at col 9, /800 at col 15 */
+  .psi-table td:nth-child(9),
+  .psi-table th:nth-child(9),
+  .psi-table td:nth-child(15),
+  .psi-table th:nth-child(15) {
     border-inline-start: 2px solid var(--gray-3);
   }
 

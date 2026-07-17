@@ -98,13 +98,14 @@ pnpm crux -- --dry-run                # print what would be fetched, write nothi
 
 ### `pnpm psi` — PageSpeed Insights
 
-Fetches Lighthouse scores (performance, accessibility, best-practices, SEO) plus lab and field metrics (LCP, CLS, INP, TBT) for both mobile and desktop strategies. Rate-limited to ~85 req/min. Estimated ~100 min for a full run (~2,300 sites × 2 strategies).
+Fetches Lighthouse scores (performance, accessibility, best-practices, SEO, Agentic Browsing) plus lab and field metrics (LCP, CLS, INP, TBT) for both mobile and desktop strategies. A PSI request blocks for the full remote Lighthouse run (~22s observed) rather than returning quickly, so concurrency — not the inter-request delay — is what determines wall-clock time. Runs 2 workers per strategy lane by default (4 concurrent requests total), well under Google's rate limit. Estimated ~25 min for a full run (~2,300 sites × 2 strategies) at the default concurrency.
 
 Requires `PAGESPEED_API_KEY` in `.env`.
 
 ```bash
 pnpm psi                              # fetch both strategies for every site
 pnpm psi -- --strategy=mobile        # mobile | desktop (default: both)
+pnpm psi -- --concurrency=3          # workers per strategy lane (default: 2 — 4 total for both strategies)
 pnpm psi -- --new-only               # skip site × strategy combos already fetched (success or error)
 pnpm psi -- --errors-only            # retry only combos that previously errored
 pnpm psi -- --limit=100              # cap number of sites (testing)

@@ -15,6 +15,7 @@
 //   node scripts/psi.mjs --errors-only         # retry only site × strategy combos that previously errored
 //   node scripts/psi.mjs --limit=100           # cap number of sites (for testing)
 //   node scripts/psi.mjs --url=https://example.com/   # run a single site only
+//   node scripts/psi.mjs --concurrency=3       # workers per strategy lane (default: 2 — 4 total for both strategies)
 //   node scripts/psi.mjs --dry-run
 
 import { readFileSync } from "node:fs";
@@ -37,10 +38,14 @@ function getArg(name) {
 const strategyFilter = getArg("--strategy");
 const limitArg = getArg("--limit");
 const urlFilter = getArg("--url");
+const concurrencyArg = getArg("--concurrency");
 const dryRun = args.includes("--dry-run");
 const newOnly = args.includes("--new-only");
 const errorsOnly = args.includes("--errors-only");
 const DELAY_MS = 700;
+// Workers per strategy lane — default 2, so both strategies together run
+// 4 requests concurrently (2 mobile + 2 desktop).
+const WORKERS_PER_STRATEGY = concurrencyArg ? Number(concurrencyArg) : 2;
 
 // ── .env loader ───────────────────────────────────────────────────────────────
 
@@ -98,6 +103,9 @@ db.exec(`
 		accessibility  INTEGER,
 		best_practices INTEGER,
 		seo            INTEGER,
+		agentic_score      INTEGER,
+		agentic_passed     INTEGER,
+		agentic_applicable INTEGER,
 		cwv_category   TEXT,
 		lab_lcp        TEXT,
 		lab_cls        TEXT,
@@ -118,6 +126,19 @@ db.exec(`
 for (const col of ["finished_at TEXT", "duration_ms INTEGER"]) {
 	try {
 		db.exec(`ALTER TABLE psi_runs ADD COLUMN ${col}`);
+	} catch {
+		/* already exists */
+	}
+}
+
+// Add Agentic Browsing columns to existing DBs
+for (const col of [
+	"agentic_score INTEGER",
+	"agentic_passed INTEGER",
+	"agentic_applicable INTEGER",
+]) {
+	try {
+		db.exec(`ALTER TABLE psi_results ADD COLUMN ${col}`);
 	} catch {
 		/* already exists */
 	}
@@ -162,11 +183,12 @@ const insertResult = db.prepare(`
 	INSERT INTO psi_results (
 		run_id, site_id, fetched_at, strategy, status,
 		performance, accessibility, best_practices, seo,
+		agentic_score, agentic_passed, agentic_applicable,
 		cwv_category, lab_lcp, lab_cls, lab_tbt,
 		field_lcp, field_inp, field_cls,
 		field_lcp_cat, field_inp_cat, field_cls_cat,
 		error
-	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
 
 // ── PSI parser ────────────────────────────────────────────────────────────────
@@ -180,6 +202,29 @@ function metric(audits, id) {
 	return audits?.[id]?.displayValue ?? null;
 }
 
+// PSI's own UI shows Agentic Browsing as "passed/applicable" (e.g. "3/3", "1/3")
+// rather than a 0-100 score — most of its audits (WebMCP tools, llms.txt) are
+// notApplicable unless the site actually implements that feature, so a
+// percentage would be misleading. "Passed" follows Lighthouse's own green/red
+// threshold (score >= 0.9), same as the checkmarks in a Lighthouse report.
+function agenticBrowsing(cats, audits) {
+	const cat = cats?.["agentic-browsing"];
+	if (!cat) return { score: null, passed: null, applicable: null };
+	let passed = 0;
+	let applicable = 0;
+	for (const ref of cat.auditRefs) {
+		const a = audits?.[ref.id];
+		if (!a || a.scoreDisplayMode === "notApplicable") continue;
+		applicable++;
+		if (a.score != null && a.score >= 0.9) passed++;
+	}
+	return {
+		score: cat.score != null ? Math.round(cat.score * 100) : null,
+		passed,
+		applicable,
+	};
+}
+
 // fallow-ignore-next-line complexity
 function parsePsi(json) {
 	const lh = json.lighthouseResult;
@@ -187,6 +232,7 @@ function parsePsi(json) {
 	const audits = lh?.audits;
 	const cwvMet = json.loadingExperience?.metrics;
 	const cwvCat = json.loadingExperience?.overall_category ?? null;
+	const agentic = agenticBrowsing(cats, audits);
 
 	return {
 		status: "success",
@@ -194,6 +240,9 @@ function parsePsi(json) {
 		accessibility: score(cats, "accessibility"),
 		bestPractices: score(cats, "best-practices"),
 		seo: score(cats, "seo"),
+		agenticScore: agentic.score,
+		agenticPassed: agentic.passed,
+		agenticApplicable: agentic.applicable,
 		cwvCategory: cwvCat,
 		labLcp: metric(audits, "largest-contentful-paint"),
 		labCls: metric(audits, "cumulative-layout-shift"),
@@ -267,21 +316,33 @@ if (errorsOnly) {
 
 const skipped = sites.length * strategies.length - jobs.length;
 
+// One queue per strategy — WORKERS_PER_STRATEGY concurrent workers each pull
+// from their own queue, so mobile and desktop always run in parallel rather
+// than one strategy's workers sitting idle once the other queue empties.
+const queues = new Map(strategies.map((s) => [s, []]));
+for (const job of jobs) queues.get(job.strategy).push(job);
+const totalWorkers = strategies.length * WORKERS_PER_STRATEGY;
+const maxQueueLen = Math.max(...[...queues.values()].map((q) => q.length));
+
 console.log(`\nAstro CMS Detector — PageSpeed Insights`);
 console.log("=".repeat(60));
-console.log(`  Scan:       #${latestScan.id}`);
-console.log(`  Sites:      ${sites.length} confirmed Astro`);
-console.log(`  Strategies: ${strategies.join(", ")}`);
+console.log(`  Scan:        #${latestScan.id}`);
+console.log(`  Sites:       ${sites.length} confirmed Astro`);
+console.log(`  Strategies:  ${strategies.join(", ")}`);
 console.log(
-	`  Total jobs: ${jobs.length}${newOnly && skipped ? ` (${skipped} already tested, skipped)` : ""}`,
+	`  Concurrency: ${WORKERS_PER_STRATEGY} workers × ${strategies.length} strategies = ${totalWorkers} total`,
 );
-// ~22s per job observed (PSI runs Lighthouse remotely; delay is only part of it)
+console.log(
+	`  Total jobs:  ${jobs.length}${newOnly && skipped ? ` (${skipped} already tested, skipped)` : ""}`,
+);
+// ~22s per job observed (PSI runs Lighthouse remotely — a request blocks for
+// the full remote run, so concurrency shortens wall time, not a smaller delay)
 const EST_SECS_PER_JOB = 22;
 console.log(
-	`  Est. time:  ~${Math.round((jobs.length * EST_SECS_PER_JOB) / 60)} min`,
+	`  Est. time:   ~${Math.round((Math.ceil(maxQueueLen / WORKERS_PER_STRATEGY) * EST_SECS_PER_JOB) / 60)} min`,
 );
 console.log(
-	`  Mode:       ${dryRun ? "DRY RUN" : errorsOnly ? "ERRORS ONLY" : newOnly ? "NEW ONLY" : "APPLY"}\n`,
+	`  Mode:        ${dryRun ? "DRY RUN" : errorsOnly ? "ERRORS ONLY" : newOnly ? "NEW ONLY" : "APPLY"}\n`,
 );
 
 if (dryRun) {
@@ -296,20 +357,23 @@ const startTime = Date.now();
 const startedAt = new Date(startTime).toISOString();
 const runId = insertRun(startedAt, latestScan.id);
 let success = 0,
-	errors = 0;
+	errors = 0,
+	completed = 0;
+const totalDigits = String(jobs.length).length;
 
-for (let i = 0; i < jobs.length; i++) {
-	const { site, strategy } = jobs[i];
-	const progress = `[${String(i + 1).padStart(String(jobs.length).length)}/${jobs.length}]`;
+// better-sqlite3 is synchronous and Node is single-threaded, so concurrent
+// workers interleave via async I/O (the fetch) but never race on the shared
+// `insertResult` statement — each .run() call completes atomically before
+// the next worker gets a turn.
+async function runJob({ site, strategy }) {
+	const progress = `[${String(++completed).padStart(totalDigits)}/${jobs.length}]`;
 	const label = `${site.hostname.padEnd(45)} ${strategy.padEnd(8)}`;
-	process.stdout.write(`  ${progress} ${label} `);
-
 	const fetchedAt = new Date().toISOString();
 
 	try {
 		const qs =
 			`url=${encodeURIComponent(site.url)}&strategy=${strategy}&key=${API_KEY}` +
-			`&category=performance&category=accessibility&category=best-practices&category=seo`;
+			`&category=performance&category=accessibility&category=best-practices&category=seo&category=agentic-browsing`;
 		const res = await fetch(
 			`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${qs}`,
 		);
@@ -328,6 +392,9 @@ for (let i = 0; i < jobs.length; i++) {
 			data.accessibility,
 			data.bestPractices,
 			data.seo,
+			data.agenticScore,
+			data.agenticPassed,
+			data.agenticApplicable,
 			data.cwvCategory,
 			data.labLcp,
 			data.labCls,
@@ -340,22 +407,30 @@ for (let i = 0; i < jobs.length; i++) {
 			data.fieldClsCat,
 			null,
 		);
+		const agenticStr =
+			data.agenticApplicable != null
+				? `${data.agenticPassed}/${data.agenticApplicable}`
+				: "—";
 		console.log(
-			`Perf: ${String(data.performance ?? "—").padStart(3)}  ` +
+			`  ${progress} ${label} Perf: ${String(data.performance ?? "—").padStart(3)}  ` +
 				`A11y: ${String(data.accessibility ?? "—").padStart(3)}  ` +
 				`SEO: ${String(data.seo ?? "—").padStart(3)}  ` +
+				`Agentic: ${agenticStr.padStart(3)}  ` +
 				`CWV: ${data.cwvCategory ?? "—"}`,
 		);
 		success++;
 	} catch (err) {
 		const msg = err.message.slice(0, 80);
-		console.log(`ERROR: ${msg}`);
+		console.log(`  ${progress} ${label} ERROR: ${msg}`);
 		insertResult.run(
 			runId,
 			site.id,
 			fetchedAt,
 			strategy,
 			"error",
+			null,
+			null,
+			null,
 			null,
 			null,
 			null,
@@ -377,6 +452,22 @@ for (let i = 0; i < jobs.length; i++) {
 
 	await delay(DELAY_MS);
 }
+
+async function runQueue(queue) {
+	let job = queue.shift();
+	while (job) {
+		await runJob(job);
+		job = queue.shift();
+	}
+}
+
+const workers = [];
+for (const queue of queues.values()) {
+	for (let i = 0; i < WORKERS_PER_STRATEGY; i++) {
+		workers.push(runQueue(queue));
+	}
+}
+await Promise.all(workers);
 
 const finishedAt = new Date().toISOString();
 const durationMs = Date.now() - startTime;

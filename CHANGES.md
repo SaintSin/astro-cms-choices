@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-07-16
+
+### PSI — Agentic Browsing category support
+
+- Google's PageSpeed Insights API added a new Lighthouse category, `AGENTIC_BROWSING` (confirmed live via the `$discovery/rest?version=v5` doc and a direct API call) — covers `agent-accessibility-tree`, three `webmcp-*` audits, `cumulative-layout-shift`, and `llms-txt`
+- `scripts/psi.mjs`: added `agentic-browsing` to the requested categories; new `agenticBrowsing()` parser counts passed vs. applicable audits (Lighthouse's own ≥0.9 "green" threshold), skipping `notApplicable` ones (most sites won't implement WebMCP forms, so those 3 audits are usually N/A). New columns `agentic_score`, `agentic_passed`, `agentic_applicable` on `psi_results`, migration-safe via the existing `ALTER TABLE` try/catch pattern
+- Displayed as `passed/applicable` (e.g. `2/2`, `1/3`) rather than a 0-100 score — matches how PSI's own UI shows this category, since most of its audits are conditionally not-applicable and a percentage would be misleading. `src/pages/psi.astro` gets a new sortable "Agentic" column in both the Mobile and Desktop groups, colour-coded the same as the other score columns; intentionally excluded from the existing `/800` total (it's not a comparable 0-100 score)
+- Verified live against `astro-what-cms.netlify.app`: `2/2` on both strategies, green, sorts correctly; historical rows correctly show `—` until re-scanned
+
+### PSI — concurrent fetching (was ~1 day for a full run)
+
+- Root cause: `psi.mjs` fetched sites strictly sequentially. A single PSI request blocks for the full remote Lighthouse run (~22s observed) — the 700ms inter-request delay was never the bottleneck, sequential execution was (~4,600 jobs × 22s ≈ a full day, matching the reported runtime)
+- Added `--concurrency=<N>` (default 2): jobs are split into one queue per strategy, each strategy gets its own pool of `N` workers pulling from that queue, so mobile and desktop always run in parallel rather than one strategy idling once the other's queue empties. Default is 2 workers × 2 strategies = 4 concurrent requests, matching what was asked for
+- better-sqlite3 is synchronous and Node is single-threaded, so the concurrent workers never race on the shared `insertResult` statement — each `.run()` call completes atomically before the next worker's turn. Verified via a live 6-site test run: 12 jobs, visibly interleaved completion order (proof of real concurrency, not relabeled sequential output), 12/12 rows written with zero collisions, 1.3 min vs. the ~4.4 min the old sequential estimate would predict
+- Startup banner now prints `Concurrency: N workers × M strategies = total`, and the time estimate accounts for the per-strategy queue length divided by worker count rather than the flat job count
+- README: full-run estimate corrected from ~100 min (sequential) to ~25 min (default 4-way concurrency)
+
 ## 2026-07-12
 
 ### Detection — attribute-order bugs ported back from `astralcoders.com`
