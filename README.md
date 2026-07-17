@@ -41,24 +41,25 @@ pnpm dev      # start dev server
 
 ## Commands
 
-| Command             | Action                                                        |
-| :------------------ | :------------------------------------------------------------ |
-| `pnpm dev`          | Start dev server at `localhost:4321`                          |
-| `pnpm detect`       | Scan all showcase sites and write `src/data/cms-results.json` |
-| `pnpm crux`         | Fetch CrUX field data for all confirmed Astro sites           |
-| `pnpm psi`          | Fetch PageSpeed Insights scores for all confirmed Astro sites |
-| `pnpm dns-check`    | Triage persistently-erroring sites via DoH + HTTP HEAD        |
-| `pnpm make-prs`     | Prepare batched showcase removal PR branches                  |
-| `pnpm db:init`      | Create `.scan-history.db` and all tables (idempotent)         |
-| `pnpm db:report`    | Query scan history for trends and anomalies                   |
-| `pnpm build`        | Build production site                                         |
-| `pnpm preview`      | Preview the production build locally                          |
-| `pnpm check`        | Lint and format with Biome (`.astro`/`.ts`/`.js`)             |
-| `pnpm fmt`          | Format Markdown/MDX with oxfmt (Biome doesn't cover these)    |
-| `pnpm deploy`       | Deploy to Netlify production                                  |
-| `pnpm deploy:draft` | Deploy a draft URL (no prod traffic)                          |
-| `pnpm clean`        | Remove `dist` and `.astro` cache                              |
-| `pnpm purge`        | Remove `dist`, `.astro`, `.netlify`, and `node_modules`       |
+| Command                  | Action                                                        |
+| :----------------------- | :------------------------------------------------------------ |
+| `pnpm dev`               | Start dev server at `localhost:4321`                          |
+| `pnpm detect`            | Scan all showcase sites and write `src/data/cms-results.json` |
+| `pnpm crux`              | Fetch CrUX field data for all confirmed Astro sites           |
+| `pnpm psi`               | Fetch PageSpeed Insights scores for all confirmed Astro sites |
+| `pnpm dns-check`         | Triage persistently-erroring sites via DoH + HTTP HEAD        |
+| `pnpm make-prs`          | Prepare batched showcase removal PR branches                  |
+| `pnpm generate:og-cards` | Regenerate social-share OG card PNGs with live stats          |
+| `pnpm db:init`           | Create `.scan-history.db` and all tables (idempotent)         |
+| `pnpm db:report`         | Query scan history for trends and anomalies                   |
+| `pnpm build`             | Build production site                                         |
+| `pnpm preview`           | Preview the production build locally                          |
+| `pnpm check`             | Lint and format with Biome (`.astro`/`.ts`/`.js`)             |
+| `pnpm fmt`               | Format Markdown/MDX with oxfmt (Biome doesn't cover these)    |
+| `pnpm deploy`            | Deploy to Netlify production                                  |
+| `pnpm deploy:draft`      | Deploy a draft URL (no prod traffic)                          |
+| `pnpm clean`             | Remove `dist` and `.astro` cache                              |
+| `pnpm purge`             | Remove `dist`, `.astro`, `.netlify`, and `node_modules`       |
 
 ### `pnpm detect` — CMS scanner
 
@@ -122,6 +123,17 @@ pnpm make-prs                       # prepare branches for all gone domains (bat
 pnpm make-prs -- --batch-size=25    # smaller batches
 pnpm make-prs -- --batch=2          # only process batch 2
 pnpm make-prs -- --dry-run          # print plan without touching git
+```
+
+### `pnpm generate:og-cards` — regenerate social-share images
+
+Renders the three OG card templates (`scripts/og-templates/og-card.html`, `og-card-crux.html`, `og-card-psi.html`) with live stats from `cms-results.json` and `.scan-history.db`, using Playwright to screenshot each at 1200×630 and write the PNG to `public/images/social/`. Templates live outside `public/` so they're never shipped in the build output — the script reads them directly, they're never served over HTTP. Each template has `{{TOKEN}}` placeholders — the script is the only thing that should edit the numbers; edit the surrounding markup/CSS by hand.
+
+Requires the Playwright Chromium browser (`npx playwright install chromium`, one-time).
+
+```bash
+pnpm generate:og-cards               # regenerate all 3 cards
+pnpm generate:og-cards -- --card=psi # home | crux | psi
 ```
 
 ### `pnpm dns-check` — triage error sites

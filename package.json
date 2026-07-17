@@ -26,6 +26,7 @@
 		"crux": "node scripts/crux.mjs",
 		"dns-check": "node scripts/dns-check.mjs",
 		"make-prs": "node scripts/make-removal-prs.mjs",
+		"generate:og-cards": "node scripts/generate-og-cards.mjs",
 		"clean": "rm -rf dist .astro",
 		"purge": "rm -rf dist .astro .netlify node_modules",
 		"deploy": "netlify deploy --prod --dir dist --functions netlify/functions",
@@ -38,6 +39,7 @@
 		"@iconify-json/ri": "^1.2.10",
 		"astro": "^7.1.0",
 		"astro-iconify": "^1.3.1",
+		"astro-llms-md": "^2.2.2",
 		"astro-robots-txt": "^1.0.0",
 		"chart.js": "^4.5.1",
 		"i": "^0.3.7",
@@ -50,6 +52,7 @@
 		"@types/better-sqlite3": "^7.6.13",
 		"better-sqlite3": "^12.11.1",
 		"oxfmt": "^0.59.0",
+		"playwright": "^1.61.1",
 		"postcss-jit-props": "^1.0.16"
 	},
 	"engines": {

@@ -211,6 +211,11 @@
 				color: #c4b5fd;
 				border: 1px solid rgba(139, 92, 246, 0.25);
 			}
+			.pill-cyan {
+				background: rgba(34, 211, 238, 0.12);
+				color: #67e8f9;
+				border: 1px solid rgba(34, 211, 238, 0.25);
+			}
 		</style>
 	</head>
 	<body>
@@ -230,36 +235,37 @@
 				<div class="title">Lighthouse Scores</div>
 				<div class="subtitle">
 					PageSpeed Insights scores for confirmed Astro sites — mobile and
-					desktop performance, accessibility, best practices, and SEO.
+					desktop performance, accessibility, best practices, SEO, and
+					Agentic Browsing.
 				</div>
 			</div>
 
 			<div class="stats">
 				<div class="stat">
-					<div class="stat-value">2,117</div>
+					<div class="stat-value">{{MOBILE_TESTED}}</div>
 					<div class="stat-label">Mobile tested</div>
 				</div>
 				<div class="stat">
-					<div class="stat-value">2,120</div>
+					<div class="stat-value">{{DESKTOP_TESTED}}</div>
 					<div class="stat-label">Desktop tested</div>
 				</div>
 				<div class="stat">
-					<div class="stat-value amber">1,004</div>
+					<div class="stat-value amber">{{MOBILE_PERF_HIGH}}</div>
 					<div class="stat-label">Mobile perf ≥ 90</div>
 				</div>
 				<div class="stat">
-					<div class="stat-value green">1,708</div>
+					<div class="stat-value green">{{DESKTOP_PERF_HIGH}}</div>
 					<div class="stat-label">Desktop perf ≥ 90</div>
 				</div>
 			</div>
 
-			<!-- Mobile perf score distribution: 1004 ≥90 / rest / low -->
+			<!-- Perf score distribution: desktop ≥90 / mobile ≥90 / remainder -->
 			<div class="bar-strip">
-				<div class="bar-segment" style="flex: 1708; background: #10b981"></div>
+				<div class="bar-segment" style="flex: {{DESKTOP_PERF_HIGH}}; background: #10b981"></div>
 				<!-- desktop ≥90 -->
-				<div class="bar-segment" style="flex: 1004; background: #f97316"></div>
+				<div class="bar-segment" style="flex: {{MOBILE_PERF_HIGH}}; background: #f97316"></div>
 				<!-- mobile ≥90 -->
-				<div class="bar-segment" style="flex: 408; background: #1e2a3a"></div>
+				<div class="bar-segment" style="flex: {{PSI_BAR_REMAINDER}}; background: #1e2a3a"></div>
 				<!-- remainder -->
 			</div>
 
@@ -270,6 +276,7 @@
 					<span class="pill pill-blue">Accessibility</span>
 					<span class="pill pill-green">Best Practices</span>
 					<span class="pill pill-purple">SEO</span>
+					<span class="pill pill-cyan">Agentic Browsing</span>
 				</div>
 			</div>
 		</div>

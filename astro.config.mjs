@@ -2,6 +2,7 @@
 
 import sitemap from "@astrojs/sitemap";
 import { defineConfig, fontProviders, svgoOptimizer } from "astro/config";
+import llmsTxt from "astro-llms-md";
 import robotsTxt from "astro-robots-txt";
 
 // ── Local admin review UI ──────────────────────────────────────────────────────
@@ -70,7 +71,13 @@ export default defineConfig({
 			weights: ["100 700"],
 		},
 	],
-	integrations: [sitemap(), robotsTxt()],
+	integrations: [
+		sitemap(),
+		llmsTxt({
+			generateMarkdown: true,
+		}),
+		robotsTxt(),
+	],
 	vite: {
 		plugins: [localAdminPlugin()],
 	},

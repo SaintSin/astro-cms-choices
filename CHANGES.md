@@ -17,6 +17,24 @@
 - Startup banner now prints `Concurrency: N workers × M strategies = total`, and the time estimate accounts for the per-strategy queue length divided by worker count rather than the flat job count
 - README: full-run estimate corrected from ~100 min (sequential) to ~25 min (default 4-way concurrency)
 
+### `astro-llms-md` added
+
+- Installed `astro-llms-md@2.2.2` and wired it into `astro.config.mjs`, configured the same way as the `historyofphuket.com-astro` reference project (`llmsTxt({ generateMarkdown: true })`, positioned between `sitemap()` and `robotsTxt()`)
+- Verified via `pnpm build`: generates `dist/llms.txt`, `dist/llms-full.txt`, and one `.md` per page (index, insights, crux, psi — 404 excluded by the integration's default excludes) with no build-time issues despite the large PSI table
+- Fixed a stale site-count while in there: `index.astro`'s meta description and OG alt text said "2,600+" / "2,633 scanned, 2,133 confirmed" — corrected to the current "2,700+" / "2,732 scanned, 2,282 confirmed"
+
+### OG cards — Agentic Browsing, live stats, and a real generation script
+
+- `og-card-psi.html`: added a 5th pill and subtitle mention for Agentic Browsing (cyan, matching the colour already used for framework/agentic badges elsewhere), refreshed all four stat numbers and the bar-strip
+- `psi.astro`'s lead paragraph now links "Agentic Browsing" to `developer.chrome.com/docs/lighthouse/agentic-browsing/scoring`
+- Regenerating the actual PNG used to be a fully manual process (no script existed — the CHANGES.md history says the originals were "generated via Playwright screenshot" as a one-off). Built `scripts/generate-og-cards.mjs` to make this repeatable:
+  - All three `og-card*.html` files tokenized with `{{TOKEN}}` placeholders in place of hardcoded numbers (stat values and bar-strip `flex` values)
+  - The script computes live stats from `cms-results.json` (home card) and `.scan-history.db` (CrUX and PSI cards — reusing the same "latest run per site per strategy/form-factor" query pattern already established in `db-report.ts` and the page components), substitutes them into the HTML in memory, and renders with Playwright (`page.setContent()` + screenshot — no dev server needed) at the templates' native 1200×630
+  - Installed `playwright` as a proper devDependency (previously only ever pulled ad-hoc via `npx`) plus the Chromium browser binary
+  - Found and fixed a real bug while building it: the token substitution applied `.toLocaleString()` (comma-formatting) unconditionally, including inside `flex: {{TOKEN}}` CSS — `flex: 1,902` is invalid CSS and silently drops the flex-basis, which broke the PSI card's bar-strip (only the third/remainder segment rendered). Fixed with a first substitution pass targeting `flex: {{TOKEN}}` specifically (raw integer), before the general pass that comma-formats everything else (visible stat text)
+  - `pnpm generate:og-cards` (optionally `-- --card=home|crux|psi`) regenerates all three; verified visually — all three cards render correctly with current live numbers
+- Moved the three templates out of `public/` into `scripts/og-templates/`: they were being copied verbatim into `dist/` (Astro ships everything under `public/` as-is) and were publicly reachable at e.g. `/og-card-psi.html`, despite never being served over HTTP by anything — the generator script reads them directly via `readFileSync` + `page.setContent()`, not by navigating to a URL. `biome.json`'s `files.includes` updated with a `!scripts/og-templates` exclusion, since the `{{TOKEN}}` placeholder syntax isn't valid HTML and fails Biome's parser outright — a per-file `linter.enabled: false` override wasn't enough, since parse errors are reported before overrides apply; only a full `files.includes` exclusion skips parsing entirely. Verified: `pnpm build` no longer emits `og-card*.html` into `dist/`, `pnpm check` is clean, generator still works from the new path
+
 ## 2026-07-12
 
 ### Detection — attribute-order bugs ported back from `astralcoders.com`
