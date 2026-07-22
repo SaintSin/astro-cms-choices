@@ -12,6 +12,8 @@
 //   pnpm db:report -- --site example.com  — full history for one hostname
 //   pnpm db:report -- --decay             — Astro sites still on v4 or older
 //   pnpm db:report -- --lost-astro        — sites that migrated away from Astro, with PSI before/after
+//   pnpm db:report -- --fail-streak       — sites currently failing every attempt since their last success
+//   pnpm db:report -- --fail-streak --min 10  — raise the streak threshold (default: 5)
 //   pnpm db:report -- --all               — run every report
 
 import { existsSync } from "node:fs";
@@ -357,6 +359,56 @@ function reportLostAstro(db: ReturnType<typeof openDb>): void {
 	}
 }
 
+function reportFailStreak(db: ReturnType<typeof openDb>, min: number): void {
+	console.log(`\n${hr()}`);
+	console.log(`  FAIL STREAK — ${min}+ fetch failures since the last success`);
+	console.log(hr());
+
+	type StreakRow = {
+		hostname: string;
+		url: string;
+		consecutive_errors: number;
+		last_error: string | null;
+		last_checked: string | null;
+	};
+
+	const rows = db
+		.prepare<[number], StreakRow>(
+			`SELECT
+        s.hostname, s.url, s.consecutive_errors,
+        (SELECT sr.error_message FROM scan_results sr
+         WHERE sr.site_id = s.id AND sr.cms = 'Error'
+         ORDER BY sr.scan_id DESC LIMIT 1) AS last_error,
+        (SELECT sc.scanned_at FROM scan_results sr
+         JOIN scans sc ON sc.id = sr.scan_id
+         WHERE sr.site_id = s.id
+         ORDER BY sr.scan_id DESC LIMIT 1) AS last_checked
+      FROM sites s
+      WHERE s.consecutive_errors >= ?
+      ORDER BY s.consecutive_errors DESC, s.hostname`,
+		)
+		.all(min);
+
+	if (rows.length === 0) {
+		console.log(`  ✓ No sites with ${min}+ consecutive fetch failures.`);
+		return;
+	}
+
+	console.log(
+		`  ${rows.length} site(s) failing every attempt since their last success:\n`,
+	);
+
+	for (const r of rows) {
+		console.log(
+			`  ${r.hostname.padEnd(40)} ${String(r.consecutive_errors).padStart(4)} in a row`,
+		);
+		console.log(`    URL   : ${r.url}`);
+		if (r.last_error) console.log(`    Reason: ${r.last_error.slice(0, 80)}`);
+		if (r.last_checked) console.log(`    Last  : ${fmtDate(r.last_checked)}`);
+		console.log();
+	}
+}
+
 function reportSite(db: ReturnType<typeof openDb>, hostname: string): void {
 	console.log(`\n${hr()}`);
 	console.log(`  HISTORY — ${hostname}`);
@@ -502,6 +554,7 @@ const { values: args } = parseArgs({
 		changes: { type: "boolean", default: false },
 		decay: { type: "boolean", default: false },
 		"lost-astro": { type: "boolean", default: false },
+		"fail-streak": { type: "boolean", default: false },
 		all: { type: "boolean", default: false },
 		site: { type: "string" },
 		scans: { type: "string", default: "5" }, // look-back window for --errors
@@ -524,11 +577,13 @@ const runSummary =
 		!args.changes &&
 		!args.site &&
 		!args.decay &&
-		!args["lost-astro"]);
+		!args["lost-astro"] &&
+		!args["fail-streak"]);
 const runErrors = args.all || args.errors;
 const runChanges = args.all || args.changes;
 const runDecay = args.all || args.decay;
 const runLostAstro = args.all || args["lost-astro"];
+const runFailStreak = args.all || args["fail-streak"];
 const runSite = args.site;
 
 if (runSummary) reportSummary(db);
@@ -536,6 +591,7 @@ if (runErrors) reportErrors(db, Number(args.scans), Number(args.min));
 if (runChanges) reportChanges(db);
 if (runDecay) reportDecay(db);
 if (runLostAstro) reportLostAstro(db);
+if (runFailStreak) reportFailStreak(db, Number(args.min));
 if (runSite) reportSite(db, runSite);
 
 db.close();

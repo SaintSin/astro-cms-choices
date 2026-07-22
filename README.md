@@ -177,6 +177,8 @@ pnpm db:report -- --errors --min 5    # raise error threshold to 5
 pnpm db:report -- --changes           # CMS / Astro changes between last 2 scans
 pnpm db:report -- --decay             # Astro sites still on v4 or older
 pnpm db:report -- --lost-astro        # sites that migrated away from Astro, with PSI before/after
+pnpm db:report -- --fail-streak       # sites currently failing every attempt since their last success
+pnpm db:report -- --fail-streak --min 10  # raise the streak threshold (default: 5)
 pnpm db:report -- --site example.com  # full scan history for one hostname
 pnpm db:report -- --all               # run every report
 ```

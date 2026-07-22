@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-22
+
+### Persistent fetch-failure streak per site
+
+- Investigated whether `pnpm detect` logs a total count of attempts against unreachable domains — it didn't: no run-end summary, and no cumulative counter anywhere. The only prior visibility was `db:report --errors`, which only looks at a rolling window (default last 5 scans), not lifetime history
+- Ad-hoc query against the 59 scans on file turned up 818 domains with at least one error, 14,237 total wasted fetch attempts across them, and 189 domains that have errored in _every_ scan they've ever appeared in (some 57/57)
+- Added a real `consecutive_errors` column on `sites` (`scripts/db-utils.ts`) — increments on every `Error` result, resets to 0 on any success. One-time backfill computes each site's actual current streak from existing scan history on migration, so long-dead domains start accurately (e.g. 57) instead of at 0 and needing another 57 scans to "catch up"
+- Verified the write-time logic with a synthetic test against a throwaway DB copy (not the real one): simulated one more error (57 → 58), then a success (→ 0) — confirmed the increment/reset behaves exactly as intended, without needing a full multi-thousand-site `pnpm detect` run just to exercise two lines of logic
+- New `pnpm db:report -- --fail-streak` (`--min` to raise the threshold, default 5) lists sites currently failing every attempt since their last success, with the streak length, last error message, and last-checked date
+
 ## 2026-07-16
 
 ### PSI — Agentic Browsing category support

@@ -30,6 +30,17 @@ export function openDb(): Database.Database {
 // ---------------------------------------------------------------------------
 
 function initSchema(db: Database.Database): void {
+	// Migrate existing DBs that predate the consecutive_errors column, and
+	// backfill it from scan history so streaks start accurate rather than at 0.
+	try {
+		db.exec(
+			"ALTER TABLE sites ADD COLUMN consecutive_errors INTEGER NOT NULL DEFAULT 0",
+		);
+		backfillConsecutiveErrors(db);
+	} catch {
+		/* column already exists (or sites table doesn't exist yet — CREATE below handles that) */
+	}
+
 	db.exec(`
     -- One row per pnpm detect run
     CREATE TABLE IF NOT EXISTS scans (
@@ -46,12 +57,13 @@ function initSchema(db: Database.Database): void {
 
     -- One row per unique showcase URL — stable across scans
     CREATE TABLE IF NOT EXISTS sites (
-      id            INTEGER PRIMARY KEY AUTOINCREMENT,
-      url           TEXT NOT NULL UNIQUE,
-      hostname      TEXT NOT NULL,
-      first_scan_id INTEGER REFERENCES scans(id),
-      last_scan_id  INTEGER REFERENCES scans(id),
-      removed       INTEGER NOT NULL DEFAULT 0  -- 1 once dropped from showcase
+      id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+      url                TEXT NOT NULL UNIQUE,
+      hostname           TEXT NOT NULL,
+      first_scan_id      INTEGER REFERENCES scans(id),
+      last_scan_id       INTEGER REFERENCES scans(id),
+      removed            INTEGER NOT NULL DEFAULT 0,  -- 1 once dropped from showcase
+      consecutive_errors INTEGER NOT NULL DEFAULT 0   -- fetch failures since the last success; resets to 0 on any non-Error result
     );
 
     -- One row per site per scan — the raw detection snapshot
@@ -89,6 +101,32 @@ function initSchema(db: Database.Database): void {
     );
     CREATE INDEX IF NOT EXISTS idx_reviews_site ON reviews(site_id, reviewed_at DESC);
   `);
+}
+
+// ---------------------------------------------------------------------------
+// One-time backfill: compute each site's current error streak from history
+// ---------------------------------------------------------------------------
+
+function backfillConsecutiveErrors(db: Database.Database): void {
+	const sites = db.prepare<[], { id: number }>("SELECT id FROM sites").all();
+	const getHistory = db.prepare<[number], { cms: string }>(
+		"SELECT cms FROM scan_results WHERE site_id = ? ORDER BY scan_id DESC",
+	);
+	const update = db.prepare(
+		"UPDATE sites SET consecutive_errors = ? WHERE id = ?",
+	);
+
+	const backfill = db.transaction(() => {
+		for (const { id } of sites) {
+			let streak = 0;
+			for (const row of getHistory.iterate(id)) {
+				if (row.cms !== "Error") break;
+				streak++;
+			}
+			update.run(streak, id);
+		}
+	});
+	backfill();
 }
 
 // ---------------------------------------------------------------------------
@@ -144,6 +182,12 @@ export function writeScanToDb(
          final_url, error_message, fetched_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
+		const bumpErrorStreak = db.prepare(
+			"UPDATE sites SET consecutive_errors = consecutive_errors + 1 WHERE id = ?",
+		);
+		const resetErrorStreak = db.prepare(
+			"UPDATE sites SET consecutive_errors = 0 WHERE id = ?",
+		);
 
 		// ── Write all results in a single transaction ───────────────────────────
 		const writeAll = db.transaction(() => {
@@ -176,6 +220,12 @@ export function writeScanToDb(
 					r.error || null,
 					r.fetchedAt,
 				);
+
+				if (r.cms === "Error") {
+					bumpErrorStreak.run(site.id);
+				} else {
+					resetErrorStreak.run(site.id);
+				}
 			}
 		});
 
