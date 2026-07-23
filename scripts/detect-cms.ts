@@ -585,6 +585,12 @@ const RULES: Rule[] = [
 		/\bdan\.com$/i,
 	),
 	makeParkedDetector("Afternic", /afternic\.com/i, /afternic\.com/i),
+	// GoDaddy-family marketplace, localized per-TLD (aftermarket.com/.pl/.eu/...)
+	makeParkedDetector(
+		"Aftermarket",
+		/aftermarket\.[a-z]{2,4}\b/i,
+		/aftermarket\.[a-z]{2,4}\b/i,
+	),
 	{
 		cms: "Namecheap",
 		cmsType: "parked",

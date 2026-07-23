@@ -2,6 +2,18 @@
 
 ## 2026-07-22
 
+### `.showcase-cache` remote/sync fixup
+
+- `origin` and `upstream` were backwards in `.showcase-cache` (a separate git clone from the main working directory, used to read/edit showcase YAMLs) — `origin` pointed at `withastro/astro.build` and a separately-named `fork` remote held the actual fork. `scripts/make-removal-prs.mjs` hardcodes `git push origin ...`, so as configured it would have tried to push branches directly to the upstream org repo. Renamed via `git remote rename` (preserves the `blob:none` partial-clone filter) to match the convention already used in the main working clone: `origin` = fork, `upstream` = canonical
+- Fork's `main` was 70 commits behind `upstream/main` — `make-removal-prs.mjs` branches new removal batches off `origin/main`, so any new branch would've started from a stale snapshot. Fast-forwarded and pushed to the fork; now within 1 commit of upstream
+- Verified sparse-checkout scope (`src/content/showcase/*.yml` + `scripts/update-showcase.mjs`) is intentional, not drift — the removal-PR script edits `blockedOrigins` from within this cache
+
+### CMS detection — Aftermarket domain marketplace
+
+- `bizneswizytowka.pl` (and likely others) redirect-in-place to a GoDaddy-family domain marketplace localized per-TLD (`aftermarket.pl`, `.eu`, `.com`, ...) — previously undetected, since there's no actual HTTP redirect (200 OK, same origin) for detect-cms.ts's existing cross-host `Forwarded` fallback to catch; the parking page's branding is embedded in the HTML itself
+- Added `makeParkedDetector("Aftermarket", ...)` following the exact pattern already used for GoDaddy/Sedo/Dan.com/Afternic — named specifically rather than falling through to the generic `cms: "Parked"` catch-all rule
+- Verified live: page title is `Aftermarket.pl :: domena bizneswizytowka.pl`, regex matches the fetched HTML. Checked for false-positive risk against all ~2,700 sites' stored titles/finalUrls (only the target site matched) and ruled out an incidental "Wordpress" text match on the same page (a hidden honeypot link, not a real generator tag — confirmed no WordPress rule fires first)
+
 ### Persistent fetch-failure streak per site
 
 - Investigated whether `pnpm detect` logs a total count of attempts against unreachable domains — it didn't: no run-end summary, and no cumulative counter anywhere. The only prior visibility was `db:report --errors`, which only looks at a rolling window (default last 5 scans), not lifetime history
