@@ -465,13 +465,6 @@ const RULES: Rule[] = [
 		match: (html) =>
 			hasGeneratorTag(html, /HubSpot/i) || /name="hub-spot-id"/i.test(html),
 	},
-	{
-		cms: "HubSpot",
-		cmsType: "page-builder",
-		confidence: "high",
-		match: (html) =>
-			/js\.hs-scripts\.com|js\.hsforms\.net|js\.hubspot\.com/i.test(html),
-	},
 
 	// ── Astro-native frameworks ────────────────────────────────────────────
 	// Starlight is built on Astro — its generator tag implies Astro.

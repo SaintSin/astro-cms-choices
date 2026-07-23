@@ -2,6 +2,12 @@
 
 ## 2026-07-23
 
+### Fixed false-positive HubSpot CMS detection
+
+- Netlify's own showcase entry (netlify.com) was flagged `cms: HubSpot` despite being a real Astro v5.18.2 site — confirmed by fetching the live HTML: it has `<meta name="generator" content="Astro v5.18.2">` and no HubSpot generator tag or `hub-spot-id` meta, but does load `js.hs-scripts.com` and `js.hsforms.net` (a HubSpot contact form embed)
+- Root cause: a second `HubSpot` rule in `scripts/detect-cms.ts` matched purely on the presence of those tracking/forms scripts, conflating "embeds a HubSpot form" with "built on HubSpot CMS." Checked the DB: 9 sites were misclassified this way, including obvious non-HubSpot doc sites (`docs.arcjet.com`, `docs.duendesoftware.com`, `developers.netlify.com`)
+- Fixed by removing that rule — the remaining `HubSpot` rule (generator tag or `hub-spot-id` meta) is the only reliable "this site is actually on HubSpot" signal
+
 ### Fixed a real scanner bug: `fetchSite()` had no HTTP fallback
 
 - Set out to design a policy for handling `dns-check.mjs`'s non-`gone` results (`dead-server`, `broken`, `alive`, `dns-error` — only `gone` had any downstream action via `make-removal-prs.mjs`). Investigating the `alive` bucket (30 sites, DNS+HTTP fine per `dns-check`) turned up something bigger than a policy question: every single one had `consecutive_errors = 64` — failing _every_ detect scan on record despite being reachable
