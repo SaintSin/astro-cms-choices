@@ -591,6 +591,11 @@ const RULES: Rule[] = [
 		/aftermarket\.[a-z]{2,4}\b/i,
 		/aftermarket\.[a-z]{2,4}\b/i,
 	),
+	makeParkedDetector(
+		"Dynadot",
+		/forsale\.dynadot\.com/i,
+		/forsale\.dynadot\.com/i,
+	),
 	{
 		cms: "Namecheap",
 		cmsType: "parked",
@@ -801,6 +806,15 @@ function fingerprint(
 // Fetcher with timeout
 // ---------------------------------------------------------------------------
 
+const UA =
+	"Mozilla/5.0 (compatible; cms-detector/1.0; +https://github.com/withastro/astro.build)";
+
+const baseHeaders = {
+	"User-Agent": UA,
+	Accept: "text/html,application/xhtml+xml",
+	"Accept-Language": "en-US,en;q=0.5",
+};
+
 async function fetchSite(
 	url: string,
 	timeoutMs = 10_000,
@@ -808,18 +822,50 @@ async function fetchSite(
 	html: string;
 	headers: Record<string, string>;
 	finalUrl: string;
+	viaHttpFallback: boolean;
+}> {
+	try {
+		const result = await attemptFetch(url, timeoutMs);
+		return { ...result, viaHttpFallback: false };
+	} catch (err) {
+		// Some sites reject HTTPS at the TLS layer for non-browser clients (a
+		// WAF fingerprinting Node's TLS ClientHello — no header/UA change fixes
+		// this) while working fine in a real browser. dns-check.mjs already
+		// falls back to plain HTTP here, but only ever reads the status code
+		// as a coarse liveness signal — it never treats the response body as
+		// real content. That distinction matters: confirmed live that a site's
+		// plain-HTTP endpoint can serve something entirely unrelated to the
+		// real HTTPS site (corsfix.com's HTTP endpoint redirects to an
+		// unrelated Tesco Mobile page while the real site works fine in
+		// Safari over HTTPS). So this fallback exists only to distinguish
+		// "genuinely unreachable" from "reachable but unverifiable" — the
+		// caller must NOT fingerprint this content as the site (see
+		// `viaHttpFallback` in processSite).
+		if (url.startsWith("https://")) {
+			try {
+				const result = await attemptFetch(
+					url.replace(/^https:/, "http:"),
+					timeoutMs,
+				);
+				return { ...result, viaHttpFallback: true };
+			} catch {
+				throw err; // the original https failure is more informative
+			}
+		}
+		throw err;
+	}
+}
+
+async function attemptFetch(
+	url: string,
+	timeoutMs: number,
+): Promise<{
+	html: string;
+	headers: Record<string, string>;
+	finalUrl: string;
 }> {
 	const controller = new AbortController();
 	const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-	const UA =
-		"Mozilla/5.0 (compatible; cms-detector/1.0; +https://github.com/withastro/astro.build)";
-
-	const baseHeaders = {
-		"User-Agent": UA,
-		Accept: "text/html,application/xhtml+xml",
-		"Accept-Language": "en-US,en;q=0.5",
-	};
 
 	try {
 		// First pass: manual redirect to collect cookies (handles cookie-gated redirects)
@@ -985,7 +1031,41 @@ async function processSite(
 	timeoutMs: number,
 ): Promise<CmsResult> {
 	try {
-		const { html, headers, finalUrl } = await fetchSite(entry.url, timeoutMs);
+		const { html, headers, finalUrl, viaHttpFallback } = await fetchSite(
+			entry.url,
+			timeoutMs,
+		);
+
+		// The HTTPS fetch failed (TLS-level block, expired cert, etc.) and we
+		// only got here via the plain-HTTP fallback. Its content isn't
+		// necessarily the real site — don't fingerprint it as CMS/Astro
+		// evidence, or a site whose HTTP endpoint redirects elsewhere gets
+		// confidently misclassified as whatever that unrelated page is.
+		if (viaHttpFallback) {
+			return {
+				title: entry.title,
+				url: entry.url,
+				cms: "Blocked",
+				cmsType: "unknown",
+				confidence: "high",
+				evidence: [
+					"HTTPS fetch failed (TLS-level block); HTTP fallback succeeded but its content isn't verified as the real site",
+				],
+				astroDetected: false,
+				astroVersion: null,
+				starlightVersion: null,
+				astroSignals: [],
+				framework: null,
+				// Not the real site's redirect — just where the unverified HTTP-only
+				// fallback happened to land. Showing it as `finalUrl` would read as
+				// "this site forwards to X", which we have no evidence for.
+				finalUrl: null,
+				categories: entry.categories ?? [],
+				dateAdded: entry.dateAdded,
+				fetchedAt: new Date().toISOString(),
+			};
+		}
+
 		const hit = fingerprint(html, headers, entry.url, finalUrl);
 		let astro = detectAstro(html);
 		let deepFinalUrl = finalUrl;
