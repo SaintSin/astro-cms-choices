@@ -33,11 +33,11 @@
 		"deploy:draft": "netlify deploy --dir dist --functions netlify/functions"
 	},
 	"dependencies": {
-		"@astrojs/compiler-rs": "^0.3.2",
+		"@astrojs/compiler-rs": "^0.4.0",
 		"@astrojs/sitemap": "^3.7.3",
 		"@felixicaza/astro-capo": "^1.2.1",
 		"@iconify-json/ri": "^1.2.10",
-		"astro": "^7.1.6",
+		"astro": "^7.2.1",
 		"astro-iconify": "^1.3.1",
 		"astro-llms-md": "^2.2.2",
 		"astro-robots-txt": "^1.0.0",
@@ -47,16 +47,16 @@
 		"sharp": "^0.35.3"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "2.5.6",
+		"@biomejs/biome": "2.5.8",
 		"@netlify/functions": "^5.3.0",
-		"@types/better-sqlite3": "^7.6.13",
-		"better-sqlite3": "^13.0.2",
-		"oxfmt": "^0.61.0",
+		"@types/better-sqlite3": "^9.6.0",
+		"better-sqlite3": "^13.0.3",
+		"oxfmt": "^0.63.0",
 		"playwright": "^1.62.1",
 		"postcss-jit-props": "^1.0.16"
 	},
 	"engines": {
 		"node": ">=22.12.0"
 	},
-	"packageManager": "pnpm@11.18.0+sha512.33d83c77da82f49fba836925c6f1b841181ec3132b670639bd012f7075f5c7cf634c5f870147c19aae7478fac01df09d8892e880454896edd23ee9b33757563c"
+	"packageManager": "pnpm@11.21.0+sha512.521705bce689924eac72f5a3587122f362689ef6571e55ba80076fd637c11132ecffada26fad4ea79c485bfddbfd3d5a2a5b05805a77e893de71ec8a6cca3bb1"
 }
