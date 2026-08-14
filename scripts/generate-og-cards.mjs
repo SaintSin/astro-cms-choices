@@ -205,7 +205,7 @@ const cards = [
 	{
 		name: "note-astro-vs-nextjs",
 		file: "og-card-note-astro-vs-nextjs.html",
-		outFile: "og-note-astro-vs-nextjs.png",
+		outFile: "og-note-astro-vs-nextjs-v2.png",
 		tokens: {},
 	},
 ].filter((c) => !cardFilter || c.name === cardFilter);
