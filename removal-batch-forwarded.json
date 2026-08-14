@@ -1,0 +1,37 @@
+{
+  "reason": "remove-redirected-domains",
+  "prTitle": "remove 6 sites that redirect to non-Astro destinations",
+  "summary": "Each of these domains now permanently redirects away to a confirmed non-Astro destination (checked the destination page for an Astro generator meta tag, astro-island elements, and /_astro/ asset paths — none found) — the original showcase URL no longer serves standalone Astro content.",
+  "sites": [
+    {
+      "url": "https://forevervm.com/docs/",
+      "title": "ForeverVM | ForeverVM",
+      "redirectsTo": "https://modal.com/"
+    },
+    {
+      "url": "https://git-diff-viewer.trueberryless.org/",
+      "title": "Git Diff Viewer",
+      "redirectsTo": "https://git-diff-viewer.netlify.app/"
+    },
+    {
+      "url": "https://github.github.com/gh-stack/",
+      "title": "GitHub Stacked PRs",
+      "redirectsTo": "https://docs.github.com/en/pull-requests/how-tos/stacked-pull-requests"
+    },
+    {
+      "url": "https://npmx-digest.trueberryless.org",
+      "title": "npmx.digest",
+      "redirectsTo": "https://npmx-digest.netlify.app/"
+    },
+    {
+      "url": "https://npmx-weekly.trueberryless.org",
+      "title": "npmx.weekly",
+      "redirectsTo": "https://npmx-weekly.netlify.app/"
+    },
+    {
+      "url": "https://release-image-generator.trueberryless.org/",
+      "title": "Release Image Generator",
+      "redirectsTo": "https://release-image-generator.netlify.app/"
+    }
+  ]
+}

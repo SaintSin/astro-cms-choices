@@ -1,0 +1,38 @@
+---
+// src/pages/notes/index.astro
+
+import { getCollection } from "astro:content";
+import Layout from "@layouts/BaseLayout.astro";
+
+const meta = {
+	title: "Notes — Astro Showcase | What CMS? How Fast?",
+	description: "Findings and write-ups from scanning the Astro showcase.",
+};
+
+const notes = (await getCollection("notes")).sort(
+	(a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+---
+
+<Layout metaData={meta}>
+  <main class="wrapper flow notes-index">
+    <h1>Notes</h1>
+    <ul>
+      {notes.map((note) => (
+        <li>
+          <a href={`/notes/${note.id}/`}>{note.data.title}</a>
+          <p>{note.data.description}</p>
+          <time datetime={note.data.date.toISOString()}>
+            {note.data.date.toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" })}
+          </time>
+        </li>
+      ))}
+    </ul>
+  </main>
+</Layout>
+
+<style>
+  .notes-index ul { list-style: none; padding: 0; }
+  .notes-index li { margin-block-end: var(--space-l); }
+  .notes-index time { color: var(--color-mid); font-size: var(--step--1); }
+</style>

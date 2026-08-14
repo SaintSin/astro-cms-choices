@@ -1,23 +1,42 @@
 // scripts/make-removal-prs.mjs
-// 2026-06-10T00:00:00Z
+// 2026-08-14T00:00:00Z
 //
-// Creates batched PRs to remove confirmed-gone domains from the Astro showcase.
+// Creates batched PRs to remove showcase sites that are no longer valid Astro
+// entries — either confirmed-gone domains (the original DNS-check flow) or an
+// arbitrary reason-tagged batch supplied via --input (parked domains, sites
+// that migrated to another framework/CMS, sites that now just redirect
+// elsewhere, etc).
 //
-// Reads dns_check_results (latest run, result='gone') from .scan-history.db,
-// matches each URL to its YAML file in .showcase-cache, then for each batch:
+// For each batch:
 //   - Creates a branch in .showcase-cache
 //   - Deletes the YAML files
 //   - Appends domains to blockedOrigins in scripts/update-showcase.mjs
-//   - Commits, pushes, and opens a PR via `gh pr create`
+//   - Commits, pushes, and prints the `gh pr create` command
 //
-// Domain removal is verified using DNS over HTTPS (Cloudflare + Google).
-// See: https://github.com/SaintSin/astro-cms-choices/blob/main/scripts/dns-check.mjs
+// Default mode reads dns_check_results (latest run, result='gone') from
+// .scan-history.db. See: https://github.com/SaintSin/astro-cms-choices/blob/main/scripts/dns-check.mjs
+//
+// --input mode reads a JSON file instead:
+//   {
+//     "reason": "parked-domains",                 // used in branch name
+//     "prTitle": "remove 7 sites with parked or expired domains",
+//     "summary": "One-paragraph explanation of how these were verified.",
+//     "commitPrefix": "chore(showcase): remove",   // optional, defaults shown
+//     "sites": [
+//       { "url": "https://example.com/", "title": "Example", "redirectsTo": "https://other.com/" }
+//     ]
+//   }
+// `redirectsTo` is optional per-site — if any site in the batch has it, the
+// PR body uses a 3-column (Site | Redirects to | isAstro) table, otherwise
+// a 2-column (Site | isAstro) table, matching prior PR conventions.
 //
 // Usage:
 //   node scripts/make-removal-prs.mjs
-//   node scripts/make-removal-prs.mjs --batch-size=50   # sites per PR (default: 50)
-//   node scripts/make-removal-prs.mjs --dry-run         # print plan, no git/gh actions
-//   node scripts/make-removal-prs.mjs --batch=2         # only create batch N
+//   node scripts/make-removal-prs.mjs --batch-size=50        # sites per PR (default: 50)
+//   node scripts/make-removal-prs.mjs --dry-run               # print plan, no git/gh actions
+//   node scripts/make-removal-prs.mjs --batch=2                # only create batch N
+//   node scripts/make-removal-prs.mjs --input=batch.json       # reason-tagged batch instead of dns-check gone
+//   node scripts/make-removal-prs.mjs --input=batch.json --dry-run
 
 import { execSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -46,6 +65,7 @@ function getArg(name, fallback = null) {
 const BATCH_SIZE = parseInt(getArg("--batch-size", "50"), 10);
 const ONLY_BATCH = getArg("--batch") ? parseInt(getArg("--batch"), 10) : null;
 const DRY_RUN = args.includes("--dry-run");
+const INPUT_FILE = getArg("--input");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -57,41 +77,79 @@ function hr(c = "─", w = 72) {
 	return c.repeat(w);
 }
 
-// ── Load gone domains from DB ─────────────────────────────────────────────────
+// ── Load sites: either a reason-tagged --input batch, or dns-check "gone" ──────
 
-const db = new Database(DB_PATH, { readonly: true });
+let goneSites;
+let batchMeta = null;
 
-const latestRun = db
-	.prepare("SELECT id, checked_at FROM dns_check_runs ORDER BY id DESC LIMIT 1")
-	.get();
+if (INPUT_FILE) {
+	const inputPath = resolve(process.cwd(), INPUT_FILE);
+	if (!existsSync(inputPath)) {
+		console.error(`\n  --input file not found: ${inputPath}\n`);
+		process.exit(1);
+	}
+	batchMeta = JSON.parse(readFileSync(inputPath, "utf8"));
+	if (
+		!batchMeta.reason ||
+		!batchMeta.prTitle ||
+		!Array.isArray(batchMeta.sites)
+	) {
+		console.error(
+			`\n  --input file must have "reason", "prTitle", and a "sites" array.\n`,
+		);
+		process.exit(1);
+	}
+	goneSites = batchMeta.sites.map((s) => ({
+		url: s.url,
+		hostname: s.hostname ?? new URL(s.url).hostname,
+		title: s.title ?? null,
+		redirectsTo: s.redirectsTo ?? null,
+	}));
 
-if (!latestRun) {
-	console.error("\n  No dns_check_runs found. Run pnpm dns-check first.\n");
-	process.exit(1);
+	console.log(`\n${hr()}`);
+	console.log(
+		`  MAKE REMOVAL PRs — ${goneSites.length} sites from --input (reason: ${batchMeta.reason})`,
+	);
+	console.log(`  Batch size: ${BATCH_SIZE}  |  Dry run: ${DRY_RUN}`);
+	console.log(hr());
+} else {
+	const db = new Database(DB_PATH, { readonly: true });
+
+	const latestRun = db
+		.prepare(
+			"SELECT id, checked_at FROM dns_check_runs ORDER BY id DESC LIMIT 1",
+		)
+		.get();
+
+	if (!latestRun) {
+		console.error("\n  No dns_check_runs found. Run pnpm dns-check first.\n");
+		process.exit(1);
+	}
+
+	goneSites = db
+		.prepare(`
+		SELECT s.url, s.hostname, sr.title
+		FROM dns_check_results r
+		JOIN sites s ON s.id = r.site_id
+		LEFT JOIN scan_results sr ON sr.site_id = s.id
+		  AND sr.scan_id = (SELECT MAX(id) FROM scans)
+		WHERE r.result = 'gone'
+		  AND r.run_id = ?
+		ORDER BY s.hostname
+	`)
+		.all(latestRun.id);
+	db.close();
+
+	console.log(`\n${hr()}`);
+	console.log(
+		`  MAKE REMOVAL PRs — ${goneSites.length} gone domains from dns-check run #${latestRun.id}`,
+	);
+	console.log(
+		`  Checked: ${new Date(latestRun.checked_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}`,
+	);
+	console.log(`  Batch size: ${BATCH_SIZE}  |  Dry run: ${DRY_RUN}`);
+	console.log(hr());
 }
-
-const goneSites = db
-	.prepare(`
-	SELECT s.url, s.hostname, sr.title
-	FROM dns_check_results r
-	JOIN sites s ON s.id = r.site_id
-	LEFT JOIN scan_results sr ON sr.site_id = s.id
-	  AND sr.scan_id = (SELECT MAX(id) FROM scans)
-	WHERE r.result = 'gone'
-	  AND r.run_id = ?
-	ORDER BY s.hostname
-`)
-	.all(latestRun.id);
-
-console.log(`\n${hr()}`);
-console.log(
-	`  MAKE REMOVAL PRs — ${goneSites.length} gone domains from dns-check run #${latestRun.id}`,
-);
-console.log(
-	`  Checked: ${new Date(latestRun.checked_at).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}`,
-);
-console.log(`  Batch size: ${BATCH_SIZE}  |  Dry run: ${DRY_RUN}`);
-console.log(hr());
 
 // ── Build URL → YAML filename map ─────────────────────────────────────────────
 
@@ -161,7 +219,8 @@ for (let b = 0; b < batches.length; b++) {
 	if (ONLY_BATCH !== null && ONLY_BATCH !== batchNum) continue;
 
 	const batch = batches[b];
-	const branch = `chore/remove-gone-domains-batch-${batchNum}-${today}`;
+	const branchSlug = batchMeta ? batchMeta.reason : "remove-gone-domains";
+	const branch = `chore/${branchSlug}-batch-${batchNum}-${today}`;
 
 	console.log(`\n${hr("·", 72)}`);
 	console.log(
@@ -169,6 +228,59 @@ for (let b = 0; b < batches.length; b++) {
 	);
 	console.log(hr("·", 72));
 	for (const s of batch) console.log(`    ${s.hostname}`);
+
+	// ── Build PR title/body up front (used for both dry-run preview and the real PR) ──
+
+	const totalBatches = batches.length;
+	const batchSuffix =
+		totalBatches > 1 ? ` (batch ${batchNum}/${totalBatches})` : "";
+
+	const hasRedirects = batch.some((s) => s.redirectsTo);
+	const tableHeader = hasRedirects
+		? "| Site | Redirects to | isAstro |\n| :--- | :--- | :--- |"
+		: "| Site | isAstro |\n| :--- | :--- |";
+	const tableRows = batch
+		.map((s) => {
+			const label = s.title || s.hostname;
+			const isastro = `[verify ↗](https://isastro.pages.dev/?url=${s.hostname})`;
+			if (hasRedirects) {
+				const dest = s.redirectsTo
+					? `[${new URL(s.redirectsTo).hostname}](${s.redirectsTo})`
+					: "—";
+				return `| [${label}](${s.url}) | ${dest} | ${isastro} |`;
+			}
+			return `| [${label}](${s.url}) | ${isastro} |`;
+		})
+		.join("\n");
+
+	const prBody = batchMeta
+		? `## Summary
+
+${batchMeta.summary ?? `Removes ${batch.length} showcase sites — ${batchMeta.reason.replace(/-/g, " ")}.`}${totalBatches > 1 ? ` Batch ${batchNum} of ${totalBatches}.` : ""}
+
+All removed domains added to \`blockedOrigins\` to prevent the weekly CI from re-adding them.
+
+${tableHeader}
+${tableRows}`
+		: `## Summary
+
+Removes ${batch.length} showcase sites whose domains are confirmed gone (NXDOMAIN on both Cloudflare and Google DNS over HTTPS).${totalBatches > 1 ? ` Batch ${batchNum} of ${totalBatches}.` : ""}
+
+All domains verified using \`pnpm dns-check\` ([source](${REPO_LINK})) — queries the scan history database for persistently-erroring sites, then cross-checks each domain against two independent DNS over HTTPS resolvers (Cloudflare + Google). Only domains where both resolvers return NXDOMAIN are flagged as gone.
+
+All removed domains added to \`blockedOrigins\` to prevent the weekly CI from re-checking them.
+
+${tableHeader}
+${tableRows}`;
+
+	const prTitle = batchMeta
+		? `chore(showcase): ${batchMeta.prTitle}${batchSuffix}`
+		: `chore(showcase): remove ${batch.length} sites with expired/deleted domains${batchSuffix}`;
+	const bodyFileName = `pr-body-${branchSlug}-${batchNum}.md`;
+	const bodyFile = resolve(__dirname, `..`, bodyFileName);
+	writeFileSync(bodyFile, prBody);
+	console.log(`\n  PR title: ${prTitle}`);
+	console.log(`  PR body saved to: ${bodyFileName} (${prBody.length} chars)`);
 
 	if (DRY_RUN) continue;
 
@@ -188,7 +300,10 @@ for (let b = 0; b < batches.length; b++) {
 
 	const blocked = readFileSync(BLOCKED_FILE, "utf8");
 	const entries = batch.map((s) => `\t\t'${s.url}',`).join("\n");
-	const comment = `\t\t// ${today} - domain gone, NXDOMAIN confirmed via DoH (dns-check.mjs)`;
+	const commentText = batchMeta
+		? `${today} - ${batchMeta.reason.replace(/-/g, " ")}`
+		: `${today} - domain gone, NXDOMAIN confirmed via DoH (dns-check.mjs)`;
+	const comment = `\t\t// ${commentText}`;
 	const insertion = `${comment}\n${entries}\n\t],`;
 
 	if (!blocked.includes("\t],\n});")) {
@@ -204,49 +319,21 @@ for (let b = 0; b < batches.length; b++) {
 
 	// ── Commit ────────────────────────────────────────────────────────────────
 
-	const commitMsg = `chore(showcase): remove ${batch.length} sites with expired/deleted domains (batch ${batchNum}/${batches.length})`;
+	const commitMsg = batchMeta
+		? `chore(showcase): ${batchMeta.prTitle}${batchSuffix}`
+		: `chore(showcase): remove ${batch.length} sites with expired/deleted domains${batchSuffix}`;
 	run(`git -C "${CACHE_DIR}" commit -m "${commitMsg}"`);
 
 	// ── Push to fork ──────────────────────────────────────────────────────────
 
 	run(`git -C "${CACHE_DIR}" push origin "${branch}" --force-with-lease`);
 
-	// ── Build PR body ─────────────────────────────────────────────────────────
-
-	const tableRows = batch
-		.map((s) => {
-			const label = s.title || s.hostname;
-			const isastro = `https://isastro.pages.dev/?url=${s.hostname}`;
-			return `| [${label}](${s.url}) | [verify ↗](${isastro}) |`;
-		})
-		.join("\n");
-
-	const totalBatches = batches.length;
-	const prBody = `## Summary
-
-Removes ${batch.length} showcase sites whose domains are confirmed gone (NXDOMAIN on both Cloudflare and Google DNS over HTTPS). Batch ${batchNum} of ${totalBatches}.
-
-All domains verified using \`pnpm dns-check\` ([source](${REPO_LINK})) — queries the scan history database for persistently-erroring sites, then cross-checks each domain against two independent DNS over HTTPS resolvers (Cloudflare + Google). Only domains where both resolvers return NXDOMAIN are flagged as gone.
-
-All removed domains added to \`blockedOrigins\` to prevent the weekly CI from re-checking them.
-
-| Site | isAstro |
-| :--- | :--- |
-${tableRows}`;
-
-	// ── Print PR command for manual submission ────────────────────────────────
-
-	const prTitle = `chore(showcase): remove ${batch.length} sites with expired/deleted domains (batch ${batchNum}/${totalBatches})`;
-	const bodyFile = resolve(__dirname, `../pr-body-batch-${batchNum}.md`);
-	writeFileSync(bodyFile, prBody);
-
 	console.log(`\n  ✓ Branch pushed. Open the PR when ready:\n`);
 	console.log(`  gh pr create \\`);
 	console.log(`    --repo "${UPSTREAM}" \\`);
 	console.log(`    --head "${FORK.split("/")[0]}:${branch}" \\`);
 	console.log(`    --title "${prTitle}" \\`);
-	console.log(`    --body-file "pr-body-batch-${batchNum}.md"\n`);
-	console.log(`  PR body saved to: pr-body-batch-${batchNum}.md`);
+	console.log(`    --body-file "${bodyFileName}"\n`);
 }
 
 console.log(`\n${hr()}`);

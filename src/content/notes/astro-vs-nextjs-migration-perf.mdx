@@ -1,0 +1,79 @@
+---
+title: "What happens to performance when a site leaves Astro?"
+description: "Three showcase sites stopped detecting as Astro. We compared their old and new PageSpeed and CrUX scores — with one important caveat."
+date: 2026-08-14
+ogImage: "og-note-astro-vs-nextjs.png"
+---
+
+Five sites in the showcase were re-scanned and came back as plain JS
+frameworks (Next.js, SvelteKit) instead of Astro. Two had never had
+PageSpeed or CrUX data collected, but three did — so we could compare
+their scores from when they were still Astro against fresh scores on
+whatever they show now.
+
+**Caveat on `github.github.com/gh-stack/`**: this one wasn't a clean
+migration, and we don't scan often enough to date it precisely — this
+project doesn't run on a fixed schedule, just whenever someone kicks
+off a scan. It showed as Starlight (Astro's docs framework) on every
+scan we have between 2026-05-27 and its last Starlight sighting on
+2026-07-30. The next scan after that, on 2026-08-02, showed `cms:
+Forwarded`, `cmsType: parked` instead — so the actual change happened
+sometime in that ~3-day gap, not necessarily on 2026-08-02 itself. The
+scanner is now fingerprinting whatever that URL redirects to, not
+necessarily an intentional Next.js rebuild of the same docs. Treat its
+numbers below as "old Starlight docs vs. wherever this URL currently
+forwards," not a like-for-like framework swap.
+
+## PageSpeed (lab data)
+
+"Astro" scores below are from our last PSI run while each site still
+detected as Astro — the 2026-07-16 scan. "Now" is a fresh PSI run on
+2026-08-14. Note the ~4-week gap: we don't have data from in between,
+so this is "last known Astro score" vs. "current score," not a
+tightly-bounded before/after.
+
+| Site | Mobile: Astro → now | Desktop: Astro → now |
+|---|---|---|
+| github.github.com/gh-stack/ (Starlight → forwarded/parked, Next.js signal) | 99 → 77 | 100 → 90 |
+| lorenzofiori.art (Next.js) | 82 → 79 | 99 → 99 |
+| typable.studio (Next.js) | 87 → 90 | 100 → 100 |
+
+Two of three dropped in mobile performance after leaving Astro.
+`github.github.com/gh-stack/` took the clearest hit — mobile down 22
+points, desktop down 10 — but per the caveat above, that may reflect
+a redirect target rather than a genuine rebuild. The other two are
+essentially flat.
+
+## CrUX (real-user field data)
+
+Only `github.github.com/gh-stack/` had enough real traffic for Chrome
+to report field data — the other two returned `no-data` at every
+check, both before and after. "Astro" here is our last CrUX run while
+it still detected as Astro (2026-07-12); "now" is a fresh run on
+2026-08-14 — same caveat about the gap as above.
+
+| Metric | Phone: Astro → now | Desktop: Astro → now |
+|---|---|---|
+| LCP | 891ms → 1000ms | 610ms → 600ms |
+| CLS | 0 → 0 | 0.03 → 0 |
+| INP | 200ms (failing) → 130ms | 35ms → 32ms |
+| Core Web Vitals | ✗ (phone) | ✓ |
+
+Interestingly, real-user data tells the opposite story to the lab
+score here: phone INP improved enough to flip Core Web Vitals from
+failing to passing, even though the PageSpeed lab score dropped. But
+remember — this is the one site with the parked/redirect caveat, so
+it may be comparing two different things rather than one site before
+and after a rebuild.
+
+## Takeaway
+
+Not enough clean data here to generalise "Astro is faster" or "Astro
+is slower." `lorenzofiori.art` and `typable.studio` are the more
+trustworthy comparisons (confirmed like-for-like framework swaps) and
+both come out roughly flat. `github.github.com/gh-stack/`'s numbers
+are the most dramatic but the least reliable, since the scanner may be
+measuring a redirect target rather than a rebuilt site. Still a good
+reminder that lab scores (PageSpeed) and field data (CrUX) can
+disagree, and that it's worth double-checking what a "framework
+change" in the data actually means before drawing conclusions from it.

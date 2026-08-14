@@ -11,8 +11,8 @@
 // to public/images/social/.
 //
 // Usage:
-//   pnpm generate:og-cards                # regenerate all 3 cards
-//   pnpm generate:og-cards -- --card=psi  # home | crux | psi
+//   pnpm generate:og-cards                # regenerate all cards
+//   pnpm generate:og-cards -- --card=psi  # home | crux | psi | note-astro-vs-nextjs
 
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -202,13 +202,19 @@ const cards = [
 		outFile: "og-psi.png",
 		tokens: psiStats(db),
 	},
+	{
+		name: "note-astro-vs-nextjs",
+		file: "og-card-note-astro-vs-nextjs.html",
+		outFile: "og-note-astro-vs-nextjs.png",
+		tokens: {},
+	},
 ].filter((c) => !cardFilter || c.name === cardFilter);
 
 db.close();
 
 if (cards.length === 0) {
 	console.error(
-		`No card matches --card=${cardFilter} (expected: home, crux, psi)`,
+		`No card matches --card=${cardFilter} (expected: home, crux, psi, note-astro-vs-nextjs)`,
 	);
 	process.exit(1);
 }

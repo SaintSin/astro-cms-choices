@@ -1,5 +1,6 @@
 // @ts-check
 
+import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import { defineConfig, fontProviders, svgoOptimizer } from "astro/config";
 import llmsTxt from "astro-llms-md";
@@ -77,6 +78,7 @@ export default defineConfig({
 			generateMarkdown: true,
 		}),
 		robotsTxt(),
+		mdx(),
 	],
 	vite: {
 		plugins: [localAdminPlugin()],

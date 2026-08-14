@@ -16,6 +16,7 @@
 //   node scripts/crux.mjs --form-factor=PHONE   # PHONE | DESKTOP | TABLET (default: all 3)
 //   node scripts/crux.mjs --new-only            # skip origins already fetched today
 //   node scripts/crux.mjs --limit=100           # cap number of sites (for testing)
+//   node scripts/crux.mjs --url=https://example.com/   # run a single site only
 //   node scripts/crux.mjs --dry-run
 
 import { readFileSync } from "node:fs";
@@ -37,6 +38,7 @@ function getArg(name) {
 
 const formFactorFilter = getArg("--form-factor");
 const limitArg = getArg("--limit");
+const urlFilter = getArg("--url");
 const dryRun = args.includes("--dry-run");
 const newOnly = args.includes("--new-only");
 const DELAY_MS = 500; // CrUX quota is 150 req/min — 500ms = 120/min
@@ -123,7 +125,15 @@ function loadLatestScan() {
 	return db.prepare("SELECT id FROM scans ORDER BY id DESC LIMIT 1").get();
 }
 
-function loadSites(scanId, limit) {
+function loadSites(scanId, limit, urlFilter) {
+	if (urlFilter) {
+		// Single-site lookup — bypass the astro_detected filter so this also
+		// works for a manual one-off check on a site not in the latest scan.
+		const row = db
+			.prepare("SELECT id, url, hostname FROM sites WHERE url = ? OR url = ?")
+			.get(urlFilter, urlFilter.replace(/\/$/, ""));
+		return row ? [row] : [];
+	}
 	let query = `
 		SELECT s.id, s.url, s.hostname
 		FROM scan_results sr
@@ -220,7 +230,11 @@ if (!latestScan) {
 	process.exit(1);
 }
 
-const sites = loadSites(latestScan.id, limitArg);
+const sites = loadSites(latestScan.id, limitArg, urlFilter);
+if (urlFilter && sites.length === 0) {
+	console.error(`\n  No site found in DB matching --url=${urlFilter}\n`);
+	process.exit(1);
+}
 const formFactors = formFactorFilter
 	? [formFactorFilter]
 	: ["PHONE", "DESKTOP", "TABLET"];

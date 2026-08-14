@@ -1,5 +1,25 @@
 # Changelog
 
+## 2026-08-14
+
+### New `notes` content collection
+
+- Added `@astrojs/mdx`, wired into `astro.config.mjs`. New `notes` collection in `src/content.config.ts` (glob loader over `src/content/notes/*.mdx`, schema: `title`, `description`, `date`, optional `ogImage`) — a place for write-ups on findings from the showcase data, distinct from the live dashboard pages
+- New routes: `src/pages/notes/index.astro` (listing, newest first) and `src/pages/notes/[...slug]/index.astro` (article page, renders MDX `<Content />`). Added "Notes" to the header nav via `siteMetadata.menu`
+- First entry: `src/content/notes/astro-vs-nextjs-migration-perf.mdx` — compares PageSpeed/CrUX scores for 3 showcase sites before/after they stopped detecting as Astro. Includes an explicit caveat that one of the three (`github.github.com/gh-stack/`) wasn't a clean migration — it flipped to `cms: Forwarded`, `cmsType: parked` rather than a confirmed framework rebuild, and the "Astro → now" comparison dates are last-known-scan dates, not precise transition dates, since scans don't run on a fixed schedule
+- Custom OG card for the note: `scripts/og-templates/og-card-note-astro-vs-nextjs.html`, wired into `scripts/generate-og-cards.mjs` as a new `note-astro-vs-nextjs` card (`pnpm generate:og-cards -- --card=note-astro-vs-nextjs`). Rendered to `public/images/social/og-note-astro-vs-nextjs.png` and set via the note's new `ogImage` frontmatter field
+
+### Removed dead CSS masquerading as `grid.css`
+
+- `src/styles/compositions/grid.css` (imported globally in `style.css`) contained ~450 lines of property-search/price-filter form styling (`.property-search`, `.price-select`, `.filter-fieldset`, ...) that doesn't belong to this project — almost certainly copy-pasted in from the real-estate-ssr project at some point. Confirmed every selector in it was dead except a bare `.search-input` rule, which was already fully superseded by the scoped `.toolbar .search-input` rule in `_data-page.css` (verified `/crux/` and `/psi/` search boxes render identically after removal)
+- Replaced the file wholesale with the clean CUBE-methodology `grid.css` (auto-grid + content-grid compositions) from the `astroInitial` reference project, which is what the file's name always implied it should contain
+- Fixed the two new `/notes/` pages to use the site's existing `.wrapper` composition instead of their own centered `max-width` + `margin-inline: auto` styling, so their left edge lines up with every other page's content
+
+### New favicon
+
+- Replaced the placeholder favicon (literally an icon-generator default reading "favicon") with an original mark: a magnifying glass in an orange→violet gradient on the same dark navy used across the OG cards, symbolizing the site's "scanning/detecting" function. Presented 3 concepts for comparison (scan ring, bracketed "A", checkmark) — magnifying glass was picked
+- Regenerated `favicon.svg`, `favicon.ico` (16px + 32px), `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` from one source SVG via `sharp` + `magick`, so all sizes stay in sync if the design changes again
+
 ## 2026-07-23
 
 ### Fixed false-positive HubSpot CMS detection
