@@ -1,6 +1,6 @@
 ---
 title: "What happens to performance when a site leaves Astro?"
-description: "Three showcase sites stopped detecting as Astro. We compared their old and new PageSpeed and CrUX scores — with one important caveat."
+description: "Three showcase sites stopped detecting as Astro. We compared their old and new PageSpeed and CrUX scores — one site's lab and field data disagreed, but it's a single example, not a trend."
 date: 2026-08-14
 ogImage: "og-note-astro-vs-nextjs.png"
 ---
@@ -59,12 +59,13 @@ it still detected as Astro (2026-07-12); "now" is a fresh run on
 | INP | 200ms (failing) → 130ms | 35ms → 32ms |
 | Core Web Vitals | ✗ (phone) | ✓ |
 
-Interestingly, real-user data tells the opposite story to the lab
-score here: phone INP improved enough to flip Core Web Vitals from
-failing to passing, even though the PageSpeed lab score dropped. But
-remember — this is the one site with the parked/redirect caveat, so
-it may be comparing two different things rather than one site before
-and after a rebuild.
+Worth being clear about what this is: one site's real-user data,
+nothing more. With that caveat up front — on this single site, the
+lab score and the field data disagree. Phone INP improved enough to
+flip Core Web Vitals from failing to passing, even though the
+PageSpeed lab score dropped. And remember this is also the site with
+the parked/redirect caveat above, so it may be comparing two different
+things rather than one site before and after a rebuild.
 
 ## Takeaway
 
@@ -77,3 +78,12 @@ measuring a redirect target rather than a rebuilt site. Still a good
 reminder that lab scores (PageSpeed) and field data (CrUX) can
 disagree, and that it's worth double-checking what a "framework
 change" in the data actually means before drawing conclusions from it.
+
+None of this data makes the case either way, but for what it's worth:
+we still think Astro is the best platform to build with, and nothing
+here changes that. Which makes the more interesting question the one
+this data can't answer — not "is Astro fast enough," but why these
+particular sites left. Was it a specific feature they needed, a team
+already fluent in another framework, client work forcing the stack,
+or just where the project happened to end up? If you know the story
+behind any of the sites in this showcase, we'd like to hear it.
