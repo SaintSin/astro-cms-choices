@@ -1,6 +1,6 @@
 ---
-title: "What happens to performance when a site leaves Astro?"
-description: "Three showcase sites stopped detecting as Astro. We compared their old and new PageSpeed and CrUX scores — one site's lab and field data disagreed, but it's a single example, not a trend."
+title: "We thought we found a real-user performance signal. We hadn’t."
+description: "Three showcase sites stopped detecting as Astro. The PageSpeed comparison is fine — the real-user (CrUX) comparison turned out to be measuring the wrong thing."
 date: 2026-08-14
 ogImage: "og-note-astro-vs-nextjs.png"
 ---
@@ -30,7 +30,8 @@ forwards," not a like-for-like framework swap.
 detected as Astro — the 2026-07-16 scan. "Now" is a fresh PSI run on
 2026-08-14. Note the ~4-week gap: we don't have data from in between,
 so this is "last known Astro score" vs. "current score," not a
-tightly-bounded before/after.
+tightly-bounded before/after. Lighthouse always audits the exact page
+URL, so this data isn't affected by the CrUX issue below.
 
 | Site | Mobile: Astro → now | Desktop: Astro → now |
 |---|---|---|
@@ -44,40 +45,51 @@ points, desktop down 10 — but per the caveat above, that may reflect
 a redirect target rather than a genuine rebuild. The other two are
 essentially flat.
 
-## CrUX (real-user field data)
+## CrUX (real-user field data) — this section didn't hold up
 
 Only `github.github.com/gh-stack/` had enough real traffic for Chrome
-to report field data — the other two returned `no-data` at every
-check, both before and after. "Astro" here is our last CrUX run while
-it still detected as Astro (2026-07-12); "now" is a fresh run on
-2026-08-14 — same caveat about the gap as above.
+to report field data. Comparing our last CrUX snapshot while it was
+still Astro (2026-07-12) against a fresh pull (2026-08-14), phone INP
+improved from 200ms (failing) to 130ms (passing) — enough to flip
+Core Web Vitals. That looked like a genuinely interesting finding:
+lab score down, real-user score up, same site, same window. It's what
+we led with when we first published this.
 
-| Metric | Phone: Astro → now | Desktop: Astro → now |
-|---|---|---|
-| LCP | 891ms → 1000ms | 610ms → 600ms |
-| CLS | 0 → 0 | 0.03 → 0 |
-| INP | 200ms (failing) → 130ms | 35ms → 32ms |
-| Core Web Vitals | ✗ (phone) | ✓ |
+It doesn't hold up, and we want to say clearly why. `github.github.com`
+is a shared GitHub Pages origin — CrUX only reports data at the origin
+level, not per page, so every number above was the combined real-user
+experience across *every* project hosted on that origin, not
+`/gh-stack/` specifically. Pulling the full weekly trend (via CrUX's
+History API, which our regular scanner doesn't query) makes this
+obvious: origin-wide mobile INP actually peaks at 233ms on
+**2026-07-18 — two weeks before the migration**, while gh-stack was
+still Astro, then falls to 147ms by 2026-08-08, before the migration
+had time to matter. Desktop INP sits flat at 32–42ms across the whole
+five months we have data for, migration or not. Neither pattern tracks
+the framework change; it's noise from whatever else shares that
+origin, and there's no way to separate gh-stack's own real users from
+the rest.
 
-Worth being clear about what this is: one site's real-user data,
-nothing more. With that caveat up front — on this single site, the
-lab score and the field data disagree. Phone INP improved enough to
-flip Core Web Vitals from failing to passing, even though the
-PageSpeed lab score dropped. And remember this is also the site with
-the parked/redirect caveat above, so it may be comparing two different
-things rather than one site before and after a rebuild.
+Lesson for us, not just a caveat for this post: CrUX is only
+trustworthy at the granularity it's actually collected at. For a
+shared origin like `github.github.com` — many independent projects
+under one domain — that's too coarse to say anything about a single
+page. The field data here isn't evidence of anything migration-related
+for this site, in either direction, and we shouldn't have presented it
+as if it were.
 
 ## Takeaway
 
-Not enough clean data here to generalise "Astro is faster" or "Astro
-is slower." `lorenzofiori.art` and `typable.studio` are the more
-trustworthy comparisons (confirmed like-for-like framework swaps) and
-both come out roughly flat. `github.github.com/gh-stack/`'s numbers
-are the most dramatic but the least reliable, since the scanner may be
-measuring a redirect target rather than a rebuilt site. Still a good
-reminder that lab scores (PageSpeed) and field data (CrUX) can
-disagree, and that it's worth double-checking what a "framework
-change" in the data actually means before drawing conclusions from it.
+What actually holds up: `lorenzofiori.art` and `typable.studio` are
+clean, like-for-like Next.js migrations on their own domains (so no
+shared-origin problem), and both come out roughly flat on PageSpeed.
+`github.github.com/gh-stack/`'s PageSpeed drop (mobile −22, desktop
+−10) is still worth noting, but now carries two independent caveats:
+the parked/redirect classification uncertainty above, and the fact we
+have no usable real-user data to corroborate it either way. Not enough
+here to say Astro is faster or slower than what these sites moved to.
+The more interesting finding of this post turned out to be about our
+own data pipeline, not about Astro.
 
 None of this data makes the case either way, but for what it's worth:
 we still think Astro is the best platform to build with, and nothing
