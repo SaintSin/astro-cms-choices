@@ -151,7 +151,7 @@ textarea:not([rows]) {
 :root {
 	interpolate-size: allow-keywords;
 	font-synthesis: none;
-	color-scheme: light dark;
+	color-scheme: light;
 }
 :focus-visible {
 	outline: 2px solid currentColor;
