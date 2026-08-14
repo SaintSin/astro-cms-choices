@@ -241,14 +241,25 @@ for (let b = 0; b < batches.length; b++) {
 		: "| Site | isAstro |\n| :--- | :--- |";
 	const tableRows = batch
 		.map((s) => {
-			const label = s.title || s.hostname;
-			const isastro = `[verify ↗](https://isastro.pages.dev/?url=${s.hostname})`;
+			// Escape literal pipes in titles — otherwise they're parsed as
+			// extra table columns and silently break the row (e.g. "Deskpro
+			// | Helpdesk Software | Cloud or On-Premise").
+			const label = (s.title || s.hostname).replaceAll("|", "\\|");
 			if (hasRedirects) {
+				// Verify link should test the actual redirect destination, not
+				// the original (redirecting) hostname — the claim being made
+				// is "the destination isn't Astro," so that's what a reviewer
+				// needs to check directly rather than trust redirect-following.
+				const destHostname = s.redirectsTo
+					? new URL(s.redirectsTo).hostname
+					: s.hostname;
 				const dest = s.redirectsTo
-					? `[${new URL(s.redirectsTo).hostname}](${s.redirectsTo})`
+					? `[${destHostname}](${s.redirectsTo})`
 					: "—";
+				const isastro = `[verify ↗](https://isastro.pages.dev/?url=${destHostname})`;
 				return `| [${label}](${s.url}) | ${dest} | ${isastro} |`;
 			}
+			const isastro = `[verify ↗](https://isastro.pages.dev/?url=${s.hostname})`;
 			return `| [${label}](${s.url}) | ${isastro} |`;
 		})
 		.join("\n");
