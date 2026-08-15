@@ -33,11 +33,11 @@ so this is "last known Astro score" vs. "current score," not a
 tightly-bounded before/after. Lighthouse always audits the exact page
 URL, so this data isn't affected by the CrUX issue below.
 
-| Site | Mobile: Astro → now | Desktop: Astro → now |
-|---|---|---|
-| github.github.com/gh-stack/ (Starlight → forwarded/parked, Next.js signal) | 99 → 77 | 100 → 90 |
-| lorenzofiori.art (Next.js) | 82 → 79 | 99 → 99 |
-| typable.studio (Next.js) | 87 → 90 | 100 → 100 |
+| Site                                                                       | Mobile: Astro → now | Desktop: Astro → now |
+| -------------------------------------------------------------------------- | ------------------- | -------------------- |
+| github.github.com/gh-stack/ (Starlight → forwarded/parked, Next.js signal) | 99 → 77             | 100 → 90             |
+| lorenzofiori.art (Next.js)                                                 | 82 → 79             | 99 → 99              |
+| typable.studio (Next.js)                                                   | 87 → 90             | 100 → 100            |
 
 Two of three dropped in mobile performance after leaving Astro.
 `github.github.com/gh-stack/` took the clearest hit — mobile down 22
@@ -58,7 +58,7 @@ we led with when we first published this.
 It doesn't hold up, and we want to say clearly why. `github.github.com`
 is a shared GitHub Pages origin — CrUX only reports data at the origin
 level, not per page, so every number above was the combined real-user
-experience across *every* project hosted on that origin, not
+experience across _every_ project hosted on that origin, not
 `/gh-stack/` specifically. Pulling the full weekly trend (via CrUX's
 History API, which our regular scanner doesn't query) makes this
 obvious: origin-wide mobile INP actually peaks at 233ms on
