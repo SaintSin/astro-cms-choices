@@ -774,6 +774,23 @@ function fingerprint(
 			framework: frameworkHit?.cms ?? null,
 		};
 	}
+	// Cloudflare Access SSO login wall — the site itself may still be live and
+	// genuinely Astro, we just can't see past the login page as an
+	// unauthenticated scanner. Not evidence of the site being parked,
+	// abandoned, or forwarded elsewhere — check this before the generic
+	// cross-host fallback below, which would otherwise misclassify it as
+	// "Forwarded"/parked.
+	if (finalUrl && /\/cdn-cgi\/access\/login\//.test(finalUrl)) {
+		return {
+			cms: "AccessGated",
+			cmsType: "unknown",
+			confidence: "high",
+			evidence: [
+				"Redirected to a Cloudflare Access login wall — site may still be live, just gated from unauthenticated scanners",
+			],
+			framework: frameworkHit?.cms ?? null,
+		};
+	}
 	// Fallback: domain changed entirely = forwarded/sold to an unrecognised destination
 	if (finalUrl) {
 		try {

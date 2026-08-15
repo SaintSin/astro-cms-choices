@@ -17,7 +17,7 @@ const { r } = Astro.props;
   data-cmstype={r.cmsType}
   data-title={r.title.toLowerCase()}
   data-url={r.url.toLowerCase()}
-  data-astro={r.astroDetected ? "true" : r.cms === "Error" || r.cms === "Blocked" ? "unknown" : "false"}
+  data-astro={r.astroDetected ? "true" : r.cms === "Error" || r.cms === "Blocked" || r.cms === "AccessGated" ? "unknown" : "false"}
   data-astroversion={r.astroVersion ?? ""}
   data-framework={r.framework ?? ""}
   class={r.cmsType === "full-site" ? "row--migrated" : ""}
@@ -55,7 +55,7 @@ const { r } = Astro.props;
           <span class="astro-yes" title={r.astroSignals.join(", ")}>✓</span>
           {r.astroVersion && <span class="astro-version">v{r.astroVersion}</span>}
         </>
-      : r.cms !== "Error" && r.cms !== "Blocked"
+      : r.cms !== "Error" && r.cms !== "Blocked" && r.cms !== "AccessGated"
         ? <span class="astro-no" title="No Astro fingerprint found">✗</span>
         : <span class="astro-unknown">—</span>
     }
@@ -63,13 +63,15 @@ const { r } = Astro.props;
   <td>
     {r.cms === "Blocked"
       ? <span class="status-badge status-badge--blocked" title="Bot challenge detected — content may be incomplete">Bot-protected</span>
-      : r.cms === "Error"
-        ? <span class="status-badge status-badge--error" title={r.error ?? "Fetch failed"}>Fetch error</span>
-        : r.cms === "Forwarded"
-          ? <span class="status-badge status-badge--forwarded" title={r.finalUrl ? `Redirects to ${r.finalUrl}` : "Domain redirected"}>Redirected</span>
-          : r.cms === "Unknown" || r.cmsType === "parked"
-            ? null
-            : <span class={`cms-badge cms-badge--${r.cmsType}`}>{r.cms}</span>
+      : r.cms === "AccessGated"
+        ? <span class="status-badge status-badge--blocked" title="Redirects to a Cloudflare Access login wall — site status unknown, not necessarily parked or abandoned">Access-gated</span>
+        : r.cms === "Error"
+          ? <span class="status-badge status-badge--error" title={r.error ?? "Fetch failed"}>Fetch error</span>
+          : r.cms === "Forwarded"
+            ? <span class="status-badge status-badge--forwarded" title={r.finalUrl ? `Redirects to ${r.finalUrl}` : "Domain redirected"}>Redirected</span>
+            : r.cms === "Unknown" || r.cmsType === "parked"
+              ? null
+              : <span class={`cms-badge cms-badge--${r.cmsType}`}>{r.cms}</span>
     }
     {r.framework && r.framework !== r.cms && (
       <span class="framework-badge" title={`Built with ${r.framework}`}>{r.framework}</span>

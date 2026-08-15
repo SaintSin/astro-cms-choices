@@ -162,16 +162,21 @@ const yamlFiles = readdirSync(SHOWCASE).filter((f) => f.endsWith(".yml"));
 const urlToFile = new Map();
 for (const file of yamlFiles) {
 	const content = readFileSync(join(SHOWCASE, file), "utf8");
-	const m = content.match(/^url:\s*['"]?(https?:\/\/[^\s'"]+)/m);
-	if (m) urlToFile.set(m[1], file);
+	const urlMatch = content.match(/^url:\s*['"]?(https?:\/\/[^\s'"]+)/m);
+	// Image filename doesn't always match the YAML basename (e.g.
+	// web.koyu.space's entry is koyu.yml / koyu.webp) — read it from the
+	// YAML itself rather than assuming, so the screenshot always gets
+	// deleted alongside the metadata, not left orphaned.
+	const imageMatch = content.match(/^image:\s*['"]?\.\/([^\s'"]+)/m);
+	if (urlMatch) urlToFile.set(urlMatch[1], { file, image: imageMatch?.[1] });
 }
 
 // Match gone sites to YAML files
 const matched = [];
 const unmatched = [];
 for (const site of goneSites) {
-	const file = urlToFile.get(site.url);
-	if (file) matched.push({ ...site, file });
+	const entry = urlToFile.get(site.url);
+	if (entry) matched.push({ ...site, file: entry.file, image: entry.image });
 	else unmatched.push(site);
 }
 
@@ -198,16 +203,16 @@ console.log(
 	`\n  ${batches.length} batch${batches.length > 1 ? "es" : ""} of up to ${BATCH_SIZE}`,
 );
 
-// ── Ensure scripts/ is in sparse checkout ────────────────────────────────────
+// ── Ensure YAML + webp images + scripts/ are in sparse checkout ──────────────
+// Always re-assert this (not just when missing) — a prior manual checkout
+// elsewhere in the workflow can narrow the sparse-checkout back down, and a
+// missing "*.webp" here means screenshots silently don't get deleted below.
 
-if (!existsSync(BLOCKED_FILE)) {
-	console.log("\n  Adding scripts/ to sparse checkout...");
-	if (!DRY_RUN) {
-		run(
-			`git -C "${CACHE_DIR}" sparse-checkout set --no-cone "src/content/showcase/*.yml" "scripts/update-showcase.mjs"`,
-		);
-		run(`git -C "${CACHE_DIR}" checkout`);
-	}
+if (!DRY_RUN) {
+	run(
+		`git -C "${CACHE_DIR}" sparse-checkout set --no-cone "src/content/showcase/*.yml" "src/content/showcase/*.webp" "scripts/update-showcase.mjs"`,
+	);
+	run(`git -C "${CACHE_DIR}" checkout`);
 }
 
 // ── Process each batch ────────────────────────────────────────────────────────
@@ -300,9 +305,20 @@ ${tableRows}`;
 	run(`git -C "${CACHE_DIR}" fetch origin`);
 	run(`git -C "${CACHE_DIR}" checkout -B "${branch}" origin/main`);
 
-	// ── Delete YAML files ─────────────────────────────────────────────────────
+	// ── Delete YAML files + their screenshot images ───────────────────────────
 
-	const filePaths = batch.map((s) => `src/content/showcase/${s.file}`);
+	const filePaths = batch.flatMap((s) => {
+		const paths = [`src/content/showcase/${s.file}`];
+		if (s.image) paths.push(`src/content/showcase/${s.image}`);
+		return paths;
+	});
+	const missingImages = batch.filter((s) => !s.image);
+	if (missingImages.length) {
+		console.log(
+			`\n  ⚠ No image: field found for ${missingImages.length} site(s) — check these YAMLs by hand:`,
+		);
+		for (const s of missingImages) console.log(`    ${s.hostname} (${s.file})`);
+	}
 	run(
 		`git -C "${CACHE_DIR}" rm --sparse ${filePaths.map((f) => `"${f}"`).join(" ")}`,
 	);
