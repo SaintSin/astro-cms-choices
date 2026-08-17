@@ -1011,10 +1011,17 @@ async function ensureShowcaseCache(
 		);
 		console.log("Clone complete.");
 	} else if (isDefaultSource) {
-		// Pull latest changes to keep the cache fresh
+		// Fetch straight from the canonical repo URL and force-sync `main` to it —
+		// deliberately ignores whatever remotes/branch the cache was left on (e.g.
+		// a feature branch from make-removal-prs.mjs, or `origin` repointed to a fork).
 		console.log("Updating showcase cache…");
 		try {
-			execSync(`git -C "${cacheRoot}" pull --ff-only`, { stdio: "inherit" });
+			execSync(`git -C "${cacheRoot}" fetch "${showcaseRepo}" main`, {
+				stdio: "inherit",
+			});
+			execSync(`git -C "${cacheRoot}" checkout -B main FETCH_HEAD`, {
+				stdio: "inherit",
+			});
 		} catch {
 			console.warn(
 				"Warning: could not pull latest changes (offline or conflict). Using cached data.",

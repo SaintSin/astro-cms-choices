@@ -20,6 +20,45 @@
 - Replaced the placeholder favicon (literally an icon-generator default reading "favicon") with an original mark: a magnifying glass in an orange→violet gradient on the same dark navy used across the OG cards, symbolizing the site's "scanning/detecting" function. Presented 3 concepts for comparison (scan ring, bracketed "A", checkmark) — magnifying glass was picked
 - Regenerated `favicon.svg`, `favicon.ico` (16px + 32px), `apple-touch-icon.png`, `icon-192.png`, `icon-512.png` from one source SVG via `sharp` + `magick`, so all sizes stay in sync if the design changes again
 
+### First `notes` post retracted its own headline claim
+
+- Published "What happens to performance when a site leaves Astro?" comparing PageSpeed/CrUX before and after 3 sites stopped detecting as Astro. Led with a real-sounding finding for `github.github.com/gh-stack/`: mobile PageSpeed dropped 22 points, but its CrUX (real-user) INP improved enough to flip Core Web Vitals from failing to passing in the same window
+- A Starlight project lead pushed back on Discord: fair point that a single-site "real users saw it get faster" claim reads as more general than it is. Investigating further to properly caveat it uncovered a bigger problem — `github.github.com` is a shared GitHub Pages origin, and CrUX only reports at the origin level, not per page. Every CrUX number in the post was the combined real-user experience across *every* project hosted there, not `/gh-stack/` specifically
+- Pulled the full weekly trend via CrUX's History API (`records:queryHistoryRecord` — a different endpoint to the `records:queryRecord` our regular `crux.mjs` uses, and one it doesn't currently query) to check: origin-wide mobile INP peaks at 233ms on 2026-07-18, two weeks *before* the migration, then falls to 147ms by 2026-08-08 — neither point tracks the framework change, it's noise from whatever else shares that origin
+- Rewrote the post to walk through what went wrong rather than silently edit it; PageSpeed section is unaffected (Lighthouse always audits the exact URL, no shared-origin issue there). Renamed the OG card image twice (`-v2`, `-v3`) as content changed, since social platforms cache `og:image` by URL and won't otherwise pick up a corrected card
+- Lesson for `crux.mjs`: CrUX is only trustworthy at the granularity it's actually collected at — fine for single-owner domains, meaningless for a page on a shared multi-tenant origin
+
+### Removal PR follow-through: missing images, conflicts, and a kept exception
+
+- **Missing screenshots**: `make-removal-prs.mjs` deleted each site's `.yml` but never its `.webp` screenshot (sparse-checkout only included `*.yml`) — three already-open PRs (#2617–#2619) had to be amended after the fact to add the image deletions. Confirmed via `git show --stat` on prior merged PRs that every precedent removal PR *did* include the image; this was a genuine gap, not a style choice, and should have been caught by checking file lists rather than just commit-message wording up front
+- **Verify-link accuracy**: for redirect-based removals, the PR table's "verify" link tested the original (redirecting) hostname rather than the actual destination — technically correct since `isastro.pages.dev` follows redirects, but confusing for a reviewer double-checking the claim. Changed to link the destination hostname directly
+- **Wrongly included 14 sites**: of the 20 sites originally flagged as "Forwarded", 14 actually redirect to destinations that are still genuinely Astro (7 to one author's `ozgur.ca` portfolio, plus 6 others individually verified via `data-astro-` scoped-CSS attributes, generator meta, and `/_astro/` asset paths) — removing those would have deleted legitimate showcase entries. Narrowed that PR to the 6 confirmed non-Astro redirects; the 14 are intentionally left alone for now, not resubmitted as URL updates
+- **Kept a site on request**: a maintainer asked to keep `github.github.com/gh-stack/` despite it no longer being Astro, since it's referenced in Astro's April blog post — restored it and shrank that PR from 2 sites to 1
+- **Cross-PR conflicts**: once #2618 and #2619 merged upstream, the still-open #2617 repeatedly conflicted on the same `blockedOrigins` region in `scripts/update-showcase.mjs` — rebased twice as upstream moved. First rebase resolution briefly deleted an already-merged entry it shouldn't have touched; caught it in the diff review before pushing and re-resolved keeping both blocks
+- Separately, `.showcase-cache`'s `origin/main` (the fork) had drifted from `upstream/main` with a stray pre-fix commit, which broke `pnpm detect`'s `git pull --ff-only`. Force-synced the fork to upstream and fast-forwarded local `main` to match; left the cache checked out on `main` afterward rather than a feature branch, so the same failure doesn't recur
+
+## 2026-08-15
+
+### New `AccessGated` classification for Cloudflare Access login walls
+
+- `sandbox.cloudflare.com` (Cloudflare's own "Sandbox SDK" page) was classified `cms: Forwarded`, `cmsType: parked` — the scanner followed its redirect to a Cloudflare Access SSO login wall (`cdn-cgi/access/login/...`) and treated that the same as a genuine cross-host redirect or parked domain. A login wall says nothing about whether the underlying site is still Astro; the site is very likely still live, just gated from unauthenticated scanners
+- Added a check in `detect-cms.ts` for `/cdn-cgi/access/login/` in the redirect target, ahead of the generic cross-host "Forwarded" fallback — classifies as `cms: "AccessGated"`, `cmsType: "unknown"` instead. Only 1 site hit this pattern across the full dataset today, but it's the same failure shape as the Forwarded/still-Astro mistake above: a scanner-side "can't see it" getting recorded as if it were evidence
+- `ShowcaseRow.astro`: `AccessGated` now renders a yellow "Access-gated" badge and is treated like `Blocked`/`Error` for the astro-detected indicator (shows "—" not a confident "✗")
+- Verified by rerunning `detect-cms.ts` scoped to an isolated one-file source directory (not a full ~2,900-site rescan) and merging the corrected single entry back into `src/data/cms-results.json`
+
+### Second removal PR — 5 sites, images included from the start
+
+- Sites spotted across several different CMS-groupings while browsing (not from one bucket like last time): `chrisnowicki.io` (WordPress, redirects to a gambling domain), `webehindthis.com` (Prismic), `slickhornranch.com` (Shopify), `vbridge.eu` (DatoCMS, redirects to `acagroup.be`), `octopus.com/devops/` (Storyblok)
+- Fixed `make-removal-prs.mjs` properly this time instead of patching after the fact: it now reads each YAML's `image:` field directly (filenames don't reliably match the URL/hostname — e.g. `web.koyu.space`'s entry is `koyu.yml`/`koyu.webp`) and deletes the matching `.webp` in the same commit as the `.yml`, always. Sparse-checkout now always includes `*.webp`, re-asserted on every run rather than only when missing
+- Verified all 5 live via `isastro.pages.dev` (real browser render, not a raw HTML regex) before pushing anything, including both cross-host redirect destinations and a root-vs-subpage check for `octopus.com/devops/`. Caught and dropped a false "redirect" on `slickhornranch.com` (a trailing-slash string mismatch against its own hostname, not a real cross-host redirect) before it reached the PR body
+- Inspected the actual `git show --stat` commit diff before opening the PR, not just the dry-run preview — [PR #2624](https://github.com/withastro/astro.build/pull/2624), mergeable, images included
+
+### `.scan-history.db` "latest scan" corruption from an ad-hoc test run
+
+- Deployed site (manual `netlify deploy`, no CI) and localhost both stopped showing any CrUX/PSI data, despite both having run recently. Root cause: the isolated single-site rerun used to verify the `AccessGated` fix above called `detect-cms.ts` with `--source`/`--output` pointed at scratch paths, but the script *unconditionally* writes a `scans` row via `writeScanToDb` regardless of `--output` — so a 1-site, 0-Astro-confirmed test run became the new "latest scan". `crux.astro`, `psi.astro`, `insights.astro`, and the homepage all join against "the latest scan" to determine which sites currently count as Astro-confirmed, so every one of them silently went to ~0 results
+- Fixed by deleting the erroneous scan row and its `scan_results`, after first repointing the one `sites.last_scan_id` foreign key it had claimed back to the last real full scan (FK constraint blocked a direct delete otherwise). Also synced that one site's `scan_results` row for the real scan to match the code fix, since the real scan had run *before* the `AccessGated` change and still carried the old classification
+- Worth a proper fix later: `detect-cms.ts` probably shouldn't write to the shared scan history at all for scoped/ad-hoc `--source` runs, only for full showcase scans — noted here rather than fixed, since the immediate data was more urgent than the tooling
+
 ## 2026-07-23
 
 ### Fixed false-positive HubSpot CMS detection
