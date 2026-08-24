@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026-08-24
+
+### `crux.mjs` no longer fetches TABLET by default
+
+- Default form-factor list is now `PHONE, DESKTOP` — `--form-factor=TABLET` still works if needed, just no longer part of the unfiltered run
+
 ## 2026-08-14
 
 ### New `notes` content collection

@@ -13,7 +13,7 @@
 //
 // Usage:
 //   node scripts/crux.mjs
-//   node scripts/crux.mjs --form-factor=PHONE   # PHONE | DESKTOP | TABLET (default: all 3)
+//   node scripts/crux.mjs --form-factor=PHONE   # PHONE | DESKTOP | TABLET (default: PHONE + DESKTOP)
 //   node scripts/crux.mjs --new-only            # skip origins already fetched today
 //   node scripts/crux.mjs --limit=100           # cap number of sites (for testing)
 //   node scripts/crux.mjs --url=https://example.com/   # run a single site only
@@ -237,7 +237,7 @@ if (urlFilter && sites.length === 0) {
 }
 const formFactors = formFactorFilter
 	? [formFactorFilter]
-	: ["PHONE", "DESKTOP", "TABLET"];
+	: ["PHONE", "DESKTOP"];
 
 // --new-only: skip site_id × form_factor combos that already have any result
 let jobs;
