@@ -1,0 +1,16 @@
+{
+  "reason": "remove-porkbun-parked-domains",
+  "prTitle": "remove 2 sites with domains parked on Porkbun's marketplace",
+  "summary": "Both domains have lapsed and are now Porkbun marketplace \"for sale\" listing pages rather than the original sites. Confirmed via direct fetch: both titles read \"Porkbun Marketplace: The domain <hostname> is for sale.\" and the page body references Porkbun repeatedly. No Astro signals present. (`aidailynews.io`-style domain reassignment noted in the last PR was a hijack to gambling content; this is the more common case — the domain simply expired and was picked up by the registrar's marketplace.)",
+  "commitPrefix": "chore(showcase): remove",
+  "sites": [
+    {
+      "url": "https://aigentic.blog/",
+      "title": "AIgentic — Agentic Systems & LLM Tooling Daily"
+    },
+    {
+      "url": "https://astromade.studio/",
+      "title": "Astro themes for portfolios and brands | Astromade Studio"
+    }
+  ]
+}
