@@ -301,9 +301,12 @@ ${tableRows}`;
 	if (DRY_RUN) continue;
 
 	// ── Git: create branch from latest main ───────────────────────────────────
+	// Fetch straight from the canonical upstream URL rather than `origin/main` —
+	// `origin` here is the fork, which lags behind upstream as soon as any of our
+	// own PRs merge there, so branching off it produces stale, conflicting PRs.
 
-	run(`git -C "${CACHE_DIR}" fetch origin`);
-	run(`git -C "${CACHE_DIR}" checkout -B "${branch}" origin/main`);
+	run(`git -C "${CACHE_DIR}" fetch "https://github.com/${UPSTREAM}.git" main`);
+	run(`git -C "${CACHE_DIR}" checkout -B "${branch}" FETCH_HEAD`);
 
 	// ── Delete YAML files + their screenshot images ───────────────────────────
 
