@@ -589,6 +589,11 @@ const RULES: Rule[] = [
 		/forsale\.dynadot\.com/i,
 		/forsale\.dynadot\.com/i,
 	),
+	makeParkedDetector(
+		"Porkbun",
+		/porkbun\.com|Porkbun Marketplace/i,
+		/porkbun\.com/i,
+	),
 	{
 		cms: "Namecheap",
 		cmsType: "parked",
@@ -614,9 +619,12 @@ const RULES: Rule[] = [
 		cms: "Parked",
 		cmsType: "parked",
 		confidence: "medium",
-		// Generic parking page indicators
+		// Generic parking page indicators. The "domain ... is for sale" branch
+		// allows arbitrary text between "domain" and "is for sale" — registrar
+		// marketplaces (e.g. Porkbun) insert the domain name itself mid-phrase:
+		// "The domain example.com is for sale."
 		match: (html) =>
-			/<title>[^<]*(domain for sale|this domain is for sale|buy this domain|domain parked)[^<]*<\/title>/i.test(
+			/<title>[^<]*(domain[^<]{0,60}is for sale|buy this domain|domain parked)[^<]*<\/title>/i.test(
 				html,
 			) || /this domain is parked|domain parking/i.test(html),
 	},
