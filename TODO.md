@@ -9,4 +9,11 @@
 
 ## Showcase PRs
 
-Nothing outstanding — all merged.
+- [ ] **PR #2644** (`withastro/astro.build`) — open, awaiting review.
+  - Removes `aidailynews.io` — domain repurposed in place (no redirect) to serve WordPress-built Vietnamese gambling content
+- [ ] **PR #2645** (`withastro/astro.build`) — open, awaiting review.
+  - Updates `url:` for 10 sites that moved domains but are still running Astro
+  - Removes `room-tba.uplbtools.me` as a duplicate of the already-listed `room-tba.uplb.tools`
+  - Flags 7 sites redirecting to `ozgur.ca/project/*` subpages for maintainer input (editorial call on whether they deserve separate listings) — intentionally left untouched
+- [ ] **PR #2646** (`withastro/astro.build`) — open, awaiting review.
+  - Removes `aigentic.blog` and `astromade.studio` — both domains lapsed and are now Porkbun marketplace "for sale" pages
