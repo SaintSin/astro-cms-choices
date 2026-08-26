@@ -15,9 +15,20 @@
 //   node --experimental-strip-types scripts/recheck-blocked.ts
 //   node --experimental-strip-types scripts/recheck-blocked.ts -- --limit 20
 //   node --experimental-strip-types scripts/recheck-blocked.ts -- --concurrency 3
+//
+// For sites a headless browser still can't get past (genuine bot walls —
+// CAPTCHA, human-verification interstitials): re-run with --headed. Opens a
+// real, visible Chromium window, one site at a time, and waits for you to
+// press Enter after the page has loaded (solve any challenge yourself first).
+// --only-still-blocked narrows the target list to exactly the sites the
+// previous headless run left as genuinely Blocked (excludes real
+// network/TLS errors, which no amount of bot-passing fixes).
+//
+//   node --experimental-strip-types scripts/recheck-blocked.ts -- --headed --only-still-blocked
 
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { createInterface } from "node:readline/promises";
 import { parseArgs } from "node:util";
 import { chromium } from "playwright";
 import type { CmsResult, ResultsFile } from "./detect-cms.ts";
@@ -28,15 +39,30 @@ const { values: args } = parseArgs({
 		limit: { type: "string" },
 		concurrency: { type: "string", default: "4" },
 		timeout: { type: "string", default: "20000" },
+		headed: { type: "boolean", default: false },
+		"only-still-blocked": { type: "boolean", default: false },
 	},
 });
 
-const CONCURRENCY = Number.parseInt(args.concurrency as string, 10);
+const HEADED = args.headed === true;
+// A human can only usefully watch/solve one window at a time.
+const CONCURRENCY = HEADED
+	? 1
+	: Number.parseInt(args.concurrency as string, 10);
 const TIMEOUT_MS = Number.parseInt(args.timeout as string, 10);
 const LIMIT = args.limit ? Number.parseInt(args.limit, 10) : undefined;
+const ONLY_STILL_BLOCKED = args["only-still-blocked"] === true;
 
 const RESULTS_PATH = resolve("src/data/cms-results.json");
-const REPORT_PATH = resolve("blocked-recheck-report.json");
+// Canonical report — the stable source `--only-still-blocked` reads its
+// target list from. Any bounded run (--headed or --limit) writes to a
+// separate file instead of clobbering it — a quick test run shouldn't
+// destroy the reference a later `--only-still-blocked` run depends on.
+const CANONICAL_REPORT_PATH = resolve("blocked-recheck-report.json");
+const REPORT_PATH =
+	HEADED || LIMIT
+		? resolve("blocked-recheck-report.partial.json")
+		: CANONICAL_REPORT_PATH;
 
 interface RecheckOutcome {
 	url: string;
@@ -67,6 +93,7 @@ async function recheckSite(
 	title: string,
 	browser: Awaited<ReturnType<typeof chromium.launch>>,
 	before: CmsResult,
+	rl?: ReturnType<typeof createInterface>,
 ): Promise<RecheckOutcome> {
 	const page = await browser.newPage({
 		userAgent:
@@ -77,6 +104,30 @@ async function recheckSite(
 			waitUntil: "domcontentloaded",
 			timeout: TIMEOUT_MS,
 		});
+
+		if (rl) {
+			const answer = await rl.question(
+				`  ${url}\n  Solve any challenge in the browser window, then press Enter to capture (or type "skip" + Enter to move on)... `,
+			);
+			if (answer.trim().toLowerCase() === "skip") {
+				return {
+					url,
+					title,
+					before: {
+						cms: before.cms,
+						cmsType: before.cmsType,
+						astroDetected: before.astroDetected,
+					},
+					after: {
+						cms: before.cms,
+						cmsType: before.cmsType,
+						astroDetected: before.astroDetected,
+					},
+					changed: false,
+				};
+			}
+		}
+
 		const html = await page.content();
 		const headers = response?.headers() ?? {};
 		const finalUrl = page.url();
@@ -155,20 +206,47 @@ async function main() {
 	const raw = await readFile(RESULTS_PATH, "utf8");
 	const data: ResultsFile = JSON.parse(raw);
 	let blocked = data.results.filter((r) => r.cms === "Blocked");
+
+	if (ONLY_STILL_BLOCKED) {
+		const prevReport = JSON.parse(
+			await readFile(CANONICAL_REPORT_PATH, "utf8"),
+		) as {
+			all: RecheckOutcome[];
+		};
+		const stillBlockedUrls = new Set(
+			prevReport.all.filter((o) => !o.changed && !o.error).map((o) => o.url),
+		);
+		blocked = blocked.filter((r) => stillBlockedUrls.has(r.url));
+	}
+
 	if (LIMIT) blocked = blocked.slice(0, LIMIT);
 
 	console.log(
-		`Re-checking ${blocked.length} "Blocked" site(s) via real Chromium (concurrency: ${CONCURRENCY})…\n`,
+		`Re-checking ${blocked.length} "Blocked" site(s) via real Chromium (concurrency: ${CONCURRENCY}${HEADED ? ", headed" : ""})…\n`,
 	);
+	if (HEADED) {
+		console.log(
+			"A visible browser window will open for each site. Solve any challenge yourself, then press Enter in this terminal to capture the page.\n",
+		);
+	}
 
-	const browser = await chromium.launch();
+	const browser = await chromium.launch({ headless: !HEADED });
+	const rl = HEADED
+		? createInterface({ input: process.stdin, output: process.stdout })
+		: undefined;
 	const enqueue = createQueue(CONCURRENCY);
 	let done = 0;
 
 	const outcomes = await Promise.all(
 		blocked.map((site) =>
 			enqueue(async () => {
-				const outcome = await recheckSite(site.url, site.title, browser, site);
+				const outcome = await recheckSite(
+					site.url,
+					site.title,
+					browser,
+					site,
+					rl,
+				);
 				done++;
 				const tag = outcome.error
 					? "ERROR"
@@ -188,6 +266,7 @@ async function main() {
 	);
 
 	await browser.close();
+	rl?.close();
 
 	const changed = outcomes.filter((o) => o.changed);
 	const stillErroring = outcomes.filter((o) => o.error);

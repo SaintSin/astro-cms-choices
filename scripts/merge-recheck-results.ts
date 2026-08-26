@@ -11,6 +11,7 @@
 // Usage:
 //   node --experimental-strip-types scripts/merge-recheck-results.ts
 //   node --experimental-strip-types scripts/merge-recheck-results.ts -- --apply
+//   node --experimental-strip-types scripts/merge-recheck-results.ts -- --report blocked-recheck-report.partial.json --apply
 
 import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -19,12 +20,17 @@ import { openDb } from "./db-utils.ts";
 import type { CmsResult, ResultsFile } from "./detect-cms.ts";
 
 const { values: args } = parseArgs({
-	options: { apply: { type: "boolean", default: false } },
+	options: {
+		apply: { type: "boolean", default: false },
+		report: { type: "string" },
+	},
 });
 const APPLY = args.apply === true;
 
 const RESULTS_PATH = resolve("src/data/cms-results.json");
-const REPORT_PATH = resolve("blocked-recheck-report.json");
+// --report lets this target blocked-recheck-report.partial.json, written by
+// a bounded (--headed or --limit) recheck-blocked.ts run.
+const REPORT_PATH = resolve(args.report ?? "blocked-recheck-report.json");
 
 interface RecheckOutcome {
 	url: string;
