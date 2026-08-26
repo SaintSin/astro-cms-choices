@@ -304,6 +304,16 @@ const RULES: Rule[] = [
 		confidence: "high",
 		match: (html) => hasGeneratorTag(html, /WordPress/i),
 	},
+	// WP core sends this `Link` response header (REST API discovery) on every
+	// front-end response by default, even when a minimal/cached theme strips
+	// the equivalent <link> tag from the HTML <head>.
+	{
+		cms: "WordPress",
+		cmsType: "full-site",
+		confidence: "high",
+		match: (_html, headers) =>
+			/\/wp-json\/.*rel="https:\/\/api\.w\.org\/"/i.test(headers.link ?? ""),
+	},
 	{
 		cms: "WordPress",
 		cmsType: "full-site",
@@ -357,6 +367,15 @@ const RULES: Rule[] = [
 		cmsType: "full-site",
 		confidence: "high",
 		match: (html) => hasGeneratorTag(html, /Drupal/i),
+	},
+	// Drupal's internal page cache sets this response header regardless of
+	// whether the generator meta tag or a themed path shows up in the HTML.
+	{
+		cms: "Drupal",
+		cmsType: "full-site",
+		confidence: "high",
+		match: (_html, headers) =>
+			"x-drupal-cache" in headers || "x-drupal-dynamic-cache" in headers,
 	},
 	{
 		cms: "Drupal",
@@ -1095,6 +1114,15 @@ async function processSite(
 		let astro = detectAstro(html);
 		let deepFinalUrl = finalUrl;
 
+		// Informational only — Express is a Node HTTP server, not a page
+		// renderer, so its presence doesn't rule Astro in or out (unlike
+		// WordPress/Next.js) the way a normal `express.static()` deploy of an
+		// Astro build would show this exact header. Rides along in `evidence`
+		// without touching cms/cmsType/astroDetected.
+		const serverSignals = /express/i.test(headers["x-powered-by"] ?? "")
+			? [`x-powered-by: ${headers["x-powered-by"]}`]
+			: [];
+
 		// For forwarded sites where Astro wasn't detected, make one extra pass
 		// directly on the redirect destination. The intermediate URL may use a
 		// JS redirect or further HTTP redirect (e.g. /docs/ → /docs/public/) that
@@ -1126,7 +1154,7 @@ async function processSite(
 			cms: effectiveHit?.cms ?? "Unknown",
 			cmsType: effectiveHit?.cmsType ?? "unknown",
 			confidence: effectiveHit?.confidence ?? null,
-			evidence: effectiveHit?.evidence ?? [],
+			evidence: [...(effectiveHit?.evidence ?? []), ...serverSignals],
 			astroDetected: astro.detected,
 			astroVersion: astro.version,
 			starlightVersion: astro.starlightVersion,
