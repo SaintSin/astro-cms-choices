@@ -1,56 +1,56 @@
 {
-	"generated": "2026-08-26T06:25:50.561Z",
-	"totalChecked": 2,
-	"changedCount": 1,
-	"erroredCount": 1,
-	"changed": [
-		{
-			"url": "https://bholmes.dev/",
-			"title": "#whiteboardtheweb",
-			"before": {
-				"cms": "Blocked",
-				"cmsType": "unknown",
-				"astroDetected": false
-			},
-			"after": {
-				"cms": "Unknown",
-				"cmsType": "unknown",
-				"astroDetected": true
-			},
-			"changed": true
-		}
-	],
-	"all": [
-		{
-			"url": "https://use-virtual-cursor.hyperlaunch.com/",
-			"title": "@hyperlaunch/use-virtual-cursor",
-			"before": {
-				"cms": "Blocked",
-				"cmsType": "unknown",
-				"astroDetected": false
-			},
-			"after": {
-				"cms": "Blocked",
-				"cmsType": "unknown",
-				"astroDetected": false
-			},
-			"changed": false,
-			"error": "page.goto: net::ERR_SSL_PROTOCOL_ERROR at https://use-virtual-cursor.hyperlaunch.com/\nCall log:\n  - navigating to \"https://use-virtual-cursor.hyperlaunch.com/\", waiting until \"domcontentloaded\"\n"
-		},
-		{
-			"url": "https://bholmes.dev/",
-			"title": "#whiteboardtheweb",
-			"before": {
-				"cms": "Blocked",
-				"cmsType": "unknown",
-				"astroDetected": false
-			},
-			"after": {
-				"cms": "Unknown",
-				"cmsType": "unknown",
-				"astroDetected": true
-			},
-			"changed": true
-		}
-	]
+  "generated": "2026-08-26T06:47:03.124Z",
+  "totalChecked": 2,
+  "changedCount": 1,
+  "erroredCount": 1,
+  "changed": [
+    {
+      "url": "https://www.2market.com.br/",
+      "title": "2market - Especialistas Cloud Computing Ribeirão Preto | AWS & Microsoft",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true
+    }
+  ],
+  "all": [
+    {
+      "url": "https://use-virtual-cursor.hyperlaunch.com/",
+      "title": "@hyperlaunch/use-virtual-cursor",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_SSL_PROTOCOL_ERROR at https://use-virtual-cursor.hyperlaunch.com/\nCall log:\n  - navigating to \"https://use-virtual-cursor.hyperlaunch.com/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://www.2market.com.br/",
+      "title": "2market - Especialistas Cloud Computing Ribeirão Preto | AWS & Microsoft",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true
+    }
+  ]
 }
