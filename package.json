@@ -26,6 +26,8 @@
 		"crux": "node scripts/crux.mjs",
 		"dns-check": "node scripts/dns-check.mjs",
 		"make-prs": "node scripts/make-removal-prs.mjs",
+		"recheck-blocked": "node --experimental-strip-types scripts/recheck-blocked.ts",
+		"merge-recheck": "node --experimental-strip-types scripts/merge-recheck-results.ts",
 		"generate:og-cards": "node scripts/generate-og-cards.mjs",
 		"clean": "rm -rf dist .astro",
 		"purge": "rm -rf dist .astro .netlify node_modules",

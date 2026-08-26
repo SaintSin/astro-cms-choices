@@ -41,25 +41,27 @@ pnpm dev      # start dev server
 
 ## Commands
 
-| Command                  | Action                                                        |
-| :----------------------- | :------------------------------------------------------------ |
-| `pnpm dev`               | Start dev server at `localhost:4321`                          |
-| `pnpm detect`            | Scan all showcase sites and write `src/data/cms-results.json` |
-| `pnpm crux`              | Fetch CrUX field data for all confirmed Astro sites           |
-| `pnpm psi`               | Fetch PageSpeed Insights scores for all confirmed Astro sites |
-| `pnpm dns-check`         | Triage persistently-erroring sites via DoH + HTTP HEAD        |
-| `pnpm make-prs`          | Prepare batched showcase removal PR branches                  |
-| `pnpm generate:og-cards` | Regenerate social-share OG card PNGs with live stats          |
-| `pnpm db:init`           | Create `.scan-history.db` and all tables (idempotent)         |
-| `pnpm db:report`         | Query scan history for trends and anomalies                   |
-| `pnpm build`             | Build production site                                         |
-| `pnpm preview`           | Preview the production build locally                          |
-| `pnpm check`             | Lint and format with Biome (`.astro`/`.ts`/`.js`)             |
-| `pnpm fmt`               | Format Markdown/MDX with oxfmt (Biome doesn't cover these)    |
-| `pnpm deploy`            | Deploy to Netlify production                                  |
-| `pnpm deploy:draft`      | Deploy a draft URL (no prod traffic)                          |
-| `pnpm clean`             | Remove `dist` and `.astro` cache                              |
-| `pnpm purge`             | Remove `dist`, `.astro`, `.netlify`, and `node_modules`       |
+| Command                  | Action                                                          |
+| :----------------------- | :-------------------------------------------------------------- |
+| `pnpm dev`               | Start dev server at `localhost:4321`                            |
+| `pnpm detect`            | Scan all showcase sites and write `src/data/cms-results.json`   |
+| `pnpm crux`              | Fetch CrUX field data for all confirmed Astro sites             |
+| `pnpm psi`               | Fetch PageSpeed Insights scores for all confirmed Astro sites   |
+| `pnpm dns-check`         | Triage persistently-erroring sites via DoH + HTTP HEAD          |
+| `pnpm make-prs`          | Prepare batched showcase removal PR branches                    |
+| `pnpm recheck-blocked`   | Re-check `Blocked` sites via real Chromium (headless or headed) |
+| `pnpm merge-recheck`     | Apply `recheck-blocked` findings to `cms-results.json` + the DB |
+| `pnpm generate:og-cards` | Regenerate social-share OG card PNGs with live stats            |
+| `pnpm db:init`           | Create `.scan-history.db` and all tables (idempotent)           |
+| `pnpm db:report`         | Query scan history for trends and anomalies                     |
+| `pnpm build`             | Build production site                                           |
+| `pnpm preview`           | Preview the production build locally                            |
+| `pnpm check`             | Lint and format with Biome (`.astro`/`.ts`/`.js`)               |
+| `pnpm fmt`               | Format Markdown/MDX with oxfmt (Biome doesn't cover these)      |
+| `pnpm deploy`            | Deploy to Netlify production                                    |
+| `pnpm deploy:draft`      | Deploy a draft URL (no prod traffic)                            |
+| `pnpm clean`             | Remove `dist` and `.astro` cache                                |
+| `pnpm purge`             | Remove `dist`, `.astro`, `.netlify`, and `node_modules`         |
 
 ### `pnpm detect` — CMS scanner
 
@@ -123,6 +125,31 @@ pnpm make-prs                       # prepare branches for all gone domains (bat
 pnpm make-prs -- --batch-size=25    # smaller batches
 pnpm make-prs -- --batch=2          # only process batch 2
 pnpm make-prs -- --dry-run          # print plan without touching git
+```
+
+### `pnpm recheck-blocked` — re-check `Blocked` sites via a real browser
+
+Some sites classified `Blocked` are only rejected by the Node fetch client's TLS fingerprint or a bot-challenge — a real browser can get through. Re-checks every current `Blocked` site through Playwright/Chromium and reuses the exact same classification logic as `pnpm detect` (`fingerprint`/`detectAstro`), so results are directly comparable. Read-only — writes a report, never touches `cms-results.json` or the DB directly (see `pnpm merge-recheck`).
+
+```bash
+pnpm recheck-blocked                                    # headless sweep of all Blocked sites
+pnpm recheck-blocked -- --limit 20                      # cap sites checked (testing)
+pnpm recheck-blocked -- --concurrency 3                 # parallel browser tabs (default: 4)
+pnpm recheck-blocked -- --headed --only-still-blocked   # for genuine bot walls — see below
+```
+
+For sites that stay `Blocked` even through a headless real browser (CAPTCHA, "verify you're human" interstitials), `--headed` opens a real, visible Chromium window one site at a time and waits for you to solve the challenge yourself, then press Enter in the terminal to capture the page (or type `skip` to move on). `--only-still-blocked` narrows the target list to exactly the sites the last headless sweep left as genuinely blocked, excluding real network/TLS errors that no bot-check-passing fixes.
+
+Any bounded run (`--headed` or `--limit`) writes to `blocked-recheck-report.partial.json` instead of the canonical `blocked-recheck-report.json` — a quick test can't clobber the reference `--only-still-blocked` depends on.
+
+### `pnpm merge-recheck` — apply recheck findings
+
+Applies the `changed` entries from a `recheck-blocked` report onto `cms-results.json` and the DB's current latest scan, without re-running a full `pnpm detect`. Dry-run by default.
+
+```bash
+pnpm merge-recheck                                              # dry run — print what would change
+pnpm merge-recheck -- --apply                                   # write it
+pnpm merge-recheck -- --report blocked-recheck-report.partial.json --apply  # from a --headed run
 ```
 
 ### `pnpm generate:og-cards` — regenerate social-share images
