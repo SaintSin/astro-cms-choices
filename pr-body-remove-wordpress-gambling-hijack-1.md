@@ -4,6 +4,6 @@ This site's domain now serves WordPress-generated Vietnamese gambling/card-game 
 
 All removed domains added to `blockedOrigins` to prevent the weekly CI from re-adding them.
 
-| Site | isAstro |
-| :--- | :--- |
+| Site                                                                           | isAstro                                                   |
+| :----------------------------------------------------------------------------- | :-------------------------------------------------------- |
 | [AI Daily News \| Your Source for the Latest AI News](https://aidailynews.io/) | [verify ↗](https://isastro.pages.dev/?url=aidailynews.io) |

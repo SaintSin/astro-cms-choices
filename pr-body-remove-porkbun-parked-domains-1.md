@@ -4,7 +4,7 @@ Both domains have lapsed and are now Porkbun marketplace "for sale" listing page
 
 All removed domains added to `blockedOrigins` to prevent the weekly CI from re-adding them.
 
-| Site | isAstro |
-| :--- | :--- |
-| [AIgentic — Agentic Systems & LLM Tooling Daily](https://aigentic.blog/) | [verify ↗](https://isastro.pages.dev/?url=aigentic.blog) |
+| Site                                                                                    | isAstro                                                     |
+| :-------------------------------------------------------------------------------------- | :---------------------------------------------------------- |
+| [AIgentic — Agentic Systems & LLM Tooling Daily](https://aigentic.blog/)                | [verify ↗](https://isastro.pages.dev/?url=aigentic.blog)    |
 | [Astro themes for portfolios and brands \| Astromade Studio](https://astromade.studio/) | [verify ↗](https://isastro.pages.dev/?url=astromade.studio) |

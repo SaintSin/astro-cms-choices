@@ -13,6 +13,7 @@
 import { execSync } from "node:child_process";
 import { access, readdir, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import { writeScanToDb } from "./db-utils.ts";
 
@@ -681,7 +682,7 @@ function extractStarlightVersion(html: string): string | null {
 	return null;
 }
 
-function detectAstro(html: string): {
+export function detectAstro(html: string): {
 	detected: boolean;
 	version: string | null;
 	starlightVersion: string | null;
@@ -744,7 +745,7 @@ function isBotChallenge(
 	return false;
 }
 
-function fingerprint(
+export function fingerprint(
 	html: string,
 	headers: Record<string, string>,
 	url: string,
@@ -977,7 +978,7 @@ async function attemptFetch(
 // Concurrency limiter
 // ---------------------------------------------------------------------------
 
-function createQueue(concurrency: number) {
+export function createQueue(concurrency: number) {
 	let running = 0;
 	const queue: Array<() => void> = [];
 
@@ -1499,7 +1500,13 @@ async function main() {
 	printChanges(allResults, previousResults);
 }
 
-main().catch((err) => {
-	console.error(err);
-	process.exit(1);
-});
+// Only run when executed directly (`pnpm detect`) — importing `fingerprint`/
+// `detectAstro`/`createQueue` for reuse elsewhere must not also trigger a
+// full scan as a side effect of loading the module (this bug once wrote a
+// stray 2-site "scan" into .scan-history.db and clobbered cms-results.json).
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
+	main().catch((err) => {
+		console.error(err);
+		process.exit(1);
+	});
+}

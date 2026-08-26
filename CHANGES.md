@@ -1,5 +1,44 @@
 # Changelog
 
+## 2026-08-26
+
+### `recheck-blocked.ts`: importing `detect-cms.ts`'s exports triggered a full scan as a side effect, wiping `cms-results.json` down to 2 entries
+
+- Built `scripts/recheck-blocked.ts` to re-check the `Blocked` bucket (bot-challenge/TLS-fingerprint sites) through a real Playwright/Chromium browser instead of the plain Node `fetch` client — the idea being to reuse `detect-cms.ts`'s own `fingerprint()`/`detectAstro()`/`createQueue()` rather than duplicating detection logic in a second place that could drift
+- `detect-cms.ts` had `main().catch(...)` running unconditionally at module scope, with no entry-point guard. Importing its exports for reuse therefore also re-ran the *entire* scan pipeline as a side effect of loading the module. A `--limit 2` smoke test of the new script silently kicked off a real (if tiny) `pnpm detect` run in the background
+- That run wrote a legitimate-looking `scans` row (and, oddly, a duplicate — scans #147 and #148, same 2 sites, likely a double module-evaluation quirk from the mixed `import type` + value import from the same `.ts` file) that became "the latest scan" — the exact same corruption shape as the 2026-08-15 incident, just via a new trigger. Worse this time: the *output write* wasn't additive — `cms-results.json` (2,925 sites) was fully overwritten down to the 2 sites that tiny run touched
+- Repaired the DB manually: repointed `sites.last_scan_id` for the 2 affected sites (`0no.co`, `0587178899.com`) back to scan #146, deleted `scan_results` for scans #147/148, deleted the two bogus `scans` rows
+- `cms-results.json` couldn't be cleanly reconstructed from the DB alone — `evidence`, `framework`, `categories`, and `dateAdded` were never persisted there, only in the YAML source + live fingerprinting (see below, fixed). Kicked off a full `pnpm detect` re-run instead of a lossy partial rebuild. The currently-*deployed* site was unaffected throughout — `cms-results.json` is gitignored and only gets baked in at `pnpm build`/deploy time, so this was local-only damage, but it would have shipped on the next deploy if left unfixed
+- Root-cause fix: `detect-cms.ts`'s `main()` call is now guarded behind `import.meta.url === pathToFileURL(process.argv[1]).href`, so importing its exports elsewhere can no longer trigger a scan as a side effect
+
+### Scan-history DB now stores `date_added`, `categories`, and `evidence`
+
+- Directly motivated by the incident above — these three fields used to live only in the ephemeral `cms-results.json`, which meant the DB alone could never losslessly rebuild it after a JSON-loss event
+- `sites.date_added` and `sites.categories` (JSON array): static per-site metadata from the showcase YAML, doesn't vary scan-to-scan — added to `sites`, not `scan_results`, and kept fresh on every scan via `touchSite`
+- `scan_results.evidence` (JSON array): per-scan, same storage pattern as the existing `astro_signals` column
+- Deliberately did *not* add `framework` — it's already effectively broken (`effectiveHit?.framework` only ever populates when there's *also* a separate CMS hit alongside the framework match, so it's almost always `null` in practice today). Not worth persisting a broken field; revisit once that detection logic itself is fixed
+
+## 2026-08-25
+
+### Three showcase PRs, and a fork-drift bug in `make-removal-prs.mjs`
+
+- [#2644](https://github.com/withastro/astro.build/pull/2644): removed `aidailynews.io` — domain repurposed *in place* (same-origin 200, no HTTP redirect) to serve WordPress-built Vietnamese gambling content. The existing cross-host "Forwarded" detection can't catch this shape at all since there's no redirect to follow; only caught by reading the actual page content. Logged as a new pattern in `REVIEW-NOTES.md`
+- [#2645](https://github.com/withastro/astro.build/pull/2645): updated `url:` for 10 sites that moved domains but are still genuinely Astro (verified each destination for real signals first), removed `room-tba.uplbtools.me` as a stale duplicate of the already-separately-listed `room-tba.uplb.tools`, and explicitly flagged 7 sites redirecting to `ozgur.ca/project/*` subpages as a question for maintainers rather than deciding unilaterally — each is a substantial, individually-built page, not a stub, so whether they deserve their own listing vs. being covered by the portfolio root entry is an editorial call, not a detection one
+- [#2646](https://github.com/withastro/astro.build/pull/2646): removed `aigentic.blog` and `astromade.studio` — both domains lapsed and are now Porkbun marketplace "for sale" pages
+- All 16 (now 18) sites in the `Forwarded` bucket were re-verified against fresh signals before any of the above — same near-miss shape as the 14-site mistake from the last removal session (redirects to still-genuinely-Astro destinations), so nothing in that bucket was removed
+- Found the reason #2644 and #2646 both opened *already conflicting*: `make-removal-prs.mjs` branches new removal PRs off `origin/main` in `.showcase-cache`, but `origin` there is the fork, which falls behind true upstream every time one of our own PRs merges. #2645 conflicted again for the same reason once #2644/#2646 merged. Fixed by having the script fetch directly from the canonical `withastro/astro.build` URL and branch off `FETCH_HEAD`, same pattern already applied to `detect-cms.ts`'s own sync logic
+
+### New header-based detection signals
+
+- **Express** (`x-powered-by: Express`) — added as informational-only evidence, doesn't affect `cms`/`cmsType`/`astroDetected`. Unlike WordPress/Next.js, Express is just the Node HTTP server — a totally normal Astro deploy is `express.static('dist')` serving Astro's build output, so its presence doesn't rule Astro in or out
+- **WordPress `Link` header** (`rel="https://api.w.org/"`) — WP core sends this on every response by default, even when a minimal/cached theme strips the equivalent `<link>` tag from `<head>`. Real classification (full-site/high), not informational — the existing WP rules only scanned the HTML body
+- **Drupal `x-drupal-cache`/`x-drupal-dynamic-cache`** — same reasoning, confirmed present on `drupal.org` itself independent of the generator meta tag
+- **Porkbun parked-domain detector** — `aigentic.blog` was sitting in `Unknown` because the generic parked-page title regex required the literal phrase `"domain for sale"`, but Porkbun's title splits it with the domain name in the middle (`"The domain example.com is for sale"`). Added a dedicated Porkbun signature and loosened the generic fallback to allow arbitrary text between `"domain"` and `"is for sale"`
+
+### Known false negative, not yet fixed: `aakashgill.in`
+
+- Spot-checked in a real browser while investigating the `Unknown` bucket — it's genuinely Astro (pre-2.x, legacy build: `hoisted.3940198f.js` plus an `Astro`-compiled chunk name `Base.astro_astro_type_script_index_1_lang.ace9d842.js`), but `detect-cms.ts`'s `/hoisted\.js/i` regex only matches the unhashed literal filename, not the hashed variant Astro actually ships. Fix identified, not yet applied
+
 ## 2026-08-24
 
 ### `crux.mjs` no longer fetches TABLET by default

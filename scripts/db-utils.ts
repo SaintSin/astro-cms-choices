@@ -41,6 +41,25 @@ function initSchema(db: Database.Database): void {
 		/* column already exists (or sites table doesn't exist yet — CREATE below handles that) */
 	}
 
+	// Static showcase metadata that used to live only in cms-results.json —
+	// a scan-history-only recovery couldn't rebuild it after the JSON file was
+	// lost, so it's now persisted here too (see CHANGES.md, 2026-08-26).
+	try {
+		db.exec("ALTER TABLE sites ADD COLUMN date_added TEXT");
+	} catch {
+		/* column already exists */
+	}
+	try {
+		db.exec("ALTER TABLE sites ADD COLUMN categories TEXT");
+	} catch {
+		/* column already exists */
+	}
+	try {
+		db.exec("ALTER TABLE scan_results ADD COLUMN evidence TEXT");
+	} catch {
+		/* column already exists (or table doesn't exist yet — CREATE below handles that) */
+	}
+
 	db.exec(`
     -- One row per pnpm detect run
     CREATE TABLE IF NOT EXISTS scans (
@@ -63,7 +82,9 @@ function initSchema(db: Database.Database): void {
       first_scan_id      INTEGER REFERENCES scans(id),
       last_scan_id       INTEGER REFERENCES scans(id),
       removed            INTEGER NOT NULL DEFAULT 0,  -- 1 once dropped from showcase
-      consecutive_errors INTEGER NOT NULL DEFAULT 0   -- fetch failures since the last success; resets to 0 on any non-Error result
+      consecutive_errors INTEGER NOT NULL DEFAULT 0,  -- fetch failures since the last success; resets to 0 on any non-Error result
+      date_added         TEXT,                        -- from the showcase YAML's dateAdded field, static
+      categories         TEXT                         -- JSON array, from the showcase YAML, static
     );
 
     -- One row per site per scan — the raw detection snapshot
@@ -79,6 +100,7 @@ function initSchema(db: Database.Database): void {
       astro_version     TEXT,                 -- "5.5.2" | NULL
       starlight_version TEXT,
       astro_signals     TEXT,                 -- JSON array, e.g. '["generator meta tag","/_astro/ asset path"]'
+      evidence          TEXT,                 -- JSON array, e.g. '["high confidence rule matched"]'
       final_url         TEXT,                 -- redirect destination (Forwarded sites)
       error_message     TEXT,                 -- network/timeout error string
       fetched_at        TEXT,                 -- ISO-8601 of the individual fetch
@@ -170,7 +192,7 @@ export function writeScanToDb(
       VALUES (?, ?, ?, ?)
     `);
 		const touchSite = db.prepare(`
-      UPDATE sites SET last_scan_id = ?, removed = 0 WHERE url = ?
+      UPDATE sites SET last_scan_id = ?, removed = 0, date_added = ?, categories = ? WHERE url = ?
     `);
 		const getSiteId = db.prepare<[string], { id: number }>(
 			"SELECT id FROM sites WHERE url = ?",
@@ -179,8 +201,8 @@ export function writeScanToDb(
       INSERT OR IGNORE INTO scan_results
         (scan_id, site_id, title, cms, cms_type, confidence,
          astro_detected, astro_version, starlight_version, astro_signals,
-         final_url, error_message, fetched_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         evidence, final_url, error_message, fetched_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 		const bumpErrorStreak = db.prepare(
 			"UPDATE sites SET consecutive_errors = consecutive_errors + 1 WHERE id = ?",
@@ -200,7 +222,12 @@ export function writeScanToDb(
 				}
 
 				insertSite.run(r.url, hostname, scanId, scanId);
-				touchSite.run(scanId, r.url);
+				touchSite.run(
+					scanId,
+					r.dateAdded || null,
+					JSON.stringify(r.categories ?? []),
+					r.url,
+				);
 
 				const site = getSiteId.get(r.url);
 				if (!site) continue; // shouldn't happen
@@ -216,6 +243,7 @@ export function writeScanToDb(
 					r.astroVersion || null,
 					r.starlightVersion || null,
 					JSON.stringify(r.astroSignals),
+					JSON.stringify(r.evidence ?? []),
 					r.finalUrl || null,
 					r.error || null,
 					r.fetchedAt,
