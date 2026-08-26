@@ -1,8 +1,8 @@
 {
-  "generated": "2026-08-26T06:47:03.124Z",
-  "totalChecked": 2,
-  "changedCount": 1,
-  "erroredCount": 1,
+  "generated": "2026-08-26T07:12:38.062Z",
+  "totalChecked": 122,
+  "changedCount": 73,
+  "erroredCount": 22,
   "changed": [
     {
       "url": "https://www.2market.com.br/",
@@ -17,7 +17,2275 @@
         "cmsType": "unknown",
         "astroDetected": true
       },
-      "changed": true
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.18.1",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:20.363Z"
+      }
+    },
+    {
+      "url": "https://yanthomas.dev/",
+      "title": "About | Yan Thomas",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.16.4",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:21.180Z"
+      }
+    },
+    {
+      "url": "https://alternateoss.com",
+      "title": "AlternateOSS - Open source alternatives, the alternative universe of software",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": "https://alternateoss.com/",
+        "fetchedAt": "2026-08-26T07:11:21.181Z"
+      }
+    },
+    {
+      "url": "https://anitaslondontours.com/",
+      "title": "Anita's London Tours",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:23.942Z"
+      }
+    },
+    {
+      "url": "https://artofmemory.com/blog/?ads=0",
+      "title": "Art of Memory Blog | Art of Memory",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:23.154Z"
+      }
+    },
+    {
+      "url": "https://astro-grab.nickradford.dev",
+      "title": "astro-grab - Visual element targeting for Astro",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "astro- class"
+        ],
+        "finalUrl": "https://astro-grab.nickradford.dev/",
+        "fetchedAt": "2026-08-26T07:11:30.530Z"
+      }
+    },
+    {
+      "url": "https://usedots.com",
+      "title": "Automated global payouts at scale - Dots",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.18.1",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://usedots.com/",
+        "fetchedAt": "2026-08-26T07:11:27.389Z"
+      }
+    },
+    {
+      "url": "https://pricefinder.travelodge.co.uk",
+      "title": "Best Price Finder: Travelodge Hotel Deals",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.8.1",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://pricefinder.travelodge.co.uk/",
+        "fetchedAt": "2026-08-26T07:11:29.332Z"
+      }
+    },
+    {
+      "url": "https://www.bricocash.fr/",
+      "title": "Brico Cash - matériaux de construction, outillage, bâti, jardin",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:32.048Z"
+      }
+    },
+    {
+      "url": "https://www.bricomarche.com/",
+      "title": "Bricomarché - bricolage, aménagement jardin, outils, maison",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:32.432Z"
+      }
+    },
+    {
+      "url": "https://www.bricorama.fr/",
+      "title": "Bricorama - déco, bricolage, aménagement intérieur et extérieur",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:32.506Z"
+      }
+    },
+    {
+      "url": "https://vannstudios.com",
+      "title": "Bringing Your Ideas to Life",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://vannstudios.com/",
+        "fetchedAt": "2026-08-26T07:11:32.852Z"
+      }
+    },
+    {
+      "url": "https://www.c8.gg/",
+      "title": "C8 | Mechanical Electrical | Guernsey",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Storyblok",
+        "cmsType": "headless-cms",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Storyblok",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "5.16.6",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:34.714Z"
+      }
+    },
+    {
+      "url": "https://www.crecemas.net/",
+      "title": "Crecé Más - Marketing Digital",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Contentful",
+        "cmsType": "headless-cms",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Contentful",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "2.8.1",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector",
+          "astro- class"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:35.210Z"
+      }
+    },
+    {
+      "url": "https://crosstownmovers.net/",
+      "title": "Crosstown Movers",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "astro- class"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:35.100Z"
+      }
+    },
+    {
+      "url": "https://www.cointracker.io/",
+      "title": "Crypto taxes done right | CoinTracker",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": "https://www.cointracker.com/",
+        "fetchedAt": "2026-08-26T07:11:36.296Z"
+      }
+    },
+    {
+      "url": "https://www.dadsworksheets.com/",
+      "title": "DadsWorksheets.com",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.7.13",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:36.446Z"
+      }
+    },
+    {
+      "url": "https://digisolutech.netlify.app/",
+      "title": "DigiSolutech | Huolettomat kotisivut ilman stressiä | Turku",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Wix",
+        "cmsType": "page-builder",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Wix",
+        "cmsType": "page-builder",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "7.2.3",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:36.945Z"
+      }
+    },
+    {
+      "url": "https://www.farisperwira.com/",
+      "title": "Faris Perwira",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.12.0",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://farisperwira.com/",
+        "fetchedAt": "2026-08-26T07:11:37.601Z"
+      }
+    },
+    {
+      "url": "https://www.fundably.com/",
+      "title": "Give your customers access to 50+ lenders in <48 hours. | Fundably",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "6.1.5",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:37.510Z"
+      }
+    },
+    {
+      "url": "https://gpsc.guru",
+      "title": "GPSC Guru : GPSC Old question papers, GPSC Videos, Mock tests, and More",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://gpsc.guru/",
+        "fetchedAt": "2026-08-26T07:11:37.908Z"
+      }
+    },
+    {
+      "url": "https://hanafichoi.netlify.app/",
+      "title": "HanafiChoi | Personal Site",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "1.1.5",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "astro- class"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:39.071Z"
+      }
+    },
+    {
+      "url": "https://harryjatkins.com/",
+      "title": "Harry Atkins — Independent Developer",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "3.0.13",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:39.333Z"
+      }
+    },
+    {
+      "url": "https://firstlook.gg/",
+      "title": "Home",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.1.1",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:41.168Z"
+      }
+    },
+    {
+      "url": "https://gossandparker.com/",
+      "title": "Home | Goss & Parker Structural",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Storyblok",
+        "cmsType": "headless-cms",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Storyblok",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "7.0.7",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://www.gossandparker.com/",
+        "fetchedAt": "2026-08-26T07:11:42.298Z"
+      }
+    },
+    {
+      "url": "https://humanaut.is",
+      "title": "Humanaut | A creative agency that gets good things inside people's brains",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "5.17.3",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": "https://www.humanaut.is/",
+        "fetchedAt": "2026-08-26T07:11:43.747Z"
+      }
+    },
+    {
+      "url": "https://indieworks.petipois.com",
+      "title": "IndieWorks",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.5.4",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": "https://indieworks.petipois.com/",
+        "fetchedAt": "2026-08-26T07:11:46.969Z"
+      }
+    },
+    {
+      "url": "https://instantusername.com",
+      "title": "Instant Username Search",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.2.0",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://instantusername.com/",
+        "fetchedAt": "2026-08-26T07:11:44.240Z"
+      }
+    },
+    {
+      "url": "https://gin-cruise.com/",
+      "title": "Leadership Cruise | GIN Cruise 2026",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:44.857Z"
+      }
+    },
+    {
+      "url": "https://penguen.io/",
+      "title": "Learn English Vocabulary with AI-Powered Flashcards | penguen.io",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:46.708Z"
+      }
+    },
+    {
+      "url": "https://luisaguinaga.dev/",
+      "title": "Luis Aguiñaga",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "3.0.7",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:47.429Z"
+      }
+    },
+    {
+      "url": "https://lukealexdavis.co.uk/",
+      "title": "Luke Davis",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.2.5",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:47.276Z"
+      }
+    },
+    {
+      "url": "https://lusion.co/",
+      "title": "Lusion - Realise Your Creative Ideas",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:49.138Z"
+      }
+    },
+    {
+      "url": "https://www.madeingermanyawards.de/en/",
+      "title": "Made in Germany Awards — German innovation prize",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.2.4",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:48.014Z"
+      }
+    },
+    {
+      "url": "https://app.malachidaily.com",
+      "title": "Malachi Daily: Memorize Bible Verses & Learn Their Context",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.0.3",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://app.malachidaily.com/",
+        "fetchedAt": "2026-08-26T07:11:49.375Z"
+      }
+    },
+    {
+      "url": "https://mattrothenberg.com/",
+      "title": "Matt Rothenberg",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.0.3",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:49.731Z"
+      }
+    },
+    {
+      "url": "https://maucariapa.com",
+      "title": "MauCariApa.com",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://maucariapa.com/",
+        "fetchedAt": "2026-08-26T07:11:50.271Z"
+      }
+    },
+    {
+      "url": "https://seekniraj.online/",
+      "title": "Niraj Kumar - Developer, Designer and Problem Solver",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:50.705Z"
+      }
+    },
+    {
+      "url": "https://npmx-digest.trueberryless.org",
+      "title": "npmx.digest",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Forwarded",
+        "cmsType": "parked",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Forwarded",
+        "cmsType": "parked",
+        "confidence": "high",
+        "evidence": [
+          "Redirected to npmx-digest.netlify.app"
+        ],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://npmx-digest.netlify.app/",
+        "fetchedAt": "2026-08-26T07:11:52.032Z"
+      }
+    },
+    {
+      "url": "https://obsidian-to-hugo.wolf.gdn/",
+      "title": "Obsidian to Hugo",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "/_astro/ asset path",
+          "astro- class"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:51.405Z"
+      }
+    },
+    {
+      "url": "https://onlinecalculator.blog/",
+      "title": "Online Calculator",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:51.833Z"
+      }
+    },
+    {
+      "url": "https://openpodcastapi.org",
+      "title": "Open Podcast API",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Starlight",
+        "cmsType": "static-gen",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Starlight",
+        "cmsType": "static-gen",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "7.1.3",
+        "starlightVersion": "0.41.3",
+        "astroSignals": [
+          "generator meta tag",
+          "Starlight generator tag",
+          "/_astro/ asset path",
+          ":where(.astro-) CSS",
+          "astro- class"
+        ],
+        "finalUrl": "https://openpodcastapi.org/",
+        "fetchedAt": "2026-08-26T07:11:52.007Z"
+      }
+    },
+    {
+      "url": "https://ai.openbestof.com",
+      "title": "OpenBestof - AI",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": "https://ai.openbestof.com/",
+        "fetchedAt": "2026-08-26T07:11:53.630Z"
+      }
+    },
+    {
+      "url": "https://sh.openbestof.com",
+      "title": "OpenBestof - Self-Hosted",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": "https://sh.openbestof.com/",
+        "fetchedAt": "2026-08-26T07:11:52.675Z"
+      }
+    },
+    {
+      "url": "https://llm.openbestof.com",
+      "title": "OpenBestof LLMs",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": "https://llm.openbestof.com/",
+        "fetchedAt": "2026-08-26T07:11:54.319Z"
+      }
+    },
+    {
+      "url": "https://owddm-workshop.netlify.app/",
+      "title": "OWDDM | Workshop | Osaka",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:54.091Z"
+      }
+    },
+    {
+      "url": "https://pastanini.com/",
+      "title": "Pastanini Den Haag - De Italiaanse keuken met haar pure smaken | Pastanini",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Storyblok",
+        "cmsType": "headless-cms",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Storyblok",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          ":where(.astro-) CSS",
+          "data-astro CSS selector",
+          "astro- class"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:54.522Z"
+      }
+    },
+    {
+      "url": "https://peterhanania.com/",
+      "title": "Peter Hanania | Portfolio",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:54.725Z"
+      }
+    },
+    {
+      "url": "https://pharos-development.com/",
+      "title": "Pharos Development.",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "6.0.8",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://www.pharos-development.com/",
+        "fetchedAt": "2026-08-26T07:11:55.552Z"
+      }
+    },
+    {
+      "url": "https://pngtree.com",
+      "title": "Pngtree",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": "https://pngtree.com/",
+        "fetchedAt": "2026-08-26T07:11:56.327Z"
+      }
+    },
+    {
+      "url": "https://printerflo.com",
+      "title": "PrinterFlo — Modern print & sign shop software",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": "https://printerflo.com/",
+        "fetchedAt": "2026-08-26T07:11:56.929Z"
+      }
+    },
+    {
+      "url": "https://www.solitudera.com/",
+      "title": "Protogalaxy",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.16.6",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://www.solitudera.com/zh/",
+        "fetchedAt": "2026-08-26T07:11:58.805Z"
+      }
+    },
+    {
+      "url": "https://quickshell.org/",
+      "title": "Quickshell",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.17.2",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:59.931Z"
+      }
+    },
+    {
+      "url": "https://www.reywins.com",
+      "title": "Reywins - Infinitum Potentiale",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.16.4",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector",
+          "astro- class"
+        ],
+        "finalUrl": "https://reywins.com/",
+        "fetchedAt": "2026-08-26T07:11:59.122Z"
+      }
+    },
+    {
+      "url": "https://rssed.netlify.app",
+      "title": "rssed - a collection of developer RSS feeds - blogroll",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "6.0.8",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://rssed.netlify.app/",
+        "fetchedAt": "2026-08-26T07:12:00.118Z"
+      }
+    },
+    {
+      "url": "https://saturdayquiztime.com.au/",
+      "title": "Saturday Quiz",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://www.saturdayquiztime.com.au/",
+        "fetchedAt": "2026-08-26T07:12:05.218Z"
+      }
+    },
+    {
+      "url": "https://scottkellum.com/",
+      "title": "Scott Kellum",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.10.0",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:00.675Z"
+      }
+    },
+    {
+      "url": "https://withpersona.com/",
+      "title": "Secure Identity Verification Solutions | Persona",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.1.5",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:03.025Z"
+      }
+    },
+    {
+      "url": "https://starlight-recipes.trueberryless.org",
+      "title": "Starlight Recipes",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Starlight",
+        "cmsType": "static-gen",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Starlight",
+        "cmsType": "static-gen",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "6.3.5",
+        "starlightVersion": "0.39.2",
+        "astroSignals": [
+          "generator meta tag",
+          "Starlight generator tag",
+          "/_astro/ asset path",
+          "astro- class"
+        ],
+        "finalUrl": "https://starlight-recipes.netlify.app/",
+        "fetchedAt": "2026-08-26T07:12:05.826Z"
+      }
+    },
+    {
+      "url": "https://synced.com.au/",
+      "title": "Synced | Your Home, In Sync.",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:05.848Z"
+      }
+    },
+    {
+      "url": "https://tacohuaco.co",
+      "title": "Tacohuaco: favorite recipes of a Mexican-Russian couple",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "/_astro/ asset path"
+        ],
+        "finalUrl": "https://tacohuaco.co/",
+        "fetchedAt": "2026-08-26T07:12:06.163Z"
+      }
+    },
+    {
+      "url": "https://testdev.tools",
+      "title": "TestDevTools - Hand-Picked Software Testing Tools & Resources",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "4.5.15",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://testdev.tools/",
+        "fetchedAt": "2026-08-26T07:12:08.896Z"
+      }
+    },
+    {
+      "url": "https://www.ada.cx/",
+      "title": "The AI-Powered Customer Service Automation Platform | Ada",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.18.1",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:07.493Z"
+      }
+    },
+    {
+      "url": "https://nordvpn.com",
+      "title": "The best VPN service for speed and security in 2025 | NordVPN",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "<astro-island> element",
+          "data-astro CSS selector",
+          "astro- class"
+        ],
+        "finalUrl": "https://nordvpn.com/",
+        "fetchedAt": "2026-08-26T07:12:09.411Z"
+      }
+    },
+    {
+      "url": "https://thehangedmanpub.netlify.app/",
+      "title": "The Hanged Man | The Hanged Man",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Starlight",
+        "cmsType": "static-gen",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Starlight",
+        "cmsType": "static-gen",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "7.1.6",
+        "starlightVersion": "0.41.6",
+        "astroSignals": [
+          "generator meta tag",
+          "Starlight generator tag",
+          "/_astro/ asset path",
+          ":where(.astro-) CSS",
+          "astro- class"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:14.424Z"
+      }
+    },
+    {
+      "url": "https://thepillar.method.education/",
+      "title": "The Pillar — space for deep introspection",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.7.10",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:13.614Z"
+      }
+    },
+    {
+      "url": "https://whatsthetime.online/",
+      "title": "Time Zone Converter, Meeting Planner & World Clock | What's The Time",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Forwarded",
+        "cmsType": "parked",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Forwarded",
+        "cmsType": "parked",
+        "confidence": "high",
+        "evidence": [
+          "Redirected to expireddomains.com"
+        ],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": "https://expireddomains.com/domain/whatsthetime.online?utm_source=redi",
+        "fetchedAt": "2026-08-26T07:12:14.873Z"
+      }
+    },
+    {
+      "url": "https://tomscarnivores.com/",
+      "title": "Tom's Carnivores",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.1.6",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:16.079Z"
+      }
+    },
+    {
+      "url": "https://shipshape.io/",
+      "title": "Top-Tier, Full-Stack Software Consultants | Ship Shape",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:16.709Z"
+      }
+    },
+    {
+      "url": "https://www.villademazamet.com/",
+      "title": "Villa de Mazamet | France’s Leading Luxury B&B",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.0.7",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:24.197Z"
+      }
+    },
+    {
+      "url": "https://villarenegabriel.com/",
+      "title": "Villa René Gabriel | Séjour d’exception dans les Landes",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.7.2",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "astro- class"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:25.700Z"
+      }
+    },
+    {
+      "url": "https://wukong.cskl.pl/",
+      "title": "Wukong Wiki",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.2.2",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:26.246Z"
+      }
+    },
+    {
+      "url": "https://www.masdarx.com/",
+      "title": "منصة أخبار المشاريع المفتوحة المصدر | مصدر إكس",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:28.104Z"
+      }
     }
   ],
   "all": [
@@ -50,7 +2318,3016 @@
         "cmsType": "unknown",
         "astroDetected": true
       },
-      "changed": true
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.18.1",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:20.363Z"
+      }
+    },
+    {
+      "url": "https://yanthomas.dev/",
+      "title": "About | Yan Thomas",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.16.4",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:21.180Z"
+      }
+    },
+    {
+      "url": "https://agileit.com/",
+      "title": "Agile IT - #1 Microsoft Cloud Security & Migration Experts",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://alexrybin.tech/",
+      "title": "Alexander Rybin | Senior Product Engineer",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_CONNECTION_CLOSED at https://alexrybin.tech/\nCall log:\n  - navigating to \"https://alexrybin.tech/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://alternateoss.com",
+      "title": "AlternateOSS - Open source alternatives, the alternative universe of software",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": "https://alternateoss.com/",
+        "fetchedAt": "2026-08-26T07:11:21.181Z"
+      }
+    },
+    {
+      "url": "https://anitaslondontours.com/",
+      "title": "Anita's London Tours",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:23.942Z"
+      }
+    },
+    {
+      "url": "https://apnews.com/project/election-results-2024",
+      "title": "AP News Election Results",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://archgyan.com/",
+      "title": "Archgyan - Architecture for the Real World",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://artofmemory.com/blog/?ads=0",
+      "title": "Art of Memory Blog | Art of Memory",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:23.154Z"
+      }
+    },
+    {
+      "url": "https://artdirector.fr/en",
+      "title": "Artdirector France | Creative Digital Agency",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://astro-grab.nickradford.dev",
+      "title": "astro-grab - Visual element targeting for Astro",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "astro- class"
+        ],
+        "finalUrl": "https://astro-grab.nickradford.dev/",
+        "fetchedAt": "2026-08-26T07:11:30.530Z"
+      }
+    },
+    {
+      "url": "https://usedots.com",
+      "title": "Automated global payouts at scale - Dots",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.18.1",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://usedots.com/",
+        "fetchedAt": "2026-08-26T07:11:27.389Z"
+      }
+    },
+    {
+      "url": "https://bachitter.dev",
+      "title": "Bachitter",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://beertrail.com/",
+      "title": "BeerTrail: Your Guide to Beer Trails & Breweries",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://pricefinder.travelodge.co.uk",
+      "title": "Best Price Finder: Travelodge Hotel Deals",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.8.1",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://pricefinder.travelodge.co.uk/",
+        "fetchedAt": "2026-08-26T07:11:29.332Z"
+      }
+    },
+    {
+      "url": "https://www.iktp.net/blog",
+      "title": "Blog",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_SSL_PROTOCOL_ERROR at https://www.iktp.net/blog\nCall log:\n  - navigating to \"https://www.iktp.net/blog\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://www.bricocash.fr/",
+      "title": "Brico Cash - matériaux de construction, outillage, bâti, jardin",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:32.048Z"
+      }
+    },
+    {
+      "url": "https://www.bricomarche.com/",
+      "title": "Bricomarché - bricolage, aménagement jardin, outils, maison",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:32.432Z"
+      }
+    },
+    {
+      "url": "https://www.bricorama.fr/",
+      "title": "Bricorama - déco, bricolage, aménagement intérieur et extérieur",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:32.506Z"
+      }
+    },
+    {
+      "url": "https://vannstudios.com",
+      "title": "Bringing Your Ideas to Life",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://vannstudios.com/",
+        "fetchedAt": "2026-08-26T07:11:32.852Z"
+      }
+    },
+    {
+      "url": "https://www.c8.gg/",
+      "title": "C8 | Mechanical Electrical | Guernsey",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Storyblok",
+        "cmsType": "headless-cms",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Storyblok",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "5.16.6",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:34.714Z"
+      }
+    },
+    {
+      "url": "https://www.chproxy.org/",
+      "title": "Chproxy",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_SSL_PROTOCOL_ERROR at https://www.chproxy.org/\nCall log:\n  - navigating to \"https://www.chproxy.org/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://www.freshcleanliving.com/",
+      "title": "Cleaning & Clear - www.freshcleanliving.com",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://www.codingthesmartway.com/",
+      "title": "CodingTheSmartWay.com",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_CERT_COMMON_NAME_INVALID at https://www.codingthesmartway.com/\nCall log:\n  - navigating to \"https://www.codingthesmartway.com/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://corsfix.com/docs",
+      "title": "Corsfix Docs",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_SSL_PROTOCOL_ERROR at https://corsfix.com/docs\nCall log:\n  - navigating to \"https://corsfix.com/docs\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://creatures.dev",
+      "title": "creatures.dev - a community of developers excited about code",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://www.crecemas.net/",
+      "title": "Crecé Más - Marketing Digital",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Contentful",
+        "cmsType": "headless-cms",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Contentful",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "2.8.1",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector",
+          "astro- class"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:35.210Z"
+      }
+    },
+    {
+      "url": "https://crosstownmovers.net/",
+      "title": "Crosstown Movers",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "astro- class"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:35.100Z"
+      }
+    },
+    {
+      "url": "https://www.cointracker.io/",
+      "title": "Crypto taxes done right | CoinTracker",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": "https://www.cointracker.com/",
+        "fetchedAt": "2026-08-26T07:11:36.296Z"
+      }
+    },
+    {
+      "url": "https://www.dadsworksheets.com/",
+      "title": "DadsWorksheets.com",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.7.13",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:36.446Z"
+      }
+    },
+    {
+      "url": "https://www.developerecosystem.com/",
+      "title": "Developer Ecosystem",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://digisolutech.netlify.app/",
+      "title": "DigiSolutech | Huolettomat kotisivut ilman stressiä | Turku",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Wix",
+        "cmsType": "page-builder",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Wix",
+        "cmsType": "page-builder",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "7.2.3",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:36.945Z"
+      }
+    },
+    {
+      "url": "https://www.farisperwira.com/",
+      "title": "Faris Perwira",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.12.0",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://farisperwira.com/",
+        "fetchedAt": "2026-08-26T07:11:37.601Z"
+      }
+    },
+    {
+      "url": "https://flurium.com",
+      "title": "Flurium",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://www.fundably.com/",
+      "title": "Give your customers access to 50+ lenders in <48 hours. | Fundably",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "6.1.5",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:37.510Z"
+      }
+    },
+    {
+      "url": "https://glypheditor.com/",
+      "title": "Glyph Editor",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"https://glypheditor.com/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://gpsc.guru",
+      "title": "GPSC Guru : GPSC Old question papers, GPSC Videos, Mock tests, and More",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://gpsc.guru/",
+        "fetchedAt": "2026-08-26T07:11:37.908Z"
+      }
+    },
+    {
+      "url": "https://hanafichoi.netlify.app/",
+      "title": "HanafiChoi | Personal Site",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "1.1.5",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "astro- class"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:39.071Z"
+      }
+    },
+    {
+      "url": "https://harryjatkins.com/",
+      "title": "Harry Atkins — Independent Developer",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "3.0.13",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:39.333Z"
+      }
+    },
+    {
+      "url": "https://www.heylogix.at",
+      "title": "Heylogix - Sichere Softwareentwicklung & Developer Enablement",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://viole.in",
+      "title": "hi.",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://firstlook.gg/",
+      "title": "Home",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.1.1",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:41.168Z"
+      }
+    },
+    {
+      "url": "https://gossandparker.com/",
+      "title": "Home | Goss & Parker Structural",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Storyblok",
+        "cmsType": "headless-cms",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Storyblok",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "7.0.7",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://www.gossandparker.com/",
+        "fetchedAt": "2026-08-26T07:11:42.298Z"
+      }
+    },
+    {
+      "url": "https://humanaut.is",
+      "title": "Humanaut | A creative agency that gets good things inside people's brains",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Sanity",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "5.17.3",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": "https://www.humanaut.is/",
+        "fetchedAt": "2026-08-26T07:11:43.747Z"
+      }
+    },
+    {
+      "url": "https://indieworks.petipois.com",
+      "title": "IndieWorks",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.5.4",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": "https://indieworks.petipois.com/",
+        "fetchedAt": "2026-08-26T07:11:46.969Z"
+      }
+    },
+    {
+      "url": "https://instantusername.com",
+      "title": "Instant Username Search",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.2.0",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://instantusername.com/",
+        "fetchedAt": "2026-08-26T07:11:44.240Z"
+      }
+    },
+    {
+      "url": "https://gin-cruise.com/",
+      "title": "Leadership Cruise | GIN Cruise 2026",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:44.857Z"
+      }
+    },
+    {
+      "url": "https://penguen.io/",
+      "title": "Learn English Vocabulary with AI-Powered Flashcards | penguen.io",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:46.708Z"
+      }
+    },
+    {
+      "url": "https://luisaguinaga.dev/",
+      "title": "Luis Aguiñaga",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "3.0.7",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:47.429Z"
+      }
+    },
+    {
+      "url": "https://lukealexdavis.co.uk/",
+      "title": "Luke Davis",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.2.5",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:47.276Z"
+      }
+    },
+    {
+      "url": "https://lusion.co/",
+      "title": "Lusion - Realise Your Creative Ideas",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:49.138Z"
+      }
+    },
+    {
+      "url": "https://www.madeingermanyawards.de/en/",
+      "title": "Made in Germany Awards — German innovation prize",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.2.4",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:48.014Z"
+      }
+    },
+    {
+      "url": "https://app.malachidaily.com",
+      "title": "Malachi Daily: Memorize Bible Verses & Learn Their Context",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.0.3",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://app.malachidaily.com/",
+        "fetchedAt": "2026-08-26T07:11:49.375Z"
+      }
+    },
+    {
+      "url": "https://mattrothenberg.com/",
+      "title": "Matt Rothenberg",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.0.3",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:49.731Z"
+      }
+    },
+    {
+      "url": "https://maucariapa.com",
+      "title": "MauCariApa.com",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://maucariapa.com/",
+        "fetchedAt": "2026-08-26T07:11:50.271Z"
+      }
+    },
+    {
+      "url": "https://nevix.com/",
+      "title": "Nevix - The Future of Entertainment is Here",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://seekniraj.online/",
+      "title": "Niraj Kumar - Developer, Designer and Problem Solver",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:50.705Z"
+      }
+    },
+    {
+      "url": "https://npmx-digest.trueberryless.org",
+      "title": "npmx.digest",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Forwarded",
+        "cmsType": "parked",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Forwarded",
+        "cmsType": "parked",
+        "confidence": "high",
+        "evidence": [
+          "Redirected to npmx-digest.netlify.app"
+        ],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://npmx-digest.netlify.app/",
+        "fetchedAt": "2026-08-26T07:11:52.032Z"
+      }
+    },
+    {
+      "url": "https://obsidian-to-hugo.wolf.gdn/",
+      "title": "Obsidian to Hugo",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "/_astro/ asset path",
+          "astro- class"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:51.405Z"
+      }
+    },
+    {
+      "url": "https://base-64.com",
+      "title": "Online Base64 Conversion Tools - Online Base64 Encode & Decode Tool",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_SSL_PROTOCOL_ERROR at https://base-64.com/\nCall log:\n  - navigating to \"https://base-64.com/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://onlinecalculator.blog/",
+      "title": "Online Calculator",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:51.833Z"
+      }
+    },
+    {
+      "url": "https://openpodcastapi.org",
+      "title": "Open Podcast API",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Starlight",
+        "cmsType": "static-gen",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Starlight",
+        "cmsType": "static-gen",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "7.1.3",
+        "starlightVersion": "0.41.3",
+        "astroSignals": [
+          "generator meta tag",
+          "Starlight generator tag",
+          "/_astro/ asset path",
+          ":where(.astro-) CSS",
+          "astro- class"
+        ],
+        "finalUrl": "https://openpodcastapi.org/",
+        "fetchedAt": "2026-08-26T07:11:52.007Z"
+      }
+    },
+    {
+      "url": "https://openbestof.com",
+      "title": "OpenBestof",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"https://openbestof.com/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://ai.openbestof.com",
+      "title": "OpenBestof - AI",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": "https://ai.openbestof.com/",
+        "fetchedAt": "2026-08-26T07:11:53.630Z"
+      }
+    },
+    {
+      "url": "https://sh.openbestof.com",
+      "title": "OpenBestof - Self-Hosted",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": "https://sh.openbestof.com/",
+        "fetchedAt": "2026-08-26T07:11:52.675Z"
+      }
+    },
+    {
+      "url": "https://llm.openbestof.com",
+      "title": "OpenBestof LLMs",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": "https://llm.openbestof.com/",
+        "fetchedAt": "2026-08-26T07:11:54.319Z"
+      }
+    },
+    {
+      "url": "https://owddm-workshop.netlify.app/",
+      "title": "OWDDM | Workshop | Osaka",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:54.091Z"
+      }
+    },
+    {
+      "url": "https://pastanini.com/",
+      "title": "Pastanini Den Haag - De Italiaanse keuken met haar pure smaken | Pastanini",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Storyblok",
+        "cmsType": "headless-cms",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Storyblok",
+        "cmsType": "headless-cms",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          ":where(.astro-) CSS",
+          "data-astro CSS selector",
+          "astro- class"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:54.522Z"
+      }
+    },
+    {
+      "url": "https://peterhanania.com/",
+      "title": "Peter Hanania | Portfolio",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:54.725Z"
+      }
+    },
+    {
+      "url": "https://pharos-development.com/",
+      "title": "Pharos Development.",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "6.0.8",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://www.pharos-development.com/",
+        "fetchedAt": "2026-08-26T07:11:55.552Z"
+      }
+    },
+    {
+      "url": "https://www.planatom.com/",
+      "title": "Planatom | AI-powered Planning Data",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://planx.site",
+      "title": "Planxnx - be The Rude Software Engineer",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_CERT_DATE_INVALID at https://planx.site/\nCall log:\n  - navigating to \"https://planx.site/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://pngtree.com",
+      "title": "Pngtree",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": "https://pngtree.com/",
+        "fetchedAt": "2026-08-26T07:11:56.327Z"
+      }
+    },
+    {
+      "url": "https://printerflo.com",
+      "title": "PrinterFlo — Modern print & sign shop software",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": "https://printerflo.com/",
+        "fetchedAt": "2026-08-26T07:11:56.929Z"
+      }
+    },
+    {
+      "url": "https://privatestudentloanassistance.org",
+      "title": "Private Student Loan Assistance | Default & Collections Help | PSLA Center",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://veblabs.com/en/",
+      "title": "Professional Web Design Services | SEO-Optimized Websites | Veblabs | VEB Labs",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_CONNECTION_CLOSED at https://veblabs.com/en/\nCall log:\n  - navigating to \"https://veblabs.com/en/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://www.solitudera.com/",
+      "title": "Protogalaxy",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.16.6",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://www.solitudera.com/zh/",
+        "fetchedAt": "2026-08-26T07:11:58.805Z"
+      }
+    },
+    {
+      "url": "https://quickshell.org/",
+      "title": "Quickshell",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.17.2",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:11:59.931Z"
+      }
+    },
+    {
+      "url": "https://www.reywins.com",
+      "title": "Reywins - Infinitum Potentiale",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.16.4",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector",
+          "astro- class"
+        ],
+        "finalUrl": "https://reywins.com/",
+        "fetchedAt": "2026-08-26T07:11:59.122Z"
+      }
+    },
+    {
+      "url": "https://rssed.netlify.app",
+      "title": "rssed - a collection of developer RSS feeds - blogroll",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "6.0.8",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://rssed.netlify.app/",
+        "fetchedAt": "2026-08-26T07:12:00.118Z"
+      }
+    },
+    {
+      "url": "https://sangeethsivan.me/",
+      "title": "Sangeeth Sivan | Portfolio",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://saturdayquiztime.com.au/",
+      "title": "Saturday Quiz",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://www.saturdayquiztime.com.au/",
+        "fetchedAt": "2026-08-26T07:12:05.218Z"
+      }
+    },
+    {
+      "url": "https://www.saturn9.eu/",
+      "title": "Saturn9 photography",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://scottkellum.com/",
+      "title": "Scott Kellum",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.10.0",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:00.675Z"
+      }
+    },
+    {
+      "url": "https://withpersona.com/",
+      "title": "Secure Identity Verification Solutions | Persona",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.1.5",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:03.025Z"
+      }
+    },
+    {
+      "url": "https://shibes.lol/",
+      "title": "shibes.lol",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://simbuy.shop/de",
+      "title": "simbuy.shop: Mobiles Internet mit eSIMs auf Deiner Reise",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"https://simbuy.shop/de\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://starlight-recipes.trueberryless.org",
+      "title": "Starlight Recipes",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Starlight",
+        "cmsType": "static-gen",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Starlight",
+        "cmsType": "static-gen",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "6.3.5",
+        "starlightVersion": "0.39.2",
+        "astroSignals": [
+          "generator meta tag",
+          "Starlight generator tag",
+          "/_astro/ asset path",
+          "astro- class"
+        ],
+        "finalUrl": "https://starlight-recipes.netlify.app/",
+        "fetchedAt": "2026-08-26T07:12:05.826Z"
+      }
+    },
+    {
+      "url": "https://synced.com.au/",
+      "title": "Synced | Your Home, In Sync.",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:05.848Z"
+      }
+    },
+    {
+      "url": "https://tacohuaco.co",
+      "title": "Tacohuaco: favorite recipes of a Mexican-Russian couple",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "/_astro/ asset path"
+        ],
+        "finalUrl": "https://tacohuaco.co/",
+        "fetchedAt": "2026-08-26T07:12:06.163Z"
+      }
+    },
+    {
+      "url": "https://testdev.tools",
+      "title": "TestDevTools - Hand-Picked Software Testing Tools & Resources",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "4.5.15",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": "https://testdev.tools/",
+        "fetchedAt": "2026-08-26T07:12:08.896Z"
+      }
+    },
+    {
+      "url": "https://www.ada.cx/",
+      "title": "The AI-Powered Customer Service Automation Platform | Ada",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.18.1",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:07.493Z"
+      }
+    },
+    {
+      "url": "https://nordvpn.com",
+      "title": "The best VPN service for speed and security in 2025 | NordVPN",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "<astro-island> element",
+          "data-astro CSS selector",
+          "astro- class"
+        ],
+        "finalUrl": "https://nordvpn.com/",
+        "fetchedAt": "2026-08-26T07:12:09.411Z"
+      }
+    },
+    {
+      "url": "https://handy.gy",
+      "title": "The Handy Perspective",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://thehangedmanpub.netlify.app/",
+      "title": "The Hanged Man | The Hanged Man",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Starlight",
+        "cmsType": "static-gen",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Starlight",
+        "cmsType": "static-gen",
+        "confidence": "high",
+        "evidence": [
+          "high confidence rule matched"
+        ],
+        "astroDetected": true,
+        "astroVersion": "7.1.6",
+        "starlightVersion": "0.41.6",
+        "astroSignals": [
+          "generator meta tag",
+          "Starlight generator tag",
+          "/_astro/ asset path",
+          ":where(.astro-) CSS",
+          "astro- class"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:14.424Z"
+      }
+    },
+    {
+      "url": "https://thepillar.method.education/",
+      "title": "The Pillar — space for deep introspection",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.7.10",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:13.614Z"
+      }
+    },
+    {
+      "url": "https://whatsthetime.online/",
+      "title": "Time Zone Converter, Meeting Planner & World Clock | What's The Time",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Forwarded",
+        "cmsType": "parked",
+        "astroDetected": false
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Forwarded",
+        "cmsType": "parked",
+        "confidence": "high",
+        "evidence": [
+          "Redirected to expireddomains.com"
+        ],
+        "astroDetected": false,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [],
+        "finalUrl": "https://expireddomains.com/domain/whatsthetime.online?utm_source=redi",
+        "fetchedAt": "2026-08-26T07:12:14.873Z"
+      }
+    },
+    {
+      "url": "https://tleosolutions.com/",
+      "title": "TLEO Solutions | BIM/CAD Consultancy",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"https://tleosolutions.com/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://tomscarnivores.com/",
+      "title": "Tom's Carnivores",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.1.6",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:16.079Z"
+      }
+    },
+    {
+      "url": "https://vpnwide.com",
+      "title": "Top Best VPN for August | VPNWIDE",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_SSL_PROTOCOL_ERROR at https://vpnwide.com/\nCall log:\n  - navigating to \"https://vpnwide.com/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://patronview.com/patrons/",
+      "title": "Top Patrons by Institution",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://drill-parts.com",
+      "title": "Top Quality Parts for Drill Rigs and Rock Drills | WMS DRILL-PARTS",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://shipshape.io/",
+      "title": "Top-Tier, Full-Stack Software Consultants | Ship Shape",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "data-astro- attribute",
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:16.709Z"
+      }
+    },
+    {
+      "url": "https://www.trapti.dev",
+      "title": "Trapti Rahangdale",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to \"https://www.trapti.dev/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://trigv.com",
+      "title": "Trigv | Real-time events. Instant alerts for developers.",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_SSL_PROTOCOL_ERROR at https://trigv.com/\nCall log:\n  - navigating to \"https://trigv.com/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://www.uiino.com",
+      "title": "Uiino – Designing User flows in Plain Text",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://userjot.com",
+      "title": "UserJot | Complete Feedback Platform for SaaS Teams",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://varunvasudeva.com",
+      "title": "Varun Vasudeva",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://vetjobhunt.uk/",
+      "title": "Vetjobhunt.uk Automatic veterinary locum shifts matching",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_CERT_COMMON_NAME_INVALID at https://vetjobhunt.uk/\nCall log:\n  - navigating to \"https://vetjobhunt.uk/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://www.viko.co.uk/",
+      "title": "Viko.ai | Digital self-service",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_CERT_COMMON_NAME_INVALID at https://www.viko.co.uk/\nCall log:\n  - navigating to \"https://www.viko.co.uk/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://www.villademazamet.com/",
+      "title": "Villa de Mazamet | France’s Leading Luxury B&B",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.0.7",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:24.197Z"
+      }
+    },
+    {
+      "url": "https://villarenegabriel.com/",
+      "title": "Villa René Gabriel | Séjour d’exception dans les Landes",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "5.7.2",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "astro- class"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:25.700Z"
+      }
+    },
+    {
+      "url": "https://wukong.cskl.pl/",
+      "title": "Wukong Wiki",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": "7.2.2",
+        "starlightVersion": null,
+        "astroSignals": [
+          "generator meta tag",
+          "data-astro- attribute",
+          "/_astro/ asset path",
+          "<astro-island> element",
+          "data-astro CSS selector"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:26.246Z"
+      }
+    },
+    {
+      "url": "https://xed.lol/",
+      "title": "xed",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_CONNECTION_CLOSED at https://xed.lol/\nCall log:\n  - navigating to \"https://xed.lol/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://zerolimits.dev",
+      "title": "ZeroLimits.dev",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://buyelica.ru",
+      "title": "Магазин Elica: вытяжки, варочные панели, духовые шкафы. | BuyElica.ru",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_CONNECTION_CLOSED at https://buyelica.ru/\nCall log:\n  - navigating to \"https://buyelica.ru/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://buyomoikiri.ru",
+      "title": "Магазин Omoikiri: мойки, смесители, измельчители и др. | BuyOmoikiri.ru",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_CONNECTION_CLOSED at https://buyomoikiri.ru/\nCall log:\n  - navigating to \"https://buyomoikiri.ru/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://www.masdarx.com/",
+      "title": "منصة أخبار المشاريع المفتوحة المصدر | مصدر إكس",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "astroDetected": true
+      },
+      "changed": true,
+      "fullResult": {
+        "cms": "Unknown",
+        "cmsType": "unknown",
+        "confidence": null,
+        "evidence": [],
+        "astroDetected": true,
+        "astroVersion": null,
+        "starlightVersion": null,
+        "astroSignals": [
+          "/_astro/ asset path"
+        ],
+        "finalUrl": null,
+        "fetchedAt": "2026-08-26T07:12:28.104Z"
+      }
+    },
+    {
+      "url": "https://hindicalculator.online/",
+      "title": "कैलकुलेटर | Hindi Calculator Online",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
+    },
+    {
+      "url": "https://firstoolkit.com/",
+      "title": "第一在线工具 - 一个免费的在线工具网站",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false,
+      "error": "page.goto: net::ERR_CONNECTION_CLOSED at https://firstoolkit.com/\nCall log:\n  - navigating to \"https://firstoolkit.com/\", waiting until \"domcontentloaded\"\n"
+    },
+    {
+      "url": "https://mt.ci/",
+      "title": "面条实验室 - 折腾些什么玩意",
+      "before": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "after": {
+        "cms": "Blocked",
+        "cmsType": "unknown",
+        "astroDetected": false
+      },
+      "changed": false
     }
   ]
 }

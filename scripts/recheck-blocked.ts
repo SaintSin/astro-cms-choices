@@ -45,6 +45,21 @@ interface RecheckOutcome {
 	after: { cms: string; cmsType: string; astroDetected: boolean };
 	changed: boolean;
 	error?: string;
+	// Full CmsResult fields for `changed` entries — enough for merge-recheck-
+	// results.ts to update cms-results.json/the DB without re-fetching.
+	fullResult?: Pick<
+		CmsResult,
+		| "cms"
+		| "cmsType"
+		| "confidence"
+		| "evidence"
+		| "astroDetected"
+		| "astroVersion"
+		| "starlightVersion"
+		| "astroSignals"
+		| "finalUrl"
+		| "fetchedAt"
+	>;
 }
 
 async function recheckSite(
@@ -66,8 +81,22 @@ async function recheckSite(
 		const headers = response?.headers() ?? {};
 		const finalUrl = page.url();
 
-		const hit = fingerprint(html, headers, url, finalUrl);
+		const rawHit = fingerprint(html, headers, url, finalUrl);
 		const astro = detectAstro(html);
+		const fetchedAt = new Date().toISOString();
+
+		// Same demotion rule as detect-cms.ts's processSite(): a "Blocked"/
+		// "full-site"/"parked" label sitting on top of confirmed Astro content
+		// is misleading — we got real content through, so it's not actually
+		// blocked/parked/CMS-rendered. fingerprint() alone doesn't apply this;
+		// it's normally done by the caller.
+		const hit =
+			(rawHit?.cms === "Blocked" ||
+				rawHit?.cmsType === "full-site" ||
+				(rawHit?.cmsType === "parked" && rawHit?.cms !== "Forwarded")) &&
+			astro.detected
+				? null
+				: rawHit;
 
 		const after = {
 			cms: hit?.cms ?? "Unknown",
@@ -79,15 +108,30 @@ async function recheckSite(
 			cmsType: before.cmsType,
 			astroDetected: before.astroDetected,
 		};
+		const changed =
+			after.cms !== beforeSummary.cms ||
+			after.astroDetected !== beforeSummary.astroDetected;
 
 		return {
 			url,
 			title,
 			before: beforeSummary,
 			after,
-			changed:
-				after.cms !== beforeSummary.cms ||
-				after.astroDetected !== beforeSummary.astroDetected,
+			changed,
+			fullResult: changed
+				? {
+						cms: after.cms,
+						cmsType: after.cmsType,
+						confidence: hit?.confidence ?? null,
+						evidence: hit?.evidence ?? [],
+						astroDetected: astro.detected,
+						astroVersion: astro.version,
+						starlightVersion: astro.starlightVersion,
+						astroSignals: astro.signals,
+						finalUrl: finalUrl !== url ? finalUrl : null,
+						fetchedAt,
+					}
+				: undefined,
 		};
 	} catch (err) {
 		return {
