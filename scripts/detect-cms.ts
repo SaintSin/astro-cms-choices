@@ -614,6 +614,18 @@ const RULES: Rule[] = [
 		/porkbun\.com|Porkbun Marketplace/i,
 		/porkbun\.com/i,
 	),
+	// HugeDomains titles skip the word "domain" entirely — e.g.
+	// "FreshCleanLiving.com is for sale | HugeDomains" — so even the loosened
+	// generic "domain ... is for sale" fallback below doesn't catch it.
+	makeParkedDetector("HugeDomains", /hugedomains\.com/i, /hugedomains\.com/i),
+	// ExpiredDomains' marketplace page itself Cloudflare-blocks the plain fetch
+	// client (403), so the html branch rarely fires — the hostname match on
+	// the redirect destination is what actually catches this one.
+	makeParkedDetector(
+		"ExpiredDomains",
+		/expireddomains\.com/i,
+		/expireddomains\.com/i,
+	),
 	{
 		cms: "Namecheap",
 		cmsType: "parked",
