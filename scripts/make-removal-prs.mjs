@@ -167,7 +167,13 @@ for (const file of yamlFiles) {
 	// web.koyu.space's entry is koyu.yml / koyu.webp) — read it from the
 	// YAML itself rather than assuming, so the screenshot always gets
 	// deleted alongside the metadata, not left orphaned.
-	const imageMatch = content.match(/^image:\s*['"]?\.\/([^\s'"]+)/m);
+	// A very long filename makes the YAML emitter fold the value onto its own
+	// line (`image: >-\n  ./name.webp`) instead of the usual same-line form —
+	// found via a real orphaned .webp in a removal batch (2026-08-28). Try
+	// the same-line form first, then the folded form.
+	const imageMatch =
+		content.match(/^image:\s*['"]?\.\/([^\s'"]+)/m) ??
+		content.match(/^image:\s*>-?\s*\n\s*\.\/([^\s'"]+)/m);
 	if (urlMatch) urlToFile.set(urlMatch[1], { file, image: imageMatch?.[1] });
 }
 

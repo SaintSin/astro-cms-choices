@@ -10,4 +10,10 @@
 
 ## Showcase PRs
 
-Nothing outstanding — #2645 merged 2026-08-28. PR hold lifted; safe to open new `withastro/astro.build` PRs again. The 150-site GONE batch from `dns-check` (run #4) is ready whenever — see `CHANGES.md`.
+- [ ] **PR #2650** (`withastro/astro.build`) — open, awaiting review.
+  - Removes 50 sites with expired/deleted domains (batch 1/3 of the GONE removal)
+- [ ] **PR #2651** (`withastro/astro.build`) — open, awaiting review.
+  - Removes 50 sites with expired/deleted domains (batch 2/3)
+- [ ] **PR #2652** (`withastro/astro.build`) — open, awaiting review.
+  - Removes 50 sites with expired/deleted domains (batch 3/3)
+  - All 150 sites across the 3 batches verified via dual-DoH NXDOMAIN (Cloudflare + Google), cross-checked against `.scan-history.db` consecutive-failure streaks (min 24 scans, 138/150 at 100+ scans / 3+ months) — see `CHANGES.md`, 2026-08-28
