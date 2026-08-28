@@ -10,9 +10,4 @@
 
 ## Showcase PRs
 
-**Holding off on opening any new `withastro/astro.build` PRs until #2645 merges** — #2644 and #2646 already went in fine, but stacking more open PRs on top of an already-open one is exactly what caused the cross-PR `blockedOrigins` conflicts this session (see `CHANGES.md`, 2026-08-25). Batch up findings (removal candidates, URL updates) and hold them for the next PR round instead.
-
-- [ ] **PR #2645** (`withastro/astro.build`) — open, awaiting review.
-  - Updates `url:` for 10 sites that moved domains but are still running Astro
-  - Removes `room-tba.uplbtools.me` as a duplicate of the already-listed `room-tba.uplb.tools`
-  - Flags 7 sites redirecting to `ozgur.ca/project/*` subpages for maintainer input (editorial call on whether they deserve separate listings) — intentionally left untouched
+Nothing outstanding — #2645 merged 2026-08-28. PR hold lifted; safe to open new `withastro/astro.build` PRs again. The 150-site GONE batch from `dns-check` (run #4) is ready whenever — see `CHANGES.md`.

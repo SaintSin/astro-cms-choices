@@ -62,6 +62,10 @@ PRs go to [withastro/astro.build](https://github.com/withastro/astro.build). The
 - If a removal PR also fixes an open issue, reference it with `closes #NNNN` in the commit message
 - The Netlify deploy preview needs a maintainer to approve it — this is separate from the code review approval and can block merge even after approval
 
+### Key feedback from Chris (Astro team, PR #2645)
+
+- On the 7 sites redirecting to `ozgur.ca/project/*` subpages (flagged in the PR as an open question rather than decided unilaterally): leave `url:` unchanged even though the domain moved. Each is a genuinely distinct project, so a shared-portfolio destination doesn't make them duplicates — editorial call resolved in favor of keeping separate listings as-is.
+
 ### Merge sequence
 
 1. Submit PR with removals + `blockedOrigins` additions
