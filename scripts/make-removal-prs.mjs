@@ -128,7 +128,7 @@ if (INPUT_FILE) {
 
 	goneSites = db
 		.prepare(`
-		SELECT s.url, s.hostname, sr.title
+		SELECT s.url, s.hostname, sr.title, s.consecutive_errors AS consecutiveErrors
 		FROM dns_check_results r
 		JOIN sites s ON s.id = r.site_id
 		LEFT JOIN scan_results sr ON sr.site_id = s.id
@@ -193,6 +193,21 @@ if (matched.length === 0) {
 	process.exit(0);
 }
 
+// Aggregate consecutive-failure streak across the *whole* removal effort, not
+// per-batch — the "how long has this been failing" claim should read the
+// same in every batch's PR body regardless of which 50 sites it covers.
+const streaks = matched
+	.map((s) => s.consecutiveErrors)
+	.filter((n) => n != null);
+const streakStats = streaks.length
+	? {
+			min: Math.min(...streaks),
+			max: Math.max(...streaks),
+			total: streaks.length,
+			over100: streaks.filter((n) => n >= 100).length,
+		}
+	: null;
+
 // ── Batch ─────────────────────────────────────────────────────────────────────
 
 const batches = [];
@@ -241,9 +256,13 @@ for (let b = 0; b < batches.length; b++) {
 		totalBatches > 1 ? ` (batch ${batchNum}/${totalBatches})` : "";
 
 	const hasRedirects = batch.some((s) => s.redirectsTo);
+	const hasStreak =
+		!hasRedirects && batch.some((s) => s.consecutiveErrors != null);
 	const tableHeader = hasRedirects
 		? "| Site | Redirects to | isAstro |\n| :--- | :--- | :--- |"
-		: "| Site | isAstro |\n| :--- | :--- |";
+		: hasStreak
+			? "| Site | Consecutive failed scans | isAstro |\n| :--- | ---: | :--- |"
+			: "| Site | isAstro |\n| :--- | :--- |";
 	const tableRows = batch
 		.map((s) => {
 			// Escape literal pipes in titles — otherwise they're parsed as
@@ -265,6 +284,9 @@ for (let b = 0; b < batches.length; b++) {
 				return `| [${label}](${s.url}) | ${dest} | ${isastro} |`;
 			}
 			const isastro = `[verify ↗](https://isastro.pages.dev/?url=${s.hostname})`;
+			if (hasStreak) {
+				return `| [${label}](${s.url}) | ${s.consecutiveErrors} | ${isastro} |`;
+			}
 			return `| [${label}](${s.url}) | ${isastro} |`;
 		})
 		.join("\n");
@@ -284,7 +306,11 @@ Removes ${batch.length} showcase sites whose domains are confirmed gone (NXDOMAI
 
 All domains verified using \`pnpm dns-check\` ([source](${REPO_LINK})) — queries the scan history database for persistently-erroring sites, then cross-checks each domain against two independent DNS over HTTPS resolvers (Cloudflare + Google). Only domains where both resolvers return NXDOMAIN are flagged as gone.
 
-All removed domains added to \`blockedOrigins\` to prevent the weekly CI from re-checking them.
+${
+	streakStats
+		? `Every domain across this removal has failed at least ${streakStats.min} consecutive scans (the "Consecutive failed scans" column below); ${streakStats.over100} of ${streakStats.total} have been failing continuously for 100+ scans, dating back over 3 months.\n\n`
+		: ""
+}All removed domains added to \`blockedOrigins\` to prevent the weekly CI from re-checking them.
 
 ${tableHeader}
 ${tableRows}`;
