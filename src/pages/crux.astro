@@ -15,6 +15,7 @@ const meta = {
 		"Core Web Vitals — 514 desktop sites, 382 Desktop CWV pass, 253 Phone CWV pass",
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: raw better-sqlite3 rows, shape defined by the SELECT below
 let sites: any[] = [];
 let generatedAt = "";
 let totalWithData = 0;
@@ -76,6 +77,7 @@ try {
       HAVING d_lcp IS NOT NULL OR p_lcp IS NOT NULL OR t_lcp IS NOT NULL
       ORDER BY s.hostname`,
 		)
+		// biome-ignore lint/suspicious/noExplicitAny: raw better-sqlite3 rows, shape defined by the SELECT above
 		.all(latestScan.id) as any[];
 
 	totalWithData = sites.length;
@@ -92,11 +94,11 @@ try {
 
 function fmtLcp(ms: number | null) {
 	if (ms === null) return null;
-	return (ms / 1000).toFixed(1) + "s";
+	return `${(ms / 1000).toFixed(1)}s`;
 }
 function fmtInp(ms: number | null) {
 	if (ms === null) return null;
-	return ms + "ms";
+	return `${ms}ms`;
 }
 function fmtCls(v: number | null) {
 	if (v === null) return null;

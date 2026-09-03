@@ -237,7 +237,7 @@ if (sites.length === 0) {
 
 if (DRY_RUN) {
 	for (const s of sites) {
-		console.log(`  ${pad(s.error_count + "/" + SCANS, 6)}  ${s.hostname}`);
+		console.log(`  ${pad(`${s.error_count}/${SCANS}`, 6)}  ${s.hostname}`);
 	}
 	console.log();
 	process.exit(0);
@@ -292,7 +292,7 @@ console.log("  SUMMARY");
 console.log(hr("·", 72));
 for (const key of order) {
 	const n = groups[key].length;
-	if (n) console.log(`  ${pad(ICON[key] + "  " + LABEL[key], 18)}  ${n}`);
+	if (n) console.log(`  ${pad(`${ICON[key]}  ${LABEL[key]}`, 18)}  ${n}`);
 }
 const goneCount = groups.gone.length;
 if (goneCount) {

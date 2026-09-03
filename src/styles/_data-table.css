@@ -81,8 +81,8 @@
 
 /* ── Block: column group header (multi-strategy tables) ──── */
 
-.col-group-header {
-	text-align: center !important;
+.data-table th.col-group-header {
+	text-align: center;
 	border-inline-start: 2px solid var(--gray-3);
 	background: var(--gray-1);
 	font-size: var(--step--2);

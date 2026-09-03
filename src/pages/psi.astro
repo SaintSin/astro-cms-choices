@@ -15,6 +15,7 @@ const meta = {
 		"Lighthouse Scores — 2,117 mobile tested, 1,004 mobile perf ≥90, 1,708 desktop perf ≥90",
 };
 
+// biome-ignore lint/suspicious/noExplicitAny: raw better-sqlite3 rows, shape defined by the SELECT below
 let sites: any[] = [];
 let generatedAt = "";
 let mobileCount = 0;
@@ -78,6 +79,7 @@ try {
       WHERE m.performance IS NOT NULL OR d.performance IS NOT NULL
       ORDER BY s.hostname`,
 		)
+		// biome-ignore lint/suspicious/noExplicitAny: raw better-sqlite3 rows, shape defined by the SELECT above
 		.all(latestScan.id) as any[];
 
 	mobileCount = sites.filter((s) => s.m_perf !== null).length;
@@ -89,6 +91,7 @@ try {
 		(s) => s.d_perf !== null && s.d_perf >= 90,
 	).length;
 
+	// biome-ignore lint/suspicious/noExplicitAny: raw better-sqlite3 row, shape defined by the SELECT above
 	const t800 = (s: any) => {
 		const m =
 			s.m_perf !== null &&

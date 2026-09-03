@@ -375,7 +375,7 @@ ${tableRows}`;
 	}
 	writeFileSync(
 		BLOCKED_FILE,
-		blocked.replace("\t],\n});", insertion + "\n});"),
+		blocked.replace("\t],\n});", `${insertion}\n});`),
 	);
 	run(`git -C "${CACHE_DIR}" add scripts/update-showcase.mjs`);
 

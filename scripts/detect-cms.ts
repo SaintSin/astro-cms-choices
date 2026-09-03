@@ -127,14 +127,14 @@ function parseShowcaseYaml(content: string): ShowcaseEntry | null {
 	}
 	flushFolded();
 
-	const url = result["url"] as string;
-	if (!url || !url.startsWith("http")) return null;
+	const url = result.url as string;
+	if (!url?.startsWith("http")) return null;
 
 	return {
-		title: (result["title"] as string) || "",
+		title: (result.title as string) || "",
 		url,
 		categories: categories.length ? categories : undefined,
-		dateAdded: (result["dateAdded"] as string) || "",
+		dateAdded: (result.dateAdded as string) || "",
 	};
 }
 
@@ -463,7 +463,7 @@ const RULES: Rule[] = [
 		cms: "Notion",
 		cmsType: "page-builder",
 		confidence: "high",
-		match: (html, _, url) => /notion\.so|notion\.site/.test(url),
+		match: (_html, _, url) => /notion\.so|notion\.site/.test(url),
 	},
 	{
 		cms: "Shopify",
@@ -997,6 +997,7 @@ export function createQueue(concurrency: number) {
 	function next() {
 		if (running >= concurrency || queue.length === 0) return;
 		running++;
+		// biome-ignore lint/style/noNonNullAssertion: length check above guarantees a shift() result
 		const run = queue.shift()!;
 		run();
 	}

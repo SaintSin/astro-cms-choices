@@ -111,11 +111,9 @@ const starlightColors = starlightLabels.map((k) => BAND_COLOURS[k]);
 const totalStarlight = results.filter((r) => r.cms === "Starlight").length;
 
 // ── Summary stats ─────────────────────────────────────────────────────────────
-const current = (versionCounts["v6"] ?? 0) + (versionCounts["v7"] ?? 0);
+const current = (versionCounts.v6 ?? 0) + (versionCounts.v7 ?? 0);
 const legacy =
-	(versionCounts["v1"] ?? 0) +
-	(versionCounts["v2"] ?? 0) +
-	(versionCounts["v3"] ?? 0);
+	(versionCounts.v1 ?? 0) + (versionCounts.v2 ?? 0) + (versionCounts.v3 ?? 0);
 ---
 
 <Layout metaData={meta}>

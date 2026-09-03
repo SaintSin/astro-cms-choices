@@ -233,19 +233,19 @@
 				background: var(--remove-bg);
 			}
 			.row-remove:hover td {
-				background: var(--remove-bg2) !important;
+				background: var(--remove-bg2);
 			}
 			.row-keep td {
 				background: var(--keep-bg);
 			}
 			.row-keep:hover td {
-				background: var(--keep-bg2) !important;
+				background: var(--keep-bg2);
 			}
 			.row-rescan td {
 				background: var(--rescan-bg);
 			}
 			.row-rescan:hover td {
-				background: var(--rescan-bg2) !important;
+				background: var(--rescan-bg2);
 			}
 			.row-skip td {
 				background: var(--skip-bg);
@@ -365,15 +365,6 @@
 			.decision-btn:hover {
 				color: var(--text);
 				border-color: #94a3b8;
-			}
-
-			.btn-remove {
-			}
-			.btn-keep {
-			}
-			.btn-rescan {
-			}
-			.btn-skip {
 			}
 
 			.btn-remove:hover,
@@ -553,6 +544,7 @@
 				<div class="stats" id="stats"></div>
 			</div>
 			<button
+				type="button"
 				class="btn-export"
 				id="export-btn"
 				disabled
@@ -564,11 +556,11 @@
 
 		<div class="toolbar">
 			<div class="filter-tabs" id="filter-tabs">
-				<button class="tab active" data-filter="all">All</button>
-				<button class="tab" data-filter="pending">Pending</button>
-				<button class="tab" data-filter="remove">Remove</button>
-				<button class="tab" data-filter="keep">Keep</button>
-				<button class="tab" data-filter="deferred">Rescan / Skip</button>
+				<button type="button" class="tab active" data-filter="all">All</button>
+				<button type="button" class="tab" data-filter="pending">Pending</button>
+				<button type="button" class="tab" data-filter="remove">Remove</button>
+				<button type="button" class="tab" data-filter="keep">Keep</button>
+				<button type="button" class="tab" data-filter="deferred">Rescan / Skip</button>
 			</div>
 			<div class="toolbar-right">
 				<select id="cms-filter" onchange="applyFilters()">
@@ -612,6 +604,7 @@
 			<div class="dialog-header">
 				<h2>Export PR Content</h2>
 				<button
+					type="button"
 					class="dialog-close"
 					onclick="document.getElementById('export-dialog').close()"
 				>
@@ -702,15 +695,15 @@
 			document.getElementById("filter-tabs").addEventListener("click", (e) => {
 				const tab = e.target.closest(".tab");
 				if (!tab) return;
-				document
-					.querySelectorAll(".tab")
-					.forEach((t) => t.classList.remove("active"));
+				document.querySelectorAll(".tab").forEach((t) => {
+					t.classList.remove("active");
+				});
 				tab.classList.add("active");
 				activeFilter = tab.dataset.filter;
 				renderTable();
 			});
 
-			function applyFilters() {
+			function _applyFilters() {
 				activeCms = document.getElementById("cms-filter").value;
 				searchQuery = document
 					.getElementById("search-input")
@@ -845,7 +838,7 @@
 
 			// ── Actions ───────────────────────────────────────────────────────────────
 
-			async function setDecision(siteId, decision) {
+			async function _setDecision(siteId, decision) {
 				const site = allSites.find((s) => s.site_id === siteId);
 				if (!site) return;
 
@@ -878,7 +871,7 @@
 				}).catch((err) => console.error("[admin] review save failed:", err));
 			}
 
-			async function saveNotes(siteId) {
+			async function _saveNotes(siteId) {
 				const site = allSites.find((s) => s.site_id === siteId);
 				if (!site || site.decision === "pending") return; // need a decision first
 				const notes = document.getElementById(`notes-${siteId}`)?.value ?? "";
@@ -894,7 +887,7 @@
 
 			// ── Export ────────────────────────────────────────────────────────────────
 
-			async function showExport() {
+			async function _showExport() {
 				const dialog = document.getElementById("export-dialog");
 				document.getElementById("export-body").innerHTML =
 					'<p class="export-count">Loading…</p>';
@@ -926,7 +919,7 @@
         <div class="export-section">
           <label>YAML files to delete (${d.yamlFiles.length})</label>
           <div class="export-field">
-            <pre class="export-pre">${d.yamlFiles.map((f) => esc("src/content/showcase/" + f)).join("\n")}</pre>
+            <pre class="export-pre">${d.yamlFiles.map((f) => esc(`src/content/showcase/${f}`)).join("\n")}</pre>
             <button class="copy-btn" onclick="copySection('yamlPaths')">Copy</button>
           </div>
         </div>
@@ -950,11 +943,11 @@
 
 				// Stash derived values on exportData for copySection
 				exportData.yamlPaths = d.yamlFiles
-					.map((f) => "src/content/showcase/" + f)
+					.map((f) => `src/content/showcase/${f}`)
 					.join("\n");
 			}
 
-			function copySection(key) {
+			function _copySection(key) {
 				const text = exportData?.[key] ?? "";
 				navigator.clipboard.writeText(text).then(() => {
 					// Find the button that triggered this — highlight it briefly

@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-09-03
+
+### `pnpm check` cleanup — caught a real CSS bug along the way
+
+- Ran a full `pnpm biome check --write --unsafe` pass (safe fixes were already clean from earlier in the project; only unsafe-fixable and manual-judgment items were left). Went from 11 errors/31 warnings/16 infos down to 0 errors in actual project code
+- **Caught before it shipped**: the unsafe auto-fix for `lint/complexity/noImportantStyles` stripped `!important` from `.col-group-header` in `_data-table.css` — but `.data-table th` (specificity 0,1,1) beats a bare `.col-group-header` (0,1,0), so without the `!important` the centered PSI/CrUX column-group headers ("Mobile"/"Desktop"/"Phone"/"Tablet") would silently left-align. Fixed properly per the project's own no-`!important` rule instead — qualified the selector to `.data-table th.col-group-header` so it wins on specificity honestly. Verified visually in-browser on both `/psi/` and `/crux/` before keeping it
+- `scripts/detect-cms.ts`, `scripts/dns-check.mjs`, `scripts/make-removal-prs.mjs`, `src/pages/crux.astro`, `src/pages/insights.astro`: mechanical unsafe-fixes (template literals, literal-key property access) — reviewed each diff, all behavior-neutral
+- `scripts/admin-ui.html`: deleted 4 genuinely-empty CSS rules (`.btn-remove {}` etc. — only their `:hover`/`.active` variants ever had real styles), fixed a `forEach` callback that implicitly returned a value, added `type="button"` to 7 buttons (no `<form>` on the page, so purely an a11y fix with zero functional change)
+- `scripts/detect-cms.ts`: documented the one legitimate `noNonNullAssertion` (`queue.shift()!`) with a `biome-ignore` — the preceding length check already guarantees a non-empty shift
+- `src/pages/crux.astro`, `src/pages/psi.astro`: documented 5 `any`-typed raw `better-sqlite3` query rows with `biome-ignore` rather than reconstruct precise interfaces for a many-column SELECT — a wrong reconstruction risks masking real bugs, more downside than an honest, explained `any`
+- `public/favicon.svg`: added a `<title>` element (a11y lint), though favicons aren't actually announced to screen readers so this is more about satisfying the linter than a real accessibility gap
+- `biome.json`: bumped the `$schema` version (biome itself updated mid-session, 2.5.11 → 2.5.12 — `biome migrate --write`), and excluded `.agents/` from the lint scope — that directory is Claude Code's own skill tooling, not part of the Astro app, and its 3 lingering diagnostics were the only thing keeping `pnpm check`'s exit code non-zero after everything else was addressed
+- Left 9 `noDescendingSpecificity` warnings as-is (2 in `_data-page.css`/`_data-table.css`, 7 in `admin-ui.html`) — verified each is a false positive: the selectors involved use mutually-exclusive classes (e.g. a table row is never both `.row-remove` and `.row-keep`; a `<th>` is never both `:first-child` and the second `.subheader` row), so the "descending specificity" the linter flags can never actually cause a real cascade conflict
+- Full production build (`pnpm build`) verified clean after all changes
+
 ## 2026-08-26
 
 ### `recheck-blocked.ts`: importing `detect-cms.ts`'s exports triggered a full scan as a side effect, wiping `cms-results.json` down to 2 entries
