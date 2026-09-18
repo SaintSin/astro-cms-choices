@@ -2,7 +2,7 @@
 // src/components/Analytics.astro
 // Core Web Vitals tracking only
 // Listens for Astro Page Load event
-// 2026-08-22T00:00:00Z
+// 2026-09-18T00:00:00Z
 
 const siteId = Astro.site ? new URL(Astro.site).hostname : "localhost";
 ---
@@ -20,6 +20,30 @@ const siteId = Astro.site ? new URL(Astro.site).hostname : "localhost";
       location.hostname === '127.0.0.1'
     ) {
       return;
+    }
+
+    // Persistent cross-session identity — localStorage survives tab/browser
+    // close, unlike the per-session sessionStorage id below, so repeat visits
+    // from the same browser can be recognized as one visitor over time.
+    function getOrCreateVisitorId() {
+      let visitorId = localStorage.getItem('astro_cwv_visitor');
+      if (!visitorId) {
+        visitorId =
+          'v_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
+        localStorage.setItem('astro_cwv_visitor', visitorId);
+      }
+      return visitorId;
+    }
+
+    function getUtmParams() {
+      const params = new URLSearchParams(location.search);
+      return {
+        utm_source: params.get('utm_source') || null,
+        utm_medium: params.get('utm_medium') || null,
+        utm_campaign: params.get('utm_campaign') || null,
+        utm_term: params.get('utm_term') || null,
+        utm_content: params.get('utm_content') || null,
+      };
     }
 
     function trackPageCWV() {
@@ -74,6 +98,7 @@ const siteId = Astro.site ? new URL(Astro.site).hostname : "localhost";
 
       const metrics = {
         session_id: sessionId,
+        visitor_id: getOrCreateVisitorId(),
         site_id: siteId,
         url: location.href,
         path: currentPath,
@@ -90,6 +115,7 @@ const siteId = Astro.site ? new URL(Astro.site).hostname : "localhost";
         ttfb: null,
         inp: null,
         duration_ms: 0,
+        ...getUtmParams(),
       };
 
       // TTFB - only meaningful for actual navigation, not view transitions

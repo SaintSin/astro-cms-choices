@@ -1,5 +1,5 @@
 // netlify/functions/pandalytics.ts
-// 2026-08-22T00:00:00Z
+// 2026-09-18T00:00:00Z
 
 import type { Handler, HandlerEvent } from "@netlify/functions";
 
@@ -15,12 +15,18 @@ interface MetricData {
 	screen_height?: number;
 	user_agent?: string;
 	browser?: string;
+	visitor_id?: string;
 	lcp?: number;
 	cls?: number;
 	fcp?: number;
 	ttfb?: number;
 	inp?: number;
 	duration_ms?: number;
+	utm_source?: string;
+	utm_medium?: string;
+	utm_campaign?: string;
+	utm_term?: string;
+	utm_content?: string;
 }
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
@@ -94,8 +100,8 @@ function buildStatements(
 	const sessionSql = `
     INSERT INTO sessions (
       session_id, site_id, start_time, country_code, timezone,
-      screen_width, screen_height, user_agent, browser
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      screen_width, screen_height, user_agent, browser, visitor_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(session_id) DO UPDATE SET
       country_code = COALESCE(country_code, EXCLUDED.country_code),
       timezone = COALESCE(timezone, EXCLUDED.timezone),
@@ -103,14 +109,16 @@ function buildStatements(
       screen_height = COALESCE(screen_height, EXCLUDED.screen_height),
       user_agent = COALESCE(user_agent, EXCLUDED.user_agent),
       browser = COALESCE(browser, EXCLUDED.browser),
+      visitor_id = COALESCE(visitor_id, EXCLUDED.visitor_id),
       updated_at = strftime('%s', 'now') * 1000
   `;
 
 	const pageviewSql = `
     INSERT INTO pageviews (
       session_id, url, path, referrer, timestamp,
-      lcp, cls, fcp, ttfb, inp, duration_ms
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      lcp, cls, fcp, ttfb, inp, duration_ms,
+      utm_source, utm_medium, utm_campaign, utm_term, utm_content
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
 	return [
@@ -126,6 +134,7 @@ function buildStatements(
 				safeNumber(data.screen_height),
 				truncate(data.user_agent, 500),
 				truncate(browser, 50),
+				truncate(data.visitor_id, 100),
 			],
 		},
 		{
@@ -142,6 +151,11 @@ function buildStatements(
 				safeTiming(data.ttfb),
 				safeTiming(data.inp),
 				safeNumber(data.duration_ms),
+				truncate(data.utm_source, 200),
+				truncate(data.utm_medium, 200),
+				truncate(data.utm_campaign, 200),
+				truncate(data.utm_term, 200),
+				truncate(data.utm_content, 200),
 			],
 		},
 	];
