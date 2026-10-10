@@ -1,12 +1,12 @@
 ---
-// @components/page/Header.astro
+// @components/global/Header.astro
 
 import Nav from "@components/global/HeaderNav.astro";
 ---
 
 <header class="header">
-  <div class="wrapper">
-    <a href="/" class="site-name">Astro Showcase · What CMS? · How Fast? </a>
+  <div class="wrapper header-inner">
+    <a href="/" class="site-name">Astro Showcase · What CMS? · How Fast?</a>
     <Nav />
   </div>
 </header>
@@ -16,21 +16,30 @@ import Nav from "@components/global/HeaderNav.astro";
     top: 0;
     z-index: 1000;
     margin-block-end: var(--space-l);
-    background: var(--color-surface);
-    border-bottom: 1px solid var(--color-keyline, var(--gray-2));
+    background: var(--color-gradient);
+    color: oklch(100% 0 0 / 92%);
     padding-block: var(--space-xs);
   }
-  .header .wrapper {
+
+  .header-inner {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
+    gap: var(--space-2xs) var(--space-m);
   }
+
   .site-name {
-    font-weight: 700;
+    font-family: var(--font-heading-alt);
+    font-weight: 600;
     font-size: var(--step-0);
     text-decoration: none;
-    color: var(--color-text);
-    letter-spacing: -0.01em;
+    color: inherit;
   }
-  .site-name:hover { color: var(--color-primary, var(--violet-6)); }
+
+  @media (forced-colors: active) {
+    .header {
+      border-block: 1px solid CanvasText;
+    }
+  }
 </style>

@@ -50,24 +50,49 @@
 	--breakpoint-xl: 1280px;
 	--breakpoint-2xl: 1536px;
 
-	/* Semantic color tokens using Open Props */
-	--color-primary: var(--blue-9);
-	--color-secondary: var(--purple-6);
-	--color-accent: var(--orange-6);
+	/* Typography */
+	--font-body: var(--font-plex-sans, system-ui, sans-serif);
+	--font-heading: var(--font-plex-serif, Georgia, serif);
+	--font-heading-alt: var(--font-exo2, system-ui, sans-serif);
+	--font-code: var(--font-plex-mono, ui-monospace, monospace);
+
+	/* Brand gradient — astral night sky, deep indigo through Big Blue */
+	--color-indigo: oklch(18% 0.09 275);
+	--color-blue: oklch(48% 0.18 260);
+	--color-cyan-glint: oklch(65% 0.13 220);
+	--color-gradient: linear-gradient(
+		160deg,
+		var(--color-indigo) 0%,
+		var(--color-blue) 100%
+	);
+	/* Same stops, rotated 180deg — used where the gradient needs to "return", e.g. the footer */
+	--color-gradient-reverse: linear-gradient(
+		340deg,
+		var(--color-indigo) 0%,
+		var(--color-blue) 100%
+	);
+
+	--color-primary: var(--color-blue);
+	--color-accent: var(--color-blue);
+
+	--color-text: #1c1d20;
+	--color-text-subtle: #5c5f66;
+	--color-bg: #fafafa;
+	--color-surface: #f0f1f3;
+
+	--color-success: oklch(60% 0.15 145);
+	--color-warning: oklch(75% 0.15 85);
+	--color-error: oklch(55% 0.18 25);
+	--color-info: var(--color-blue);
+
+	/* Neutrals for borders and data surfaces (replace the Open Props greys) */
+	--color-keyline: oklch(88% 0.006 265);
+	--color-keyline-soft: oklch(93% 0.005 265);
+	--color-keyline-strong: oklch(80% 0.008 265);
+	--color-surface-soft: oklch(97% 0.003 265);
+	--color-mid: var(--color-text-subtle);
+	--color-light: var(--color-bg);
 	--color-brand: var(--color-primary);
-
-	--color-text: var(--gray-7);
-	--color-text-subtle: var(--gray-7);
-	--color-mid: var(--gray-7);
-	--color-bg: var(--gray-0);
-	--color-light: var(--gray-0);
-	--color-keyline: var(--gray-3);
-	--color-surface: var(--gray-2);
-
-	--color-success: var(--green-6);
-	--color-warning: var(--yellow-6);
-	--color-error: var(--red-6);
-	--color-info: var(--blue-6);
 
 	/* Rating / score colours (CrUX, PSI, legend chips) */
 	--rating-good: var(--green-7);

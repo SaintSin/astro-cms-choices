@@ -410,7 +410,7 @@ const parkedCount = results.filter(
   code { font-family: monospace; background: var(--color-surface); padding: 0.1em 0.4em; border-radius: 4px; }
 
   .about-details {
-    border: 1px solid var(--gray-2);
+    border: 1px solid var(--color-keyline-soft);
     border-radius: var(--space-3xs);
     background: var(--color-surface);
     max-width: 68ch;
@@ -435,7 +435,7 @@ const parkedCount = results.filter(
   .about-details summary:hover { color: var(--color-text); }
   .about-body {
     padding: var(--space-xs) var(--space-s) var(--space-s);
-    border-top: 1px solid var(--gray-2);
+    border-top: 1px solid var(--color-keyline-soft);
     display: flex;
     flex-direction: column;
     gap: var(--space-xs);
@@ -455,7 +455,7 @@ const parkedCount = results.filter(
   }
   .bar-list li {
     break-inside: avoid;
-    border-bottom: 1px solid var(--gray-2);
+    border-bottom: 1px solid var(--color-keyline-soft);
   }
   .bar-list li:last-child { border-bottom: none; }
   @media (max-width: 900px) { .bar-list { columns: 2; } }
@@ -478,7 +478,7 @@ const parkedCount = results.filter(
   .bar-filter-btn:hover .bar-fill { opacity: 0.75; }
   .bar-filter-btn.active { border-color: var(--color-primary);
      background: var(--blue-0); }
-  .bar-track { height: 1.25rem; background: var(--gray-2);
+  .bar-track { height: 1.25rem; background: var(--color-surface);
      border-radius: 3px; overflow: hidden; }
   .bar-fill { display: block; height: 100%; background: var(--color-primary);
      border-radius: 3px; min-width: 2px; }
@@ -498,8 +498,8 @@ const parkedCount = results.filter(
     font-size: var(--step--2);
     font-weight: 600;
     white-space: nowrap;
-    background: var(--gray-2);
-    color: var(--gray-8);
+    background: var(--color-surface);
+    color: var(--color-text-subtle);
   }
   .cms-badge--headless-cms { background: var(--blue-1);   color: var(--blue-9); }
   .cms-badge--page-builder { background: var(--purple-1); color: var(--purple-9); }

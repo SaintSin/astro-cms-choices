@@ -1,7 +1,8 @@
-@import "_reset.css" layer(components);
+@layer reset, base, theme, components, utilities;
 
-@import "_tokens.css" layer(components);
-@import "_layout.css" layer(components);
+@import "_reset.css" layer(reset);
+@import "_layout.css" layer(base);
+@import "_tokens.css" layer(theme);
 
 @import "compositions/flow.css" layer(components);
 @import "compositions/wrapper.css" layer(components);
@@ -9,10 +10,12 @@
 @import "_data-table.css" layer(components);
 @import "_data-page.css" layer(components);
 
-.content {
-	height: 100%;
-}
-
 @view-transition {
 	navigation: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	@view-transition {
+		navigation: none;
+	}
 }

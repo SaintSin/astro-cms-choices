@@ -25,11 +25,22 @@ const links = siteMetadata.menu ?? [];
 
 <style>
   .nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs) var(--space-s);
+    font-size: var(--step--1);
+
     a {
-      padding-inline-end: var(--gap);
+      color: oklch(100% 0 0 / 70%);
       text-decoration: none;
+
+      &:hover {
+        color: oklch(100% 0 0);
+      }
     }
+
     .active--exact {
+      color: oklch(100% 0 0);
       font-weight: 700;
       text-decoration: underline;
       text-decoration-thickness: 2px;

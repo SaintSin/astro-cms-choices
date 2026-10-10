@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-10-10
+
+### Restyled to match astralcoders.com
+
+- Design tokens, reset and layout are now the astralcoders.com ones: indigo and Big Blue palette, Plex Sans/Serif/Mono plus Exo 2 for the wordmark, the dot-grid page background, and `@layer reset, base, theme, components, utilities` (previously everything sat in one `components` layer). The reset picks up its narrow-viewport hardening (`minmax(0, 1fr)` body column, `overflow-wrap: anywhere`)
+- Header and footer are the gradient bars (footer reversed), with "© year Astral Coders" linking back to astralcoders.com
+- Replaced the Open Props greys in the data table, toolbar, pagination, badges and the CrUX/PSI/Insights/Home pages with semantic tokens (`--color-keyline`, `--color-keyline-soft`, `--color-keyline-strong`, `--color-surface-soft`). The category and status hues (CMS badges, rating colours, Starlight violet) are unchanged, since the colour carries meaning there. Active pagination page uses the brand blue
+- Font CSS variables renamed to match astralcoders.com (`--font-plex-sans`, `--font-plex-serif`) and Exo 2 and Plex Mono added
+- Not changed: the Chart.js colours on Insights (checked only that the page builds)
+
 ## 2026-09-03
 
 ### `pnpm check` cleanup — caught a real CSS bug along the way

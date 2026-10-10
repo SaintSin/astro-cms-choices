@@ -62,14 +62,34 @@ export default defineConfig({
 		{
 			provider: fontProviders.google(),
 			name: "IBM Plex Sans",
-			cssVariable: "--font-ibm-plex",
-			weights: ["100 700"], // variable font range
+			cssVariable: "--font-plex-sans",
+			weights: ["300 700"], // variable font range
+			styles: ["normal"],
+			subsets: ["latin"],
 		},
 		{
 			provider: fontProviders.google(),
 			name: "IBM Plex Serif",
-			cssVariable: "--font-ibm-plex-serif",
-			weights: ["100 700"],
+			cssVariable: "--font-plex-serif",
+			weights: ["300 700"],
+			styles: ["normal"],
+			subsets: ["latin"],
+		},
+		{
+			provider: fontProviders.google(),
+			name: "Exo 2",
+			cssVariable: "--font-exo2",
+			weights: ["300 700"],
+			styles: ["normal"],
+			subsets: ["latin"],
+		},
+		{
+			provider: fontProviders.google(),
+			name: "IBM Plex Mono",
+			cssVariable: "--font-plex-mono",
+			weights: ["300", "400"],
+			styles: ["normal"],
+			subsets: ["latin"],
 		},
 	],
 	integrations: [

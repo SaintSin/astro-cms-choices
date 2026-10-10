@@ -5,7 +5,7 @@
 
 .table-wrap {
 	overflow-x: auto;
-	border: 1px solid var(--gray-3);
+	border: 1px solid var(--color-keyline);
 	border-radius: var(--space-3xs);
 }
 
@@ -22,7 +22,7 @@
 .data-table th {
 	padding: var(--space-2xs) var(--space-xs);
 	text-align: left;
-	background: var(--gray-1);
+	background: var(--color-surface-soft);
 	white-space: nowrap;
 	font-weight: 600;
 	color: var(--color-text-subtle);
@@ -37,7 +37,7 @@
 
 /* Strong separator under the last thead row */
 .data-table thead tr:last-child th {
-	border-bottom: 2px solid var(--gray-3);
+	border-bottom: 2px solid var(--color-keyline);
 }
 
 .data-table td {
@@ -49,11 +49,11 @@
 }
 
 .data-table tbody tr {
-	border-bottom: 1px solid var(--gray-2);
+	border-bottom: 1px solid var(--color-keyline-soft);
 }
 
 .data-table tbody tr:nth-child(even) {
-	background: var(--gray-1);
+	background: var(--color-surface-soft);
 }
 .data-table tbody tr:hover {
 	background: color-mix(in oklch, var(--color-primary) 5%, transparent);
@@ -65,15 +65,15 @@
 	padding: var(--space-3xs) var(--space-xs);
 	font-size: var(--step--2);
 	color: var(--color-text-subtle);
-	border-top: 1px solid var(--gray-3);
-	border-bottom: 2px solid var(--gray-3);
+	border-top: 1px solid var(--color-keyline);
+	border-bottom: 2px solid var(--color-keyline);
 	font-weight: 600;
 }
 
 /* ── Block: metric column header ─────────────────────────── */
 
 .metric-th {
-	border-inline-start: 1px solid var(--gray-2);
+	border-inline-start: 1px solid var(--color-keyline-soft);
 	font-size: var(--step--2);
 	color: var(--color-text-subtle);
 	/* text-align set per-table */
@@ -83,8 +83,8 @@
 
 .data-table th.col-group-header {
 	text-align: center;
-	border-inline-start: 2px solid var(--gray-3);
-	background: var(--gray-1);
+	border-inline-start: 2px solid var(--color-keyline);
+	background: var(--color-surface-soft);
 	font-size: var(--step--2);
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
@@ -124,7 +124,7 @@
 	text-align: right;
 	font-variant-numeric: tabular-nums;
 	font-family: var(--font-ibm-plex-serif), Georgia, serif;
-	border-inline-start: 1px solid var(--gray-2);
+	border-inline-start: 1px solid var(--color-keyline-soft);
 }
 
 /* Exceptions: Lighthouse rating thresholds */
@@ -152,7 +152,7 @@
 }
 
 .sortable:hover {
-	background: var(--gray-2);
+	background: var(--color-surface);
 	color: var(--color-text);
 }
 

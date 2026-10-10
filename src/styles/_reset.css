@@ -37,7 +37,8 @@ ul,
 ol,
 li,
 caption,
-table {
+table,
+pre {
 	margin: 0;
 	padding: 0;
 }
@@ -52,6 +53,9 @@ ol[role="list"] {
 body {
 	display: grid;
 	grid-template-rows: auto 1fr auto;
+	/* minmax(0, 1fr), not the implicit auto column: an auto column grows to the
+	   widest min-content in the page and can make the layout wider than the viewport */
+	grid-template-columns: minmax(0, 1fr);
 	min-block-size: 100svh;
 	line-height: 1.5;
 }
@@ -89,7 +93,9 @@ h1,
 h2,
 h3,
 h4 {
-	overflow-wrap: break-word;
+	/* `anywhere`, unlike `break-word`, also lowers min-content, so a long email
+	   or URL can't force the page wider than a narrow viewport */
+	overflow-wrap: anywhere;
 }
 /* A elements that don't have a class get default styles */
 a:not([class]) {
@@ -114,14 +120,18 @@ input,
 button,
 textarea,
 select {
-	-webkit-appearance: none;
-	-moz-appearance: none;
-
-	appearance: none;
 	margin: 0;
 	border: none;
 	padding: 0;
 	font: inherit;
+}
+
+/* Native checkboxes, radios and selects keep their built-in rendering
+   (a blanket appearance:none hid the Performance Panda mobile/desktop radios) */
+button,
+textarea,
+input:where(:not([type="checkbox"], [type="radio"])) {
+	appearance: none;
 }
 
 /* Make sure textareas without a rows attribute are not tiny */
@@ -134,23 +144,16 @@ textarea:not([rows]) {
 	scroll-margin-block: 5ex;
 }
 
-/* Remove all animations and transitions for people that prefer not to see them */
+/* No smooth scrolling for people that prefer less motion. Give any animation its own reduced-motion variant rather than clamping durations globally */
 @media (prefers-reduced-motion: reduce) {
 	html:focus-within {
-		scroll-behavior: auto;
-	}
-	*,
-	*::before,
-	*::after {
-		animation-duration: 0.01ms;
-		animation-iteration-count: 1;
-		transition-duration: 0.01ms;
 		scroll-behavior: auto;
 	}
 }
 :root {
 	interpolate-size: allow-keywords;
 	font-synthesis: none;
+	/* No dark theme implemented yet; `light dark` made UA controls go dark on a light page */
 	color-scheme: light;
 }
 :focus-visible {

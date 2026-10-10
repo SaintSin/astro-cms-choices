@@ -121,7 +121,7 @@ const { r } = Astro.props;
   .astro-yes { color: var(--violet-7);
      font-weight: 700; cursor: default; }
   .astro-no      { color: var(--orange-5); font-weight: 700; cursor: default; }
-  .astro-unknown { color: var(--gray-4); cursor: default; }
+  .astro-unknown { color: var(--color-text-subtle); cursor: default; }
   .astro-version {
     display: inline-block;
     margin-left: 0.3em;
@@ -143,8 +143,8 @@ const { r } = Astro.props;
     font-size: var(--step--2);
     font-weight: 600;
     white-space: nowrap;
-    background: var(--gray-2);
-    color: var(--gray-8);
+    background: var(--color-surface);
+    color: var(--color-text-subtle);
   }
   .cms-badge--headless-cms { background: var(--blue-1);   color: var(--blue-9); }
   .cms-badge--page-builder { background: var(--purple-1); color: var(--purple-9); }
@@ -174,7 +174,7 @@ const { r } = Astro.props;
     white-space: nowrap;
   }
   .status-badge--blocked   { background: var(--yellow-1); color: var(--yellow-11); }
-  .status-badge--error     { background: var(--gray-1);   color: var(--gray-7);   }
+  .status-badge--error     { background: var(--color-surface-soft);   color: var(--color-text-subtle);   }
   .status-badge--forwarded { background: var(--blue-1);   color: var(--blue-9);   }
 
   .conf-badge {
@@ -186,5 +186,5 @@ const { r } = Astro.props;
   }
   .conf-badge--high   { background: var(--green-1);  color: var(--green-10); }
   .conf-badge--medium { background: var(--yellow-1); color: var(--yellow-11); }
-  .conf-badge--low    { background: var(--gray-1);   color: var(--gray-7); }
+  .conf-badge--low    { background: var(--color-surface-soft);   color: var(--color-text-subtle); }
 </style>

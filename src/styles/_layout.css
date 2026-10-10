@@ -1,7 +1,24 @@
 body {
 	background: var(--color-bg);
-	font-size: var(--font-size-2);
-	font-family: var(--font-system-ui);
+	background-image: radial-gradient(
+		circle at 1px 1px,
+		rgba(28, 29, 32, 0.07) 1px,
+		transparent 0
+	);
+	background-size: 22px 22px;
+	color: var(--color-text);
+	font-size: var(--step-0);
+	font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+	font-family: var(--font-heading);
+	color: var(--color-indigo);
+	text-wrap: pretty;
 }
 
 .content {
@@ -16,10 +33,15 @@ p {
 	max-width: var(--maxchars);
 }
 
-h1,
-h2,
-h3,
-h4,
-h5 {
-	text-wrap: pretty;
+ul:not([role="list"]),
+ol:not([role="list"]) {
+	padding-inline-start: var(--space-m);
+}
+
+/* Plex Mono is wider and looks heavier than Plex Sans at the same size, so inline code is set slightly smaller */
+code,
+kbd,
+samp {
+	font-family: var(--font-code);
+	font-size: 0.875em;
 }
