@@ -6,7 +6,9 @@
 // Fetches 28-day real-user field data (LCP, CLS, INP, FCP, TTFB) at origin level.
 // Low-traffic sites return no data — recorded as status "no-data".
 //
-// Reads confirmed Astro sites from .scan-history.db (latest scan).
+// Reads confirmed Astro sites from .scan-history.db (latest scan), limited to
+// sites where a PSI run has returned a CWV (field data) response — pass
+// --all-sites to bypass that and query every confirmed Astro site.
 // Writes crux_runs + crux_results to the same DB.
 //
 // Requires CRUX_API_KEY in .env
@@ -15,6 +17,7 @@
 //   node scripts/crux.mjs
 //   node scripts/crux.mjs --form-factor=PHONE   # PHONE | DESKTOP | TABLET (default: PHONE + DESKTOP)
 //   node scripts/crux.mjs --new-only            # skip origins already fetched today
+//   node scripts/crux.mjs --all-sites           # don't limit to sites with a PSI CWV response
 //   node scripts/crux.mjs --limit=100           # cap number of sites (for testing)
 //   node scripts/crux.mjs --url=https://example.com/   # run a single site only
 //   node scripts/crux.mjs --dry-run
@@ -41,6 +44,7 @@ const limitArg = getArg("--limit");
 const urlFilter = getArg("--url");
 const dryRun = args.includes("--dry-run");
 const newOnly = args.includes("--new-only");
+const allSites = args.includes("--all-sites");
 const DELAY_MS = 500; // CrUX quota is 150 req/min — 500ms = 120/min
 
 // ── .env loader ───────────────────────────────────────────────────────────────
@@ -134,12 +138,24 @@ function loadSites(scanId, limit, urlFilter) {
 			.get(urlFilter, urlFilter.replace(/\/$/, ""));
 		return row ? [row] : [];
 	}
+	// A PSI result with a cwv_category means PSI's loadingExperience returned
+	// CrUX field data for that site — sites without one almost never have
+	// CrUX data either, so skip them (low-traffic origins waste ~500ms each).
+	const psiFilter = allSites
+		? ""
+		: `AND EXISTS (
+			SELECT 1 FROM psi_results pr
+			WHERE pr.site_id = s.id
+			  AND pr.status = 'success'
+			  AND pr.cwv_category IS NOT NULL
+		  )`;
 	let query = `
 		SELECT s.id, s.url, s.hostname
 		FROM scan_results sr
 		JOIN sites s ON s.id = sr.site_id
 		WHERE sr.scan_id = ?
 		  AND sr.astro_detected = 1
+		  ${psiFilter}
 		ORDER BY s.hostname
 	`;
 	if (limit) query += ` LIMIT ${Number(limit)}`;
@@ -265,7 +281,9 @@ const skipped = sites.length * formFactors.length - jobs.length;
 console.log(`\nAstro CMS Detector — Chrome UX Report`);
 console.log("=".repeat(60));
 console.log(`  Scan:        #${latestScan.id}`);
-console.log(`  Sites:       ${sites.length} confirmed Astro`);
+console.log(
+	`  Sites:       ${sites.length} confirmed Astro${allSites ? "" : " with a PSI CWV response (--all-sites to bypass)"}`,
+);
 console.log(`  Form factors: ${formFactors.join(", ")}`);
 console.log(
 	`  Total jobs:  ${jobs.length}${newOnly && skipped ? ` (${skipped} already fetched today, skipped)` : ""}`,
