@@ -4,3 +4,15 @@ publish = "dist"
 
 [functions]
 directory = "netlify/functions"
+
+# ARD agent catalog (Lighthouse "Agentic Browsing" ard-schema audit reads ai-catalog.json;
+# the current spec's path is ard.json, so both are served with the same content).
+[[headers]]
+for = "/.well-known/ai-catalog.json"
+[headers.values]
+Content-Type = "application/ai-catalog+json"
+
+[[headers]]
+for = "/.well-known/ard.json"
+[headers.values]
+Content-Type = "application/json"

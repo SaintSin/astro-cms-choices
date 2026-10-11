@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-11
+
+### ARD agent catalog
+
+- Applied the same change that took pythonresources.com from 3/3 to 4/4 on Lighthouse's "Agentic Browsing" category (that site's `bdd90ac`): `/.well-known/ai-catalog.json` (what the `ard-schema` audit reads) plus an identical `/.well-known/ard.json` (the current ARD path), advertised with `<link rel="ard">` and `<link rel="ai-catalog">` in `Basehead.astro` and served with explicit content types via `netlify.toml`
+- One catalog entry: an `astro-what-cms` skill (`/.well-known/agent-skills/astro-what-cms/SKILL.md`) that points agents at `llms.txt` and the per-page Markdown files (`/home.md`, `/psi.md`, `/crux.md`, `/insights.md`, `/notes.md`). The skill entry type has to be `text/markdown; profile="urn:air:agent-skills"`; `application/agent-skills+md` (as used by heade.rs) scores 0.9 on `ard-schema`, which is the exact pass cutoff
+- Checked the Markdown before describing it: `home.md`, `crux.md` and `psi.md` carry the full per-site tables, but `insights.md` has only headline counts (its charts are canvas-only) and none of the `.md` files state a collection date, so the skill says so rather than promising either
+- Verified locally: `pnpm build` clean, both JSON files parse and are identical, the link tags are in the built HTML. Not yet verified: the actual `ard-schema` score and the Netlify content-type headers, which only show once deployed (re-run `pnpm psi -- --url=https://astro-what-cms.netlify.app/` after deploying)
+
 ## 2026-10-10
 
 ### Restyled to match astralcoders.com
