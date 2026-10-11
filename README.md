@@ -87,13 +87,14 @@ rm -rf .astro && pnpm dev
 
 ### `pnpm crux` — Chrome UX Report
 
-Fetches 28-day real-user field data (LCP, INP, CLS, FCP, TTFB) at origin level for all confirmed Astro sites from the latest scan. Tries the bare domain first; falls back to `www.` on 404. Rate-limited to ~120 req/min (safely under the 150/min quota). Estimated ~53 min for a full run.
+Fetches 28-day real-user field data (LCP, INP, CLS, FCP, TTFB) at origin level for confirmed Astro sites from the latest scan that PSI has returned a CWV (field data) response for — run `pnpm psi` first, or pass `--all-sites` to query every confirmed Astro site. Tries the bare domain first; falls back to `www.` on 404. Rate-limited to ~120 req/min (safely under the 150/min quota). Estimated ~53 min for a full run.
 
 Requires `CRUX_API_KEY` in `.env`.
 
 ```bash
 pnpm crux                             # fetch all 3 form factors for every site
 pnpm crux -- --form-factor=DESKTOP    # DESKTOP | PHONE | TABLET (default: all 3)
+pnpm crux -- --all-sites              # don't limit to sites with a PSI CWV response
 pnpm crux -- --new-only               # skip site × form_factor combos fetched today
 pnpm crux -- --limit=100              # cap number of sites (testing)
 pnpm crux -- --dry-run                # print what would be fetched, write nothing

@@ -10,6 +10,13 @@
 - Font CSS variables renamed to match astralcoders.com (`--font-plex-sans`, `--font-plex-serif`) and Exo 2 and Plex Mono added
 - Not changed: the Chart.js colours on Insights (checked only that the page builds)
 
+### `crux.mjs` now only queries sites that PSI got a CWV response for
+
+- Default site list is now confirmed Astro sites (latest scan) that have at least one successful `psi_results` row with a non-null `cwv_category` — i.e. PSI's `loadingExperience` returned CrUX field data for them. A site with no CWV response from PSI almost never has CrUX data either, so querying it just burns a rate-limited request (~500ms each, two form factors)
+- Cuts the default run from ~2,645 sites to ~774 (823 sites have a PSI CWV response across all runs; 793 have CrUX data today, so the overlap is strong) — roughly 3.4× fewer requests
+- Uses _any_ successful PSI result across all runs, not just the latest, so an in-progress PSI scan doesn't shrink the list; sites that gain field data in a newer PSI run join on the next CrUX run. Caveat: a site PSI has never scanned is excluded until it has — run CrUX after a PSI pass completes
+- `--all-sites` bypasses the filter and queries every confirmed Astro site, as before
+
 ## 2026-09-03
 
 ### `pnpm check` cleanup — caught a real CSS bug along the way
