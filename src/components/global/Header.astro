@@ -47,16 +47,25 @@ import Nav from "@components/global/HeaderNav.astro";
     white-space: nowrap;
   }
 
-  /* Show the short name until there is room for the full one beside five inline links
-     (the full name needs ~860px); the full name stays in the accessible text. */
-  @media (width < 960px) {
+  /* Mobile first: show the short name, keeping the full one for screen readers
+     (visually hidden). The full name needs ~860px beside five inline links, so it
+     only comes back from 960px. */
+  .site-name-extra {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  @media (width >= 960px) {
     .site-name-extra {
-      position: absolute;
-      inline-size: 1px;
-      block-size: 1px;
-      overflow: hidden;
-      clip-path: inset(50%);
-      white-space: nowrap;
+      position: static;
+      inline-size: auto;
+      block-size: auto;
+      overflow: visible;
+      clip-path: none;
     }
   }
 
