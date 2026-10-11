@@ -71,15 +71,10 @@ export default defineConfig({
 			provider: fontProviders.google(),
 			name: "IBM Plex Serif",
 			cssVariable: "--font-plex-serif",
-			weights: ["300 700"],
-			styles: ["normal"],
-			subsets: ["latin"],
-		},
-		{
-			provider: fontProviders.google(),
-			name: "Exo 2",
-			cssVariable: "--font-exo2",
-			weights: ["300 700"],
+			// No variable file, so each weight is its own file. Only these three
+			// are used anywhere (h1/h2/h3 = 700, the h1 .muted span = 400, /insights/
+			// section headings = 600).
+			weights: ["400", "600", "700"],
 			styles: ["normal"],
 			subsets: ["latin"],
 		},
@@ -87,7 +82,7 @@ export default defineConfig({
 			provider: fontProviders.google(),
 			name: "IBM Plex Mono",
 			cssVariable: "--font-plex-mono",
-			weights: ["300", "400"],
+			weights: ["400"], // inline <code> on the notes article only
 			styles: ["normal"],
 			subsets: ["latin"],
 		},

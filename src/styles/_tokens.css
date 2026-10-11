@@ -53,7 +53,6 @@
 	/* Typography */
 	--font-body: var(--font-plex-sans, system-ui, sans-serif);
 	--font-heading: var(--font-plex-serif, Georgia, serif);
-	--font-heading-alt: var(--font-exo2, system-ui, sans-serif);
 	--font-code: var(--font-plex-mono, ui-monospace, monospace);
 
 	/* Brand gradient — astral night sky, deep indigo through Big Blue */

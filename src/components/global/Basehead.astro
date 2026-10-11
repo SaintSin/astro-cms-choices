@@ -54,9 +54,9 @@ import "@styles/style.css";
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="generator" content={Astro.generator} />
   <Font cssVariable="--font-plex-sans" preload />
-  <!-- Serif has no variable font file, so "300 700" expands to five static files.
-       Only 700 (h1) and 400 (the h1's .muted span) are above the fold, so preload
-       just those two — a bare `preload` fetched all five at top priority. -->
+  <!-- Serif has no variable font file, so each weight is its own file. Only 700 (h1)
+       and 400 (the h1's .muted span) are above the fold, so preload just those two
+       — a bare `preload` would fetch every weight at top priority. -->
   <Font
     cssVariable="--font-plex-serif"
     preload={[
@@ -64,7 +64,6 @@ import "@styles/style.css";
       { weight: "400", style: "normal" },
     ]}
   />
-  <Font cssVariable="--font-exo2" />
   <Font cssVariable="--font-plex-mono" />
   <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
   <link rel="ard" href="/.well-known/ard.json" />

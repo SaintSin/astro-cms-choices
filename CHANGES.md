@@ -2,6 +2,15 @@
 
 ## 2026-10-11
 
+### Fewer fonts: dropped Exo 2, trimmed unused weights
+
+- Scanned every route (home, insights, crux, psi, notes, the note article) for the fonts actually rendered. In use: Plex Sans (one variable file, 400-700), Plex Serif 400/600/700, Plex Mono 400 (inline `<code>` on the notes article only), and Exo 2 600, which was only the 14-character site-name wordmark but cost a 41 KB file and an extra request on every page
+- Removed Exo 2 entirely (config, `<Font>` in `Basehead.astro`, the now-unused `--font-heading-alt` token). The wordmark is now Plex Sans 600, which every page already loads, so it costs nothing extra. This is the one visible design change: the wordmark's typeface
+- Plex Serif weights `["300 700"]` (five static files) became `["400", "600", "700"]`, and Mono `["300", "400"]` became `["400"]`. Pages only download fonts they use, so the dropped weights never cost network bytes; the gain is fewer inlined `@font-face` rules
+- Result: font files on disk 9 to 5, `@font-face` rules in each page's HTML 18 to 10, and the home page downloads 3 font files (~70 KB: Sans, Serif 400, Serif 700) instead of 4 (~111 KB). Header still a single row at 768px and 960px with the new wordmark width (checked: 73-74px, no overflow)
+- Measured honestly (interleaved, cache-busted PSI mobile runs against production vs a draft; stopped early to deploy): production averaged 94.6 over 5 runs, the draft 95.8 over 4, FCP about 0.1-0.2 s faster, CLS identical at 0.028. A real but small gain, not a step change
+- Still not at 100. Mobile sits at about 95-96 with LCP around 2.1-2.4 s. The biggest remaining cost is page weight: 97% of the home page's 3.9 MB HTML is the `<template>` of every table row, so loading those rows after first paint is the next lever. Left for later
+
 ### Mobile hamburger menu and font preload trim — fixes the unstable mobile Performance score
 
 - Symptom: the live site's own mobile PSI score bounced between 85 and 96 run to run (CLS 0 → 0.04, with occasional 0.2+ spikes) after the 10 Oct restyle. Culprit: the header was `flex-wrap: wrap` with a long site name plus five links, so on a phone it wrapped to a variable number of lines and any late web-font swap re-wrapped it and pushed the whole page down (PSI blamed `p.about-lead`, `h1 > span.muted` and `section.stats-row`, the first things below it)
