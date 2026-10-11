@@ -52,15 +52,16 @@ const links = siteMetadata.menu ?? [];
   }
 
   /* Desktop: override the popover's UA display:none and show the links inline */
-  @media (width >= 640px) {
+  @media (width >= 768px) {
     .menu-toggle {
       display: none;
     }
 
     .nav-links {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       gap: var(--space-2xs) var(--space-s);
+      white-space: nowrap;
       font-size: var(--step--1);
       position: static;
       inset: auto;
@@ -73,7 +74,7 @@ const links = siteMetadata.menu ?? [];
   }
 
   /* Mobile: a fixed-height header with a button, links in a dropdown below it */
-  @media (width < 640px) {
+  @media (width < 768px) {
     .menu-toggle {
       display: block;
       background: none;
