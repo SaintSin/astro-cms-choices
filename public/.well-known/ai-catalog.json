@@ -1,24 +1,24 @@
 {
-  "specVersion": "1.0",
-  "host": {
-    "displayName": "Astro Showcase CMS Detector",
-    "identifier": "astro-what-cms.netlify.app",
-    "documentationUrl": "https://astro-what-cms.netlify.app/llms.txt"
-  },
-  "entries": [
-    {
-      "identifier": "urn:air:astro-what-cms.netlify.app:skill:astro-what-cms",
-      "type": "text/markdown; profile=\"urn:air:agent-skills\"",
-      "displayName": "astro-what-cms",
-      "description": "Look up which CMS or platform powers sites in the Astro showcase, which Astro or Starlight version they run, and their Core Web Vitals and Lighthouse scores. Use when asked what CMS an Astro site uses, how many showcase sites run Astro, which Astro versions are in use, or how fast Astro sites are.",
-      "url": "https://astro-what-cms.netlify.app/.well-known/agent-skills/astro-what-cms/SKILL.md",
-      "representativeQueries": [
-        "which CMS do Astro sites use most",
-        "how many sites in the Astro showcase use Sanity",
-        "what Astro versions are the showcase sites running",
-        "how fast are Astro sites on Core Web Vitals",
-        "does this Astro showcase site have an agent catalog"
-      ]
-    }
-  ]
+	"specVersion": "1.0",
+	"host": {
+		"displayName": "Astro Showcase CMS Detector",
+		"identifier": "astro-what-cms.netlify.app",
+		"documentationUrl": "https://astro-what-cms.netlify.app/llms.txt"
+	},
+	"entries": [
+		{
+			"identifier": "urn:air:astro-what-cms.netlify.app:skill:astro-what-cms",
+			"type": "text/markdown; profile=\"urn:air:agent-skills\"",
+			"displayName": "astro-what-cms",
+			"description": "Look up which CMS or platform powers sites in the Astro showcase, which Astro or Starlight version they run, and their Core Web Vitals and Lighthouse scores. Use when asked what CMS an Astro site uses, how many showcase sites run Astro, which Astro versions are in use, or how fast Astro sites are.",
+			"url": "https://astro-what-cms.netlify.app/.well-known/agent-skills/astro-what-cms/SKILL.md",
+			"representativeQueries": [
+				"which CMS do Astro sites use most",
+				"how many sites in the Astro showcase use Sanity",
+				"what Astro versions are the showcase sites running",
+				"how fast are Astro sites on Core Web Vitals",
+				"does this Astro showcase site have an agent catalog"
+			]
+		}
+	]
 }

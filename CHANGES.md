@@ -2,6 +2,15 @@
 
 ## 2026-10-11
 
+### Mobile hamburger menu and font preload trim — fixes the unstable mobile Performance score
+
+- Symptom: the live site's own mobile PSI score bounced between 85 and 96 run to run (CLS 0 → 0.04, with occasional 0.2+ spikes) after the 10 Oct restyle. Culprit: the header was `flex-wrap: wrap` with a long site name plus five links, so on a phone it wrapped to a variable number of lines and any late web-font swap re-wrapped it and pushed the whole page down (PSI blamed `p.about-lead`, `h1 > span.muted` and `section.stats-row`, the first things below it)
+- Mobile header is now a fixed single row (`--header-height`) with a native `popover` hamburger menu, adapted from pythonresources.com: no JS to open/close (a tiny script only swaps the ☰/✕ icon and aria-label), Esc and click-outside close it, links inline again from 640px up. Differences from a straight copy: the dropdown hangs off the `--header-height` variable instead of a hard-coded `top: 4rem`, and phones show the short name "Astro Showcase" (the full name stays in the accessible text via a visually-hidden span) so the title can't overflow beside the button
+- Font preloads, same fix pythonresources.com made: IBM Plex Serif has no variable file, so `weights: ["300 700"]` expands to five static files and a bare `preload` fetched all five at top priority. Checked which faces the home page actually loads (`document.fonts`): only Serif 400 and 700 (the `h1` is 700, its `.muted` span 400). Preload is now those two plus the Sans variable file, so 6 preloaded files (~116 KB) became 3 (~70 KB). Preloading Exo 2 (header font) as well was tried and reverted: no improvement, +41 KB
+- Measured on draft deploys against the live site, PSI mobile, 3 runs each: live 85 / 93 / 93 (CLS 0.21 / 0.04 / 0.04), draft 96 / 96 / 96 (CLS 0.028 every run), FCP/LCP about 0.1–0.3 s faster. Desktop unchanged at 99. Residual CLS is a small 0.028 on `p.about-lead` (Plex Sans swap)
+- CSS was already fully inlined (`build.inlineStylesheets: "always"`, 0 external stylesheets), so there was nothing to change there
+- Found, not changed: `_data-page.css` and `_data-table.css` reference `--font-ibm-plex` / `--font-ibm-plex-serif`, which no longer exist since the restyle renamed the font variables, so those cells fall back to Georgia/system-ui. Left alone because fixing it changes how the data pages look. Also, 97% of the home page's 3.9 MB HTML is a `<template>` of all 3,114 table rows, so page weight grows with the showcase (the slow 97 → 95 mobile drift since July); loading rows after first paint would be the proper fix
+
 ### ARD agent catalog
 
 - Applied the same change that took pythonresources.com from 3/3 to 4/4 on Lighthouse's "Agentic Browsing" category (that site's `bdd90ac`): `/.well-known/ai-catalog.json` (what the `ard-schema` audit reads) plus an identical `/.well-known/ard.json` (the current ARD path), advertised with `<link rel="ard">` and `<link rel="ai-catalog">` in `Basehead.astro` and served with explicit content types via `netlify.toml`

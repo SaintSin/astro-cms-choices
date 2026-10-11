@@ -6,11 +6,20 @@ import Nav from "@components/global/HeaderNav.astro";
 
 <header class="header">
   <div class="wrapper header-inner">
-    <a href="/" class="site-name">Astro Showcase · What CMS? · How Fast?</a>
+    <a href="/" class="site-name">
+      Astro Showcase<span class="site-name-extra"> · What CMS? · How Fast?</span>
+    </a>
     <Nav />
   </div>
 </header>
 <style>
+  /* One source of truth for the header's height: the mobile menu drops down from it,
+     and a fixed height means a late web-font swap can't re-wrap the header and push
+     the page down (it used to wrap to a variable number of lines on phones). */
+  :global(:root) {
+    --header-height: calc(2.75rem + 2 * var(--space-xs));
+  }
+
   .header {
     position: sticky;
     top: 0;
@@ -23,10 +32,10 @@ import Nav from "@components/global/HeaderNav.astro";
 
   .header-inner {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-2xs) var(--space-m);
+    min-block-size: 2.75rem;
   }
 
   .site-name {
@@ -35,6 +44,19 @@ import Nav from "@components/global/HeaderNav.astro";
     font-size: var(--step-0);
     text-decoration: none;
     color: inherit;
+    white-space: nowrap;
+  }
+
+  /* On phones show the short name; keep the full one for screen readers. */
+  @media (width < 640px) {
+    .site-name-extra {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
   }
 
   @media (forced-colors: active) {

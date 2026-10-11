@@ -2,6 +2,7 @@
 // @components/global/HeaderNav.astro
 
 // Not using a list, as Google sites don't seem to use it. And being sheep we follow Google
+// Mobile menu is a native popover (no JS needed to open/close), borrowed from pythonresources.com.
 
 import { siteMetadata } from "@config/siteMetadata";
 
@@ -9,7 +10,16 @@ const { pathname } = Astro.url;
 const links = siteMetadata.menu ?? [];
 ---
 
-<nav class="nav-links">
+<button
+  type="button"
+  class="menu-toggle"
+  popovertarget="main-nav"
+  aria-label="Open menu"
+>
+  ☰
+</button>
+
+<nav id="main-nav" class="nav-links" popover="auto" aria-label="Main">
   {
     links.map((link) => (
       <a
@@ -24,27 +34,110 @@ const links = siteMetadata.menu ?? [];
 </nav>
 
 <style>
-  .nav-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2xs) var(--space-s);
-    font-size: var(--step--1);
+  .nav-links a {
+    color: oklch(100% 0 0 / 70%);
+    text-decoration: none;
 
-    a {
-      color: oklch(100% 0 0 / 70%);
-      text-decoration: none;
+    &:hover {
+      color: oklch(100% 0 0);
+    }
+  }
 
-      &:hover {
-        color: oklch(100% 0 0);
+  .nav-links .active--exact {
+    color: oklch(100% 0 0);
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+
+  /* Desktop: override the popover's UA display:none and show the links inline */
+  @media (width >= 640px) {
+    .menu-toggle {
+      display: none;
+    }
+
+    .nav-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2xs) var(--space-s);
+      font-size: var(--step--1);
+      position: static;
+      inset: auto;
+      margin: 0;
+      padding: 0;
+      border: none;
+      background: transparent;
+      overflow: visible;
+    }
+  }
+
+  /* Mobile: a fixed-height header with a button, links in a dropdown below it */
+  @media (width < 640px) {
+    .menu-toggle {
+      display: block;
+      background: none;
+      border: none;
+      color: oklch(100% 0 0);
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      padding: var(--space-2xs);
+      /* keep the 44px tap target without growing the header */
+      min-inline-size: 2.75rem;
+      min-block-size: 2.75rem;
+    }
+
+    .nav-links {
+      position: fixed;
+      inset: var(--header-height) 0 auto 0;
+      inline-size: 100%;
+      margin: 0;
+      padding-block: var(--space-2xs);
+      border: none;
+      border-block-end: 1px solid oklch(100% 0 0 / 20%);
+      background: var(--color-gradient);
+      color: inherit;
+      /* exit state + transition setup */
+      opacity: 0;
+      transform: translateY(-0.5rem);
+      transition:
+        opacity 0.2s ease,
+        transform 0.2s ease,
+        display 0.2s allow-discrete,
+        overlay 0.2s allow-discrete;
+    }
+
+    .nav-links:popover-open {
+      display: flex;
+      flex-direction: column;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @starting-style {
+      .nav-links:popover-open {
+        opacity: 0;
+        transform: translateY(-0.5rem);
       }
     }
 
-    .active--exact {
-      color: oklch(100% 0 0);
-      font-weight: 700;
-      text-decoration: underline;
-      text-decoration-thickness: 2px;
-      text-underline-offset: 4px;
+    .nav-links a {
+      padding: var(--space-xs) var(--space-m);
+      font-size: var(--step-0);
+      border-block-start: 1px solid oklch(100% 0 0 / 10%);
     }
   }
 </style>
+
+<script>
+  const nav = document.querySelector<HTMLElement>("#main-nav");
+  const btn = document.querySelector<HTMLButtonElement>(".menu-toggle");
+  nav?.addEventListener("toggle", (e) => {
+    const open = (e as ToggleEvent).newState === "open";
+    if (btn) {
+      btn.textContent = open ? "✕" : "☰";
+      btn.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+    }
+  });
+</script>
