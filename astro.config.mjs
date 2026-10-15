@@ -66,6 +66,10 @@ export default defineConfig({
 			weights: ["300 700"], // variable font range
 			styles: ["normal"],
 			subsets: ["latin"],
+			// The body font is preloaded; "optional" means a slow first load keeps
+			// the size-adjusted fallback instead of swapping mid-render, which
+			// reflowed the /psi/ intro on mobile (CLS 0.10). Cached on repeat views.
+			display: "optional",
 		},
 		{
 			provider: fontProviders.google(),

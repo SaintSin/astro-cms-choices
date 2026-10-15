@@ -6,7 +6,7 @@ Scans every site in the [Astro showcase](https://astro.build/showcase/) and fing
 
 ## What it does
 
-- Fetches all ~2,700 sites listed in the Astro showcase
+- Fetches all ~3,200 sites listed in the Astro showcase
 - Fingerprints each site from HTML and HTTP headers
 - Detects whether the site is still running on Astro
 - Displays results in a filterable, sortable, paginated table
@@ -24,9 +24,9 @@ Scans every site in the [Astro showcase](https://astro.build/showcase/) and fing
 | JS framework          | Next.js, Nuxt, SvelteKit, Remix                                                                                             |
 | Static-site generator | Starlight, Hugo, Eleventy, Jekyll, Gatsby, Hexo                                                                             |
 
-Astro detection uses eight independent signals: generator meta tag, Starlight generator tag, `data-astro-*` attributes, `/_astro/` asset paths, `<astro-island>` elements, `:where(.astro-*)` CSS selectors, `astro-` scoped class names, and legacy `hoisted.js` (pre-2.x). Detection logic is informed by [isAstro](https://github.com/OliverSpeir/isAstro) by Oliver Speir.
+Astro detection uses nine independent signals: generator meta tag, Starlight generator tag, `data-astro-*` attributes, `/_astro/` asset paths, `<astro-island>` elements, `:where(.astro-*)` CSS selectors, `data-astro` CSS selectors, `astro-` scoped class names, and legacy `hoisted.js` (pre-2.x). Detection logic is informed by [isAstro](https://github.com/OliverSpeir/isAstro) by Oliver Speir.
 
-Sites behind bot challenges (Cloudflare, sgcaptcha) are recorded as `Blocked` rather than `Unknown`.
+Sites behind bot challenges (Cloudflare, sgcaptcha) are recorded as `Blocked` rather than `Unknown`. So are sites that refuse the request with HTTP 401/403/429 (the scanner retries once with a browser-style User-Agent first) and sites only reachable over a plain-HTTP fallback after TLS fails — "couldn't look" is never filed as a confident "not Astro". Error pages (404, 5xx, …) with nothing identifiable in the body are recorded as `Error`, which `--errors-only` retries.
 
 Domains that have been parked, sold, or forwarded to a registrar page (GoDaddy, Sedo, Afternic, etc.) are recorded as `Parked / Forwarded`.
 
@@ -35,7 +35,7 @@ Domains that have been parked, sold, or forwarded to a registrar page (GoDaddy, 
 `src/data/cms-results.json` is not committed — generate it before running the dev server:
 
 ```bash
-pnpm detect   # clones showcase data and scans all sites (~20 min)
+pnpm detect   # clones showcase data and scans all sites (~7 min)
 pnpm dev      # start dev server
 ```
 
@@ -44,6 +44,7 @@ pnpm dev      # start dev server
 | Command                  | Action                                                          |
 | :----------------------- | :-------------------------------------------------------------- |
 | `pnpm dev`               | Start dev server at `localhost:4321`                            |
+| `pnpm test`              | Run the unit tests (`node:test`, in `scripts/__tests__/`)       |
 | `pnpm detect`            | Scan all showcase sites and write `src/data/cms-results.json`   |
 | `pnpm crux`              | Fetch CrUX field data for all confirmed Astro sites             |
 | `pnpm psi`               | Fetch PageSpeed Insights scores for all confirmed Astro sites   |
@@ -68,8 +69,8 @@ pnpm dev      # start dev server
 Scans every site in the Astro showcase and fingerprints its CMS stack. Clones `withastro/astro.build` as a sparse checkout into `.showcase-cache/` on first run (`.yml` files only, no screenshots); subsequent runs pull the latest changes.
 
 ```bash
-pnpm detect                           # scan all ~2,700 sites
-pnpm detect -- --limit 50             # scan first 50 only (testing)
+pnpm detect                           # scan all ~3,200 sites
+pnpm detect -- --limit 50             # scan first 50 only (testing — see note below)
 pnpm detect -- --concurrency 8        # parallel fetches (default: 6)
 pnpm detect -- --resume               # skip already-processed URLs
 pnpm detect -- --errors-only          # re-scan only sites that errored last run
@@ -79,6 +80,8 @@ pnpm detect -- --source /path/to/yml  # use a different showcase directory
 pnpm detect -- --output results.json  # write to a different output file
 ```
 
+Only a full run over the default showcase directory is authoritative. A partial run (`--limit` without `--resume`/`--errors-only`/`--forwarded-only`, or a non-default `--source`) prints its summary but does **not** overwrite `src/data/cms-results.json` and is **not** saved to scan history — otherwise a 50-site test would replace the full dataset that every page reads as the "latest scan". Pass `--output <scratch file>` to keep a partial run's results.
+
 After running, clear the Astro cache to pick up new data:
 
 ```bash
@@ -87,7 +90,7 @@ rm -rf .astro && pnpm dev
 
 ### `pnpm crux` — Chrome UX Report
 
-Fetches 28-day real-user field data (LCP, INP, CLS, FCP, TTFB) at origin level for confirmed Astro sites from the latest scan that PSI has returned a CWV (field data) response for — run `pnpm psi` first, or pass `--all-sites` to query every confirmed Astro site. Tries the bare domain first; falls back to `www.` on 404. Rate-limited to ~120 req/min (safely under the 150/min quota). Estimated ~53 min for a full run.
+Fetches 28-day real-user field data (LCP, INP, CLS, FCP, TTFB) at origin level for confirmed Astro sites from the latest scan that PSI has returned a CWV (field data) response for — run `pnpm psi` first, or pass `--all-sites` to query every confirmed Astro site. Tries the bare domain first; falls back to `www.` on 404. Rate-limited to ~120 req/min (safely under the 150/min quota). Estimated ~50 min for a full run.
 
 Requires `CRUX_API_KEY` in `.env`.
 
@@ -102,7 +105,7 @@ pnpm crux -- --dry-run                # print what would be fetched, write nothi
 
 ### `pnpm psi` — PageSpeed Insights
 
-Fetches Lighthouse scores (performance, accessibility, best-practices, SEO, Agentic Browsing) plus lab and field metrics (LCP, CLS, INP, TBT) for both mobile and desktop strategies. A PSI request blocks for the full remote Lighthouse run (~22s observed) rather than returning quickly, so concurrency — not the inter-request delay — is what determines wall-clock time. Runs 2 workers per strategy lane by default (4 concurrent requests total), well under Google's rate limit. Estimated ~25 min for a full run (~2,300 sites × 2 strategies) at the default concurrency.
+Fetches Lighthouse scores (performance, accessibility, best-practices, SEO, Agentic Browsing) plus lab and field metrics (LCP, CLS, INP, TBT) for both mobile and desktop strategies. A PSI request blocks for the full remote Lighthouse run (~22s observed) rather than returning quickly, so concurrency — not the inter-request delay — is what determines wall-clock time. Runs 2 workers per strategy lane by default (4 concurrent requests total), well under Google's rate limit. Estimated ~30 min for a full run (~2,600 sites × 2 strategies) at the default concurrency. Requests retry with backoff on 429/5xx/network errors (honouring `Retry-After`), and a response with no performance score is recorded as an error rather than a success.
 
 Requires `PAGESPEED_API_KEY` in `.env`.
 
@@ -111,7 +114,7 @@ pnpm psi                              # fetch both strategies for every site
 pnpm psi -- --strategy=mobile        # mobile | desktop (default: both)
 pnpm psi -- --concurrency=3          # workers per strategy lane (default: 2 — 4 total for both strategies)
 pnpm psi -- --new-only               # skip site × strategy combos already fetched (success or error)
-pnpm psi -- --errors-only            # retry only combos that previously errored
+pnpm psi -- --errors-only            # retry combos that errored or came back with no score
 pnpm psi -- --limit=100              # cap number of sites (testing)
 pnpm psi -- --url=https://example.com/  # run a single site only
 pnpm psi -- --dry-run                # print what would be fetched, write nothing
@@ -119,7 +122,7 @@ pnpm psi -- --dry-run                # print what would be fetched, write nothin
 
 ### `pnpm make-prs` — prepare showcase removal PR branches
 
-Reads confirmed-gone domains from the latest `dns-check` run, matches each to its YAML file in `.showcase-cache`, batches them into groups of 50, and for each batch: creates a branch, deletes the YAMLs, appends to `blockedOrigins`, commits, and pushes to the fork. Saves a `pr-body-batch-N.md` file and prints the `gh pr create` command to submit manually.
+Reads confirmed-gone domains from the latest `dns-check` run, matches each to its YAML file in `.showcase-cache`, batches them into groups of 50, and for each batch: creates a branch, deletes the YAMLs, appends to `blockedOrigins`, commits, and pushes to the fork. Saves a `pr-body-*.md` file and prints the `gh pr create` command to submit manually.
 
 ```bash
 pnpm make-prs                       # prepare branches for all gone domains (batches of 50)
@@ -155,18 +158,18 @@ pnpm merge-recheck -- --report blocked-recheck-report.partial.json --apply  # fr
 
 ### `pnpm generate:og-cards` — regenerate social-share images
 
-Renders the three OG card templates (`scripts/og-templates/og-card.html`, `og-card-crux.html`, `og-card-psi.html`) with live stats from `cms-results.json` and `.scan-history.db`, using Playwright to screenshot each at 1200×630 and write the PNG to `public/images/social/`. Templates live outside `public/` so they're never shipped in the build output — the script reads them directly, they're never served over HTTP. Each template has `{{TOKEN}}` placeholders — the script is the only thing that should edit the numbers; edit the surrounding markup/CSS by hand.
+Renders the OG card templates (`scripts/og-templates/og-card.html`, `og-card-crux.html`, `og-card-psi.html`, `og-card-note-astro-vs-nextjs.html`) with live stats from `cms-results.json` and `.scan-history.db`, using Playwright to screenshot each at 1200×630 and write the PNG to `public/images/social/`. Templates live outside `public/` so they're never shipped in the build output — the script reads them directly, they're never served over HTTP. Each template has `{{TOKEN}}` placeholders — the script is the only thing that should edit the numbers; edit the surrounding markup/CSS by hand.
 
 Requires the Playwright Chromium browser (`npx playwright install chromium`, one-time).
 
 ```bash
-pnpm generate:og-cards               # regenerate all 3 cards
-pnpm generate:og-cards -- --card=psi # home | crux | psi
+pnpm generate:og-cards               # regenerate all 4 cards
+pnpm generate:og-cards -- --card=psi # home | crux | psi | note-astro-vs-nextjs
 ```
 
 ### `pnpm dns-check` — triage error sites
 
-Queries `.scan-history.db` for persistently-erroring sites then classifies each one via a DNS over HTTPS lookup (Cloudflare + Google) followed by an HTTP HEAD request:
+Queries `.scan-history.db` for persistently-erroring sites then classifies each one via DNS over HTTPS lookups against Cloudflare and Google (`scripts/doh.mjs`) followed by an HTTP HEAD request. NXDOMAIN counts only when **both** resolvers agree:
 
 | Result        | Meaning                                                               |
 | :------------ | :-------------------------------------------------------------------- |
@@ -174,7 +177,7 @@ Queries `.scan-history.db` for persistently-erroring sites then classifies each 
 | `ALIVE`       | DNS resolves + HEAD returns 2xx/3xx — transient error at scan time    |
 | `BROKEN`      | DNS resolves + HEAD returns 4xx/5xx — server up but site is broken    |
 | `DEAD SERVER` | DNS resolves but connection refused or timed out                      |
-| `DNS ERROR`   | DoH lookup itself failed (network issue)                              |
+| `DNS ERROR`   | DoH lookup failed, or the two resolvers disagreed (inconclusive)      |
 
 ```bash
 pnpm dns-check                        # check sites erroring in 3+ of last 5 scans
@@ -216,12 +219,21 @@ pnpm db:report -- --all               # run every report
 ```
 ├── .showcase-cache/            # Sparse clone of withastro/astro.build (gitignored)
 ├── scripts/
-│   └── detect-cms.ts           # Detection script (run with pnpm detect)
+│   ├── detect-cms.ts           # Detection script (pnpm detect)
+│   ├── psi.mjs, crux.mjs       # PageSpeed Insights / CrUX collectors
+│   ├── dns-check.mjs, doh.mjs  # Dead-domain triage and the two-resolver DoH lookup
+│   ├── fetch-retry.mjs         # fetch with backoff for 429/5xx/network errors
+│   ├── make-removal-prs.mjs    # Showcase removal PR branches
+│   ├── recheck-blocked.ts, merge-recheck-results.ts
+│   ├── db-init.ts, db-report.ts, db-utils.ts
+│   ├── generate-og-cards.mjs, og-templates/
+│   └── __tests__/              # node:test unit tests (pnpm test)
 ├── src/
 │   ├── components/
 │   │   └── showcase/
-│   │       ├── ShowcaseTable.astro       # Results table (renders page 1 live + template)
-│   │       ├── ShowcaseRow.astro         # Single <tr> — used by ShowcaseTable and the <template>
+│   │       ├── ShowcaseTable.astro       # Results table (renders page 1 only)
+│   │       ├── ShowcaseRow.astro         # Single <tr> — page 1 and /showcase-rows/
+│   │       ├── PsiRow.astro, CruxRow.astro  # Row markup for /psi/ and /crux/
 │   │       ├── ShowcaseToolbar.astro     # Filters and search
 │   │       └── ShowcasePagination.astro  # Pagination controls
 │   ├── config/
@@ -232,7 +244,13 @@ pnpm db:report -- --all               # run every report
 │   │   ├── index.astro         # Results UI
 │   │   ├── insights.astro      # Version distribution charts
 │   │   ├── crux.astro          # Chrome UX Report field data
-│   │   └── psi.astro           # PageSpeed Insights scores
+│   │   ├── psi.astro           # PageSpeed Insights scores
+│   │   ├── showcase-rows/      # Prerendered rows after page 1, fetched when idle
+│   │   ├── psi-rows/           # Same for /psi/
+│   │   ├── crux-rows/          # Same for /crux/
+│   │   └── notes/              # Articles
+│   ├── utils/
+│   │   └── psiData.ts, cruxData.ts  # DB queries shared by a page and its rows endpoint
 │   └── types/
 │       └── index.ts            # Shared TypeScript types
 ```

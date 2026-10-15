@@ -10,6 +10,16 @@
 - **Cloudflare `cdn-cgi/challenge-platform` no longer marks live sites Blocked.** That script is embedded on normal Cloudflare pages. Only `cf-mitigated: challenge` or real interstitial markers count, and weak markers are checked after CMS rules.
 - Added `pnpm test` (node:test) with tests for the retry helper, DoH agreement and the challenge detection.
 
+### Notes: published and updated dates
+
+- The `notes` collection gains an optional `updated` date (`date` remains the original publication date). Note pages and the notes index show "Published … · Updated …" when it's set, and the index sorts by the most recent of the two. No existing note has `updated` set yet.
+
+### Layout shift fixes
+
+- `/insights/`: the chart wrappers now reserve their box with `aspect-ratio` (1 for the doughnuts, 2 for the bar chart, matching Chart.js's drawn size), so the cards no longer jump when the charts render (desktop CLS 0.133 → expected ~0).
+- `/insights/`: each chart is now built when its canvas scrolls within 200px of the viewport (IntersectionObserver) instead of all three at load, to cut mobile blocking time (150 ms).
+- `/psi/` on mobile: the intro paragraph reflowed when the body font swapped in (CLS 0.104). IBM Plex Sans now uses `font-display: optional`, so a slow first load keeps the size-adjusted fallback rather than swapping mid-render.
+
 ### PSI and CrUX rows load from separate files
 
 - Same approach as the homepage: `/psi/` and `/crux/` now render only page 1 of rows (~100 KB HTML each, previously several MB), and the rest come from prerendered `/psi-rows/` and `/crux-rows/` fetched when idle or on first interaction. Sort, search and paging wait for them ("Loading sites…").

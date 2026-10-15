@@ -9,9 +9,13 @@ const meta = {
 	description: "Findings and write-ups from scanning the Astro showcase.",
 };
 
-const notes = (await getCollection("notes")).sort(
-	(a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
-);
+const fmt = (d: Date) =>
+	d.toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" });
+
+// Newest activity first: a recently updated note rises above newer-published ones.
+const latest = (n: { data: { date: Date; updated?: Date } }) =>
+	(n.data.updated ?? n.data.date).valueOf();
+const notes = (await getCollection("notes")).sort((a, b) => latest(b) - latest(a));
 ---
 
 <Layout metaData={meta}>
@@ -22,9 +26,14 @@ const notes = (await getCollection("notes")).sort(
         <li>
           <a href={`/notes/${note.id}/`}>{note.data.title}</a>
           <p>{note.data.description}</p>
-          <time datetime={note.data.date.toISOString()}>
-            {note.data.date.toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" })}
-          </time>
+          <p class="note-dates">
+            Published <time datetime={note.data.date.toISOString()}>{fmt(note.data.date)}</time>
+            {note.data.updated && (
+              <>
+                · Updated <time datetime={note.data.updated.toISOString()}>{fmt(note.data.updated)}</time>
+              </>
+            )}
+          </p>
         </li>
       ))}
     </ul>
@@ -34,5 +43,5 @@ const notes = (await getCollection("notes")).sort(
 <style>
   .notes-index ul { list-style: none; padding: 0; }
   .notes-index li { margin-block-end: var(--space-l); }
-  .notes-index time { color: var(--color-mid); font-size: var(--step--1); }
+  .notes-index .note-dates { color: var(--color-mid); font-size: var(--step--1); }
 </style>

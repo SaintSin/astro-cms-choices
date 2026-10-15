@@ -14,6 +14,8 @@ export async function getStaticPaths() {
 
 const { note } = Astro.props;
 const { Content } = await render(note);
+const fmt = (d: Date) =>
+	d.toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" });
 
 const meta = {
 	title: `${note.data.title} — Astro Showcase | What CMS? How Fast?`,
@@ -28,9 +30,14 @@ const meta = {
   <main class="wrapper">
     <article class="note flow">
       <h1>{note.data.title}</h1>
-      <time datetime={note.data.date.toISOString()}>
-        {note.data.date.toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" })}
-      </time>
+      <p class="note-dates">
+        Published <time datetime={note.data.date.toISOString()}>{fmt(note.data.date)}</time>
+        {note.data.updated && (
+          <>
+            · Updated <time datetime={note.data.updated.toISOString()}>{fmt(note.data.updated)}</time>
+          </>
+        )}
+      </p>
       <Content />
     </article>
   </main>
@@ -40,7 +47,7 @@ const meta = {
   .note {
     max-width: 70ch;
   }
-  .note time { display: block; color: var(--color-mid); margin-block-end: var(--space-m); }
+  .note-dates { color: var(--color-mid); margin-block-end: var(--space-m); }
   .note :global(table) { width: 100%; border-collapse: collapse; margin-block: var(--space-m); }
   .note :global(th), .note :global(td) { border: 1px solid var(--color-keyline); padding: 0.5em 0.75em; text-align: left; }
 </style>

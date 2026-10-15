@@ -193,8 +193,12 @@ const legacy =
     const gridColor = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
     const borderColor = isDark ? "#1e293b" : "#ffffff";
 
+    // Each chart is built only when its canvas nears the viewport, so the
+    // three draws don't land in one long task at load (mobile TBT).
+    const make: Record<string, () => unknown> = {};
+
     // Doughnut — version distribution
-    new Chart(document.getElementById("versionChart") as HTMLCanvasElement, {
+    make.versionChart = () => new Chart(document.getElementById("versionChart") as HTMLCanvasElement, {
       type: "doughnut",
       data: {
         labels: versionLabels,
@@ -229,7 +233,7 @@ const legacy =
     });
 
     // Doughnut — Starlight version distribution
-    new Chart(document.getElementById("starlightChart") as HTMLCanvasElement, {
+    make.starlightChart = () => new Chart(document.getElementById("starlightChart") as HTMLCanvasElement, {
       type: "doughnut",
       data: {
         labels: starlightLabels,
@@ -264,7 +268,7 @@ const legacy =
     });
 
     // Stacked bar — year × version
-    new Chart(document.getElementById("yearChart") as HTMLCanvasElement, {
+    make.yearChart = () => new Chart(document.getElementById("yearChart") as HTMLCanvasElement, {
       type: "bar",
       data: { labels: years, datasets: stackedDatasets },
       options: {
@@ -287,6 +291,21 @@ const legacy =
         },
       },
     });
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          io.unobserve(e.target);
+          make[e.target.id]?.();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    for (const id of Object.keys(make)) {
+      const el = document.getElementById(id);
+      if (el) io.observe(el);
+    }
   }
 
   initCharts();
@@ -321,6 +340,8 @@ const legacy =
     color: var(--color-text-subtle);
     margin-block-end: var(--space-m);
   }
-  .doughnut-wrap { max-width: 780px; margin-inline: auto; }
-  .bar-wrap { width: 100%; }
+  /* Reserve the canvas box before Chart.js draws (its default aspect ratios:
+     doughnut 1, bar 2) so the charts don't push the cards down when they render. */
+  .doughnut-wrap { max-width: 780px; margin-inline: auto; aspect-ratio: 1; }
+  .bar-wrap { width: 100%; aspect-ratio: 2; }
 </style>
