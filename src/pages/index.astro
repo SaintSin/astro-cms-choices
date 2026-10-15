@@ -176,17 +176,35 @@ const parkedCount = results.filter(
     const parkedFilterBtn = document.getElementById("parked-filter");
     const countEl = document.getElementById("results-count");
     const paginationEl = document.getElementById("pagination");
-    const template = document.getElementById("all-rows-template");
-    if (!tbody || !searchInput || !table || !template) return;
+    if (!tbody || !searchInput || !table) return;
 
     const PAGE_SIZE = parseInt(table.dataset.pageSize ?? "50", 10);
-    // Rows beyond page 1 live inert inside <template> (no layout/style cost
-    // until moved into the live tbody) — combine with the server-rendered
-    // first page to get the full sortable/filterable set.
-    const allRows = [
-      ...tbody.querySelectorAll("tr"),
-      ...template.content.querySelectorAll("tr"),
-    ];
+    const TOTAL = parseInt(table.dataset.total ?? "0", 10);
+    // Page 1 is in the HTML; the rest comes from /showcase-rows/, fetched
+    // when idle or on first interaction. Until then the view is the default
+    // (unfiltered, unsorted, page 1) and needs only the total.
+    let allRows = [...tbody.querySelectorAll("tr")];
+    let loaded = false;
+    let loading = null;
+
+    function loadRows() {
+      // Dev serves the endpoint at /showcase-rows/; the static build writes an
+      // extension-less file served at /showcase-rows. Try both.
+      loading ??= fetch("/showcase-rows/")
+        .then((r) => (r.ok ? r : fetch("/showcase-rows")))
+        .then((r) => {
+          if (!r.ok) throw new Error(String(r.status));
+          return r.text();
+        })
+        .then((html) => {
+          const t = document.createElement("template");
+          t.innerHTML = html;
+          allRows = [...allRows, ...t.content.querySelectorAll("tr")];
+          loaded = true;
+        })
+        .catch(() => { loading = null; });
+      return loading;
+    }
 
     let activeCmsFilter = null;
     let activeCmsTypeFilter = null;
@@ -283,25 +301,30 @@ const parkedCount = results.filter(
     // ── Main view update ──────────────────────────────────────────────────────
 
     function applyView() {
-      const filtered = getFilteredRows();
-      const sorted   = sortRows(filtered);
-      const start    = (currentPage - 1) * PAGE_SIZE;
-      const pageRows = sorted.slice(start, start + PAGE_SIZE);
+      const isDefaultView = !activeCmsFilter && !activeCmsTypeFilter && !forwardedOnly &&
+        !parkedOnly && !noAstroOnly && !searchInput.value && !sortCol && currentPage === 1;
+      if (!loaded && !isDefaultView) {
+        if (countEl) countEl.textContent = "Loading sites…";
+        loadRows().then(() => { if (loaded) applyView(); });
+        return;
+      }
 
+      const filtered = loaded ? getFilteredRows() : null;
+      const count    = filtered ? filtered.length : TOTAL;
+      const start    = (currentPage - 1) * PAGE_SIZE;
       // Only the current page's rows ever touch the live DOM — everything
-      // else stays detached (or inert inside <template>), so this is one
-      // cheap DOM write instead of thousands of appendChild/hidden calls.
-      tbody.replaceChildren(...pageRows);
+      // else stays detached, so this is one cheap DOM write.
+      if (filtered) tbody.replaceChildren(...sortRows(filtered).slice(start, start + PAGE_SIZE));
 
       if (countEl) {
-        const from = Math.min(start + 1, filtered.length);
-        const to   = Math.min(start + PAGE_SIZE, filtered.length);
-        countEl.textContent = filtered.length
-          ? `Showing ${from}–${to} of ${filtered.length} site${filtered.length !== 1 ? "s" : ""}`
+        const from = Math.min(start + 1, count);
+        const to   = Math.min(start + PAGE_SIZE, count);
+        countEl.textContent = count
+          ? `Showing ${from}–${to} of ${count} site${count !== 1 ? "s" : ""}`
           : "No results";
       }
 
-      renderPagination(paginationEl, filtered.length, currentPage, PAGE_SIZE, (p) => {
+      renderPagination(paginationEl, count, currentPage, PAGE_SIZE, (p) => {
         currentPage = p;
         applyView();
         table.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -398,6 +421,16 @@ const parkedCount = results.filter(
     }
 
     applyView();
+
+    // Fetch the remaining rows once the page has settled (or sooner if the
+    // user reaches for the table) so sort/filter/search feel instant.
+    const section = document.querySelector(".results-section");
+    ["pointerenter", "focusin", "touchstart"].forEach((ev) =>
+      section?.addEventListener(ev, loadRows, { once: true, passive: true })
+    );
+    const idleLoad = () => setTimeout(() => (window.requestIdleCallback ?? setTimeout)(loadRows), 3000);
+    if (document.readyState === "complete") idleLoad();
+    else window.addEventListener("load", idleLoad, { once: true });
   }
 
   initDetector();

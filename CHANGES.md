@@ -10,6 +10,12 @@
 - **Cloudflare `cdn-cgi/challenge-platform` no longer marks live sites Blocked.** That script is embedded on normal Cloudflare pages. Only `cf-mitigated: challenge` or real interstitial markers count, and weak markers are checked after CMS rules.
 - Added `pnpm test` (node:test) with tests for the retry helper, DoH agreement and the challenge detection.
 
+### Homepage rows load from a separate file
+
+- The homepage HTML carried every row after page 1 inside a `<template>` (~3.9 MB raw, 267 KB gzipped). Those rows now come from a prerendered `/showcase-rows/` (`src/pages/showcase-rows/index.ts`, rendered with the same `ShowcaseRow` component via the Container API) and the page itself is ~100 KB.
+- The client fetches it 3 s after load when idle, or immediately on first pointer/focus/touch in the results section. Sorting, filtering and searching before it arrives show "Loading sites…" and complete when it lands. Headline stats and the breakdown bar are still computed at build time and stay inline.
+- The page's own HTML (and so the generated `.md`/llms output) now lists only page 1 of the table.
+
 ### Accessibility: contrast and landmarks
 
 - Rating colours (`--rating-good/mid/poor`) darkened to ≥4.5:1 on their tint and on the page greys (PSI/CrUX score cells and legend chips were 2.4–3.2:1). Insights stat values reuse them.

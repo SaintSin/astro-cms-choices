@@ -11,15 +11,14 @@ interface Props {
 }
 
 const { results, pageSize } = Astro.props;
-// Only the first page is rendered into the live DOM (fast initial paint, small
-// tree). The rest sits inert inside a <template> — parsed but never laid out
-// or style-computed until JS clones rows out of it for later pages.
+// Only the first page is in this HTML. The remaining rows are pre-rendered to
+// /showcase-rows/ and fetched by the homepage script when idle or on first
+// interaction (see src/pages/showcase-rows/index.ts).
 const firstPage = results.slice(0, pageSize);
-const restRows = results.slice(pageSize);
 ---
 
 <div class="table-wrap">
-  <table class="results-table data-table" id="results-table" data-page-size={pageSize}>
+  <table class="results-table data-table" id="results-table" data-page-size={pageSize} data-total={results.length}>
     <colgroup>
       <col class="col-site" />
       <col class="col-astro" />
@@ -41,10 +40,6 @@ const restRows = results.slice(pageSize);
     </tbody>
   </table>
 </div>
-
-<template id="all-rows-template">
-  {restRows.map((r) => <ShowcaseRow r={r} />)}
-</template>
 
 <p class="table-key">
   <span class="key-swatch key-swatch--migrated"></span>
