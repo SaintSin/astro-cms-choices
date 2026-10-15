@@ -1,7 +1,8 @@
 ---
 title: "What happens to performance when a site leaves Astro?"
-description: "Three showcase sites stopped detecting as Astro. The PageSpeed comparison is fine — the real-user (CrUX) comparison turned out to be measuring the wrong thing."
+description: "Three showcase sites stopped detecting as Astro, then seven more. The PageSpeed comparison is mixed — and the real-user (CrUX) comparison turned out to be measuring the wrong thing."
 date: 2026-08-14
+updated: 2026-10-15
 ogImage: "og-note-astro-vs-nextjs-v3.png"
 ---
 
@@ -99,3 +100,45 @@ particular sites left. Was it a specific feature they needed, a team
 already fluent in another framework, client work forcing the stack,
 or just where the project happened to end up? If you know the story
 behind any of the sites in this showcase, we'd like to hear it.
+
+## Update, 15 October: Seven More Sites
+
+Since this note was first published, more showcase sites have stopped
+detecting as Astro. Seven of them moved to a platform we can identify
+from the live page, and for each we have a PageSpeed score from while it
+was still Astro. We re-ran PageSpeed on all seven on 2026-10-15 and
+compared. Unlike the sites above, five of these moved to WordPress
+(three of them built with Elementor), one to HubSpot and one to Webflow.
+
+"Astro" scores are the last PageSpeed run taken before the site stopped
+detecting as Astro, so they are between two and twelve weeks old. These
+are single runs, and mobile scores in particular can swing several
+points between runs of the same page.
+
+| Site                       | Now runs              | Mobile: Astro → now | Desktop: Astro → now |
+| -------------------------- | --------------------- | ------------------- | -------------------- |
+| yummycake.co               | WordPress/WooCommerce | 59 → 72             | 85 → 91              |
+| agileit.com                | WordPress/Elementor   | 56 → 39             | 91 → 66              |
+| stellarcleaningcompany.com | WordPress/Elementor   | 40 → 55             | 84 → 67              |
+| fastlink.lt                | WordPress/Elementor   | 41 → 54             | 91 → 83              |
+| thebreakfastclubla.com     | WordPress             | 67 → 57             | 84 → 67              |
+| rocketscience.gg           | HubSpot               | 60 → 59             | 81 → 96              |
+| lilagents.com              | Webflow               | 95 → 61             | 97 → 55              |
+
+Desktop is the clearer signal: five of the seven scored lower after
+leaving Astro, with a median change of −17 points. Mobile is close to a
+coin flip — three improved, three dropped and one is flat (−1), a median
+change of −1. The biggest fall is `lilagents.com`, which went from 95
+and 97 on Astro to 61 and 55 on Webflow. The biggest gain is
+`rocketscience.gg` on desktop (81 → 96) after moving to HubSpot.
+
+What this does and doesn't show: seven sites is a small, self-selected
+sample, and a site that rebuilds on a different platform usually changes
+its design, content and third-party scripts at the same time, so none of
+these is a controlled comparison of Astro against WordPress. Several of
+the "Astro" scores were already low (40–67 on mobile for six of the seven), so these sites
+were not fast to begin with. We have no real-user (CrUX) data for any of
+them — none has enough Chrome traffic — so this is lab data only. It's
+consistent with the earlier finding that leaving Astro doesn't reliably
+make a site faster, and with a modest desktop penalty for the heavier
+page-builder setups, but it can't say more than that.

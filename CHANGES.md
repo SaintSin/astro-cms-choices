@@ -10,6 +10,10 @@
 - **Cloudflare `cdn-cgi/challenge-platform` no longer marks live sites Blocked.** That script is embedded on normal Cloudflare pages. Only `cf-mitigated: challenge` or real interstitial markers count, and weak markers are checked after CMS rules.
 - Added `pnpm test` (node:test) with tests for the retry helper, DoH agreement and the challenge detection.
 
+### Note updated: seven more sites that left Astro
+
+- Added an "Update, 15 October" section to "What happens to performance when a site leaves Astro?" with before/after PageSpeed for seven sites that moved to WordPress, HubSpot or Webflow (desktop: 5 of 7 lower, median −17; mobile: mixed, median −1), with the sample-size and staleness caveats. `updated` set to 2026-10-15.
+
 ### Notes: published and updated dates
 
 - The `notes` collection gains an optional `updated` date (`date` remains the original publication date). Note pages and the notes index show "Published … · Updated …" when it's set, and the index sorts by the most recent of the two. No existing note has `updated` set yet.
