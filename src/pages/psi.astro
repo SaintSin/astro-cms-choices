@@ -2,9 +2,10 @@
 // src/pages/psi.astro
 // 2026-06-11T00:00:00Z
 
+import PsiRow from "@components/showcase/PsiRow.astro";
 import ShowcasePagination from "@components/showcase/ShowcasePagination.astro";
 import Layout from "@layouts/BaseLayout.astro";
-import Database from "better-sqlite3";
+import { loadPsi } from "../utils/psiData";
 
 const meta = {
 	title: "Lighthouse Scores — Astro Showcase | What CMS? How Fast?",
@@ -15,179 +16,20 @@ const meta = {
 		"Lighthouse Scores — PageSpeed Insights results for confirmed Astro sites",
 };
 
-// biome-ignore lint/suspicious/noExplicitAny: raw better-sqlite3 rows, shape defined by the SELECT below
-let sites: any[] = [];
-let generatedAt = "";
-let mobileCount = 0;
-let desktopCount = 0;
-let mobilePerfHigh = 0;
-let desktopPerfHigh = 0;
-let perfect800 = 0;
-let high800 = 0;
-
-try {
-	const db = new Database(".scan-history.db", { readonly: true });
-
-	const latestScan = db
-		.prepare("SELECT id FROM scans ORDER BY id DESC LIMIT 1")
-		.get() as { id: number };
-
-	const latestRun = db
-		.prepare("SELECT id, started_at FROM psi_runs ORDER BY id DESC LIMIT 1")
-		.get() as { id: number; started_at: string };
-
-	generatedAt = latestRun.started_at;
-
-	// Latest successful result per site × strategy across all runs
-	sites = db
-		.prepare(
-			`WITH latest_mobile AS (
-        SELECT site_id, MAX(run_id) AS run_id
-        FROM psi_results WHERE status = 'success' AND strategy = 'mobile'
-        GROUP BY site_id
-      ),
-      latest_desktop AS (
-        SELECT site_id, MAX(run_id) AS run_id
-        FROM psi_results WHERE status = 'success' AND strategy = 'desktop'
-        GROUP BY site_id
-      )
-      SELECT
-        s.hostname, s.url,
-        sr.title, sr.astro_version,
-        m.performance   AS m_perf,
-        m.accessibility AS m_a11y,
-        m.best_practices AS m_bp,
-        m.seo           AS m_seo,
-        m.agentic_passed     AS m_agentic_passed,
-        m.agentic_applicable AS m_agentic_applicable,
-        d.performance   AS d_perf,
-        d.accessibility AS d_a11y,
-        d.best_practices AS d_bp,
-        d.seo           AS d_seo,
-        d.agentic_passed     AS d_agentic_passed,
-        d.agentic_applicable AS d_agentic_applicable
-      FROM sites s
-      JOIN scan_results sr ON sr.site_id = s.id
-        AND sr.scan_id = ?
-        AND sr.astro_detected = 1
-      LEFT JOIN latest_mobile lm ON lm.site_id = s.id
-      LEFT JOIN psi_results m ON m.site_id = lm.site_id
-        AND m.run_id = lm.run_id AND m.strategy = 'mobile'
-      LEFT JOIN latest_desktop ld ON ld.site_id = s.id
-      LEFT JOIN psi_results d ON d.site_id = ld.site_id
-        AND d.run_id = ld.run_id AND d.strategy = 'desktop'
-      WHERE m.performance IS NOT NULL OR d.performance IS NOT NULL
-      ORDER BY s.hostname`,
-		)
-		// biome-ignore lint/suspicious/noExplicitAny: raw better-sqlite3 rows, shape defined by the SELECT above
-		.all(latestScan.id) as any[];
-
-	mobileCount = sites.filter((s) => s.m_perf !== null).length;
-	desktopCount = sites.filter((s) => s.d_perf !== null).length;
-	mobilePerfHigh = sites.filter(
-		(s) => s.m_perf !== null && s.m_perf >= 90,
-	).length;
-	desktopPerfHigh = sites.filter(
-		(s) => s.d_perf !== null && s.d_perf >= 90,
-	).length;
-
-	// biome-ignore lint/suspicious/noExplicitAny: raw better-sqlite3 row, shape defined by the SELECT above
-	const t800 = (s: any) => {
-		const m =
-			s.m_perf !== null &&
-			s.m_a11y !== null &&
-			s.m_bp !== null &&
-			s.m_seo !== null
-				? s.m_perf + s.m_a11y + s.m_bp + s.m_seo
-				: null;
-		const d =
-			s.d_perf !== null &&
-			s.d_a11y !== null &&
-			s.d_bp !== null &&
-			s.d_seo !== null
-				? s.d_perf + s.d_a11y + s.d_bp + s.d_seo
-				: null;
-		return m !== null && d !== null ? m + d : null;
-	};
-	perfect800 = sites.filter((s) => t800(s) === 800).length;
-	high800 = sites.filter((s) => {
-		const v = t800(s);
-		return v !== null && v >= 720;
-	}).length;
-
-	db.close();
-} catch (e) {
-	console.warn("PSI DB not available:", e);
-}
+const PAGE_SIZE = 50;
+const {
+	sites,
+	generatedAt,
+	mobileCount,
+	desktopCount,
+	mobilePerfHigh,
+	desktopPerfHigh,
+	perfect800,
+	high800,
+} = loadPsi();
 
 if (mobileCount > 0) {
 	meta.altOG = `Lighthouse Scores — ${mobileCount.toLocaleString()} mobile tested, ${mobilePerfHigh.toLocaleString()} mobile perf ≥90, ${desktopPerfHigh.toLocaleString()} desktop perf ≥90`;
-}
-
-function scoreClass(v: number | null): string {
-	if (v === null) return "";
-	if (v >= 90) return "good";
-	if (v >= 50) return "mid";
-	return "poor";
-}
-
-function total400(
-	a: number | null,
-	b: number | null,
-	c: number | null,
-	d: number | null,
-): number | null {
-	if (a === null || b === null || c === null || d === null) return null;
-	return a + b + c + d;
-}
-
-function scoreClass400(v: number | null): string {
-	if (v === null) return "";
-	if (v >= 360) return "good";
-	if (v >= 200) return "mid";
-	return "poor";
-}
-
-function scoreClass800(v: number | null): string {
-	if (v === null) return "";
-	if (v >= 720) return "good";
-	if (v >= 400) return "mid";
-	return "poor";
-}
-
-// Agentic Browsing is shown as "passed/applicable" (PSI's own convention —
-// most of its audits, like WebMCP tools or llms.txt, are notApplicable unless
-// the site implements that feature, so a 0-100 score would be misleading).
-function agenticLabel(
-	passed: number | null,
-	applicable: number | null,
-): string {
-	if (passed === null || applicable === null || applicable === 0) return "—";
-	return `${passed}/${applicable}`;
-}
-
-function agenticClass(
-	passed: number | null,
-	applicable: number | null,
-): string {
-	if (passed === null || applicable === null || applicable === 0) return "";
-	const ratio = passed / applicable;
-	if (ratio === 1) return "good";
-	if (ratio >= 0.5) return "mid";
-	return "poor";
-}
-
-function agenticSortValue(
-	passed: number | null,
-	applicable: number | null,
-): number | null {
-	if (passed === null || applicable === null || applicable === 0) return null;
-	// Ratio alone ties "2/2" and "3/3" at exactly 1 — break ties by applicable
-	// count so a fuller pass (more audits, all passing) ranks higher. The
-	// epsilon is far smaller than the gap between any two distinct ratios
-	// with denominators this small (max applicable is 6), so it only ever
-	// affects genuine ties.
-	return passed / applicable + applicable * 0.0001;
 }
 ---
 
@@ -243,7 +85,7 @@ function agenticSortValue(
     </div>
 
     <div class="table-wrap" id="psi-table-wrap">
-      <table class="psi-table data-table" id="psi-table">
+      <table class="psi-table data-table" id="psi-table" data-total={sites.length}>
         <colgroup>
           <col class="col-site" />
           <col class="col-ver" />
@@ -278,51 +120,7 @@ function agenticSortValue(
           </tr>
         </thead>
         <tbody id="psi-tbody">
-          {sites.map((s) => {
-            const mTotal = total400(s.m_perf, s.m_a11y, s.m_bp, s.m_seo);
-            const dTotal = total400(s.d_perf, s.d_a11y, s.d_bp, s.d_seo);
-            const t800   = mTotal !== null && dTotal !== null ? mTotal + dTotal : null;
-            return (
-            <tr
-              data-title={(s.title ?? s.hostname).toLowerCase()}
-              data-url={s.url.toLowerCase()}
-              data-version={s.astro_version ?? ""}
-              data-m_perf={s.m_perf ?? ""}
-              data-m_a11y={s.m_a11y ?? ""}
-              data-m_bp={s.m_bp ?? ""}
-              data-m_seo={s.m_seo ?? ""}
-              data-m_total={mTotal ?? ""}
-              data-m_agentic={agenticSortValue(s.m_agentic_passed, s.m_agentic_applicable) ?? ""}
-              data-d_perf={s.d_perf ?? ""}
-              data-d_a11y={s.d_a11y ?? ""}
-              data-d_bp={s.d_bp ?? ""}
-              data-d_seo={s.d_seo ?? ""}
-              data-d_total={dTotal ?? ""}
-              data-d_agentic={agenticSortValue(s.d_agentic_passed, s.d_agentic_applicable) ?? ""}
-              data-total_800={t800 ?? ""}
-            >
-              <td class="col-site">
-                <a href={s.url} target="_blank" rel="noopener noreferrer">
-                  {s.title ?? s.hostname}
-                </a>
-              </td>
-              <td class="col-ver">{s.astro_version ? <span class="ver-badge">v{s.astro_version}</span> : <span class="no-data">—</span>}</td>
-              <td class={`col-perf score ${scoreClass(s.m_perf)}`}>{s.m_perf ?? "—"}</td>
-              <td class={`col-a11y score ${scoreClass(s.m_a11y)}`}>{s.m_a11y ?? "—"}</td>
-              <td class={`col-bp   score ${scoreClass(s.m_bp)}`}>{s.m_bp ?? "—"}</td>
-              <td class={`col-seo  score ${scoreClass(s.m_seo)}`}>{s.m_seo ?? "—"}</td>
-              <td class={`col-total score ${scoreClass400(mTotal)}`}>{mTotal ?? "—"}</td>
-              <td class={`col-agentic score ${agenticClass(s.m_agentic_passed, s.m_agentic_applicable)}`}>{agenticLabel(s.m_agentic_passed, s.m_agentic_applicable)}</td>
-              <td class={`col-perf score ${scoreClass(s.d_perf)}`}>{s.d_perf ?? "—"}</td>
-              <td class={`col-a11y score ${scoreClass(s.d_a11y)}`}>{s.d_a11y ?? "—"}</td>
-              <td class={`col-bp   score ${scoreClass(s.d_bp)}`}>{s.d_bp ?? "—"}</td>
-              <td class={`col-seo  score ${scoreClass(s.d_seo)}`}>{s.d_seo ?? "—"}</td>
-              <td class={`col-total score ${scoreClass400(dTotal)}`}>{dTotal ?? "—"}</td>
-              <td class={`col-agentic score ${agenticClass(s.d_agentic_passed, s.d_agentic_applicable)}`}>{agenticLabel(s.d_agentic_passed, s.d_agentic_applicable)}</td>
-              <td class={`col-total800 score ${scoreClass800(t800)}`}>{t800 ?? "—"}</td>
-            </tr>
-            );
-          })}
+          {sites.slice(0, PAGE_SIZE).map((s) => <PsiRow s={s} />)}
         </tbody>
       </table>
     </div>
@@ -372,10 +170,44 @@ function agenticSortValue(
 
     if (!tbody) return;
 
-    const allRows = Array.from(tbody.querySelectorAll("tr"));
+    const TOTAL = parseInt(document.getElementById("psi-table")?.dataset.total ?? "0", 10);
+    // Page 1 is in the HTML; the rest comes from /psi-rows/ when idle or on
+    // first interaction. Sorting, searching and paging wait for it.
+    let allRows = Array.from(tbody.querySelectorAll("tr"));
     let filtered = allRows.slice();
     let currentPage = 1;
     const PAGE_SIZE = 50;
+    let loaded = false;
+    let loading = null;
+
+    function loadRows() {
+      // Dev serves /psi-rows/; the static build writes an extension-less file.
+      loading ??= fetch("/psi-rows/")
+        .then((r) => (r.ok ? r : fetch("/psi-rows")))
+        .then((r) => {
+          if (!r.ok) throw new Error(String(r.status));
+          return r.text();
+        })
+        .then((html) => {
+          const t = document.createElement("template");
+          t.innerHTML = html;
+          const rows = Array.from(t.content.querySelectorAll("tr"));
+          rows.forEach((r) => r.setAttribute("data-hidden", ""));
+          tbody.append(...rows);
+          allRows = [...allRows, ...rows];
+          filtered = allRows.slice();
+          loaded = true;
+        })
+        .catch(() => { loading = null; });
+      return loading;
+    }
+
+    // Run fn now if all rows are present, otherwise after they arrive.
+    function whenLoaded(fn) {
+      if (loaded) return fn();
+      if (countEl) countEl.textContent = "Loading sites…";
+      return loadRows().then(() => { if (loaded) fn(); });
+    }
 
     let sortCol = null;
     let sortDir = "asc";
@@ -385,17 +217,18 @@ function agenticSortValue(
       const end   = start + PAGE_SIZE;
       allRows.forEach((r) => r.setAttribute("data-hidden", ""));
       filtered.slice(start, end).forEach((r) => r.removeAttribute("data-hidden"));
-      if (countEl) countEl.textContent = `${filtered.length} sites`;
-      renderPagination(paginationEl, filtered.length, currentPage, PAGE_SIZE, (p) => {
+      const count = loaded ? filtered.length : TOTAL;
+      if (countEl) countEl.textContent = `${count} sites`;
+      renderPagination(paginationEl, count, currentPage, PAGE_SIZE, (p) => whenLoaded(() => {
         currentPage = p;
         applyView();
         tableWrap?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
+      }));
     }
 
     // Search
     if (searchEl) {
-      searchEl.addEventListener("input", () => {
+      searchEl.addEventListener("input", () => whenLoaded(() => {
         const q = searchEl.value.trim().toLowerCase();
         filtered = q
           ? allRows.filter(
@@ -406,7 +239,7 @@ function agenticSortValue(
         if (sortCol) doSort(false);
         currentPage = 1;
         applyView();
-      });
+      }));
     }
 
     // Sort
@@ -452,7 +285,7 @@ function agenticSortValue(
     }
 
     document.querySelectorAll(".psi-table .sortable").forEach((th) => {
-      th.addEventListener("click", () => {
+      th.addEventListener("click", () => whenLoaded(() => {
         const col = th.dataset.col;
         if (sortCol === col) {
           sortDir = sortDir === "asc" ? "desc" : "asc";
@@ -465,10 +298,20 @@ function agenticSortValue(
         });
         th.classList.add(sortDir === "asc" ? "sort-asc" : "sort-desc");
         doSort();
-      });
+      }));
     });
 
     applyView();
+
+    // Fetch the remaining rows once the page has settled, or sooner if the
+    // user reaches for the table.
+    ["pointerenter", "focusin", "touchstart"].forEach((ev) =>
+      document.querySelector(".toolbar")?.addEventListener(ev, loadRows, { once: true, passive: true })
+    );
+    tableWrap?.addEventListener("pointerenter", loadRows, { once: true, passive: true });
+    const idleLoad = () => setTimeout(() => (window.requestIdleCallback ?? setTimeout)(loadRows), 3000);
+    if (document.readyState === "complete") idleLoad();
+    else window.addEventListener("load", idleLoad, { once: true });
   }
 
   initPsi();

@@ -1,0 +1,71 @@
+---
+// src/components/showcase/CruxRow.astro
+// 2026-10-15T00:00:00Z
+
+interface Props {
+	// biome-ignore lint/suspicious/noExplicitAny: raw better-sqlite3 row from loadCrux()
+	s: any;
+}
+const { s } = Astro.props;
+
+function fmtLcp(ms: number | null) {
+	if (ms === null) return null;
+	return `${(ms / 1000).toFixed(1)}s`;
+}
+function fmtInp(ms: number | null) {
+	if (ms === null) return null;
+	return `${ms}ms`;
+}
+function fmtCls(v: number | null) {
+	if (v === null) return null;
+	return v.toFixed(3);
+}
+---
+
+<tr
+  data-title={(s.title ?? s.hostname).toLowerCase()}
+  data-url={s.url.toLowerCase()}
+  data-version={s.astro_version ?? ""}
+  data-d_lcp={s.d_lcp ?? ""}
+  data-d_inp={s.d_inp ?? ""}
+  data-d_cls={s.d_cls ?? ""}
+  data-d_cwv={s.d_cwv ?? ""}
+  data-p_lcp={s.p_lcp ?? ""}
+  data-p_inp={s.p_inp ?? ""}
+  data-p_cls={s.p_cls ?? ""}
+  data-p_cwv={s.p_cwv ?? ""}
+  data-t_lcp={s.t_lcp ?? ""}
+  data-t_inp={s.t_inp ?? ""}
+  data-t_cls={s.t_cls ?? ""}
+  data-t_cwv={s.t_cwv ?? ""}
+>
+  <td class="col-site">
+    <a href={s.url} target="_blank" rel="noopener noreferrer">
+      {s.title ?? s.hostname}
+    </a>
+  </td>
+  <td class="col-ver">
+    {s.astro_version ? <span class="ver-badge">v{s.astro_version}</span> : <span class="no-data">—</span>}
+  </td>
+  <!-- Desktop -->
+  <td class={`metric col-lcp ${s.d_lcp_r ?? "none"}`}>{fmtLcp(s.d_lcp) ?? <span class="no-data">—</span>}</td>
+  <td class={`metric col-inp ${s.d_inp_r ?? "none"}`}>{fmtInp(s.d_inp) ?? <span class="no-data">—</span>}</td>
+  <td class={`metric col-cls ${s.d_cls_r ?? "none"}`}>{fmtCls(s.d_cls) ?? <span class="no-data">—</span>}</td>
+  <td class={`metric col-cwv cwv ${s.d_cwv === 1 ? "good" : s.d_cwv === 0 ? "poor" : "none"}`}>
+    {s.d_cwv === 1 ? "✓" : s.d_cwv === 0 ? "✗" : <span class="no-data">—</span>}
+  </td>
+  <!-- Phone -->
+  <td class={`metric col-lcp ${s.p_lcp_r ?? "none"}`}>{fmtLcp(s.p_lcp) ?? <span class="no-data">—</span>}</td>
+  <td class={`metric col-inp ${s.p_inp_r ?? "none"}`}>{fmtInp(s.p_inp) ?? <span class="no-data">—</span>}</td>
+  <td class={`metric col-cls ${s.p_cls_r ?? "none"}`}>{fmtCls(s.p_cls) ?? <span class="no-data">—</span>}</td>
+  <td class={`metric col-cwv cwv ${s.p_cwv === 1 ? "good" : s.p_cwv === 0 ? "poor" : "none"}`}>
+    {s.p_cwv === 1 ? "✓" : s.p_cwv === 0 ? "✗" : <span class="no-data">—</span>}
+  </td>
+  <!-- Tablet -->
+  <td class={`metric col-lcp ${s.t_lcp_r ?? "none"}`}>{fmtLcp(s.t_lcp) ?? <span class="no-data">—</span>}</td>
+  <td class={`metric col-inp ${s.t_inp_r ?? "none"}`}>{fmtInp(s.t_inp) ?? <span class="no-data">—</span>}</td>
+  <td class={`metric col-cls ${s.t_cls_r ?? "none"}`}>{fmtCls(s.t_cls) ?? <span class="no-data">—</span>}</td>
+  <td class={`metric col-cwv cwv ${s.t_cwv === 1 ? "good" : s.t_cwv === 0 ? "poor" : "none"}`}>
+    {s.t_cwv === 1 ? "✓" : s.t_cwv === 0 ? "✗" : <span class="no-data">—</span>}
+  </td>
+</tr>

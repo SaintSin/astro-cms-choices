@@ -2,9 +2,10 @@
 // src/pages/crux.astro
 // 2026-06-10T12:00:00Z
 
+import CruxRow from "@components/showcase/CruxRow.astro";
 import ShowcasePagination from "@components/showcase/ShowcasePagination.astro";
 import Layout from "@layouts/BaseLayout.astro";
-import Database from "better-sqlite3";
+import { loadCrux } from "../utils/cruxData";
 
 const meta = {
 	title: "Core Web Vitals — Astro Showcase | What CMS? How Fast?",
@@ -14,98 +15,20 @@ const meta = {
 	altOG: "Core Web Vitals — real-user field data for confirmed Astro sites",
 };
 
-// biome-ignore lint/suspicious/noExplicitAny: raw better-sqlite3 rows, shape defined by the SELECT below
-let sites: any[] = [];
-let generatedAt = "";
-let totalWithData = 0;
-let desktopCount = 0;
-let phoneCount = 0;
-let tabletCount = 0;
-let desktopCwvPass = 0;
-let phoneCwvPass = 0;
-
-try {
-	const db = new Database(".scan-history.db", { readonly: true });
-	const run = db
-		.prepare("SELECT id, started_at FROM crux_runs ORDER BY id DESC LIMIT 1")
-		.get() as { id: number; started_at: string };
-	const latestScan = db
-		.prepare("SELECT id FROM scans ORDER BY id DESC LIMIT 1")
-		.get() as { id: number };
-
-	generatedAt = run.started_at;
-
-	sites = db
-		.prepare(
-			`WITH latest_ff AS (
-        SELECT site_id, form_factor, MAX(run_id) AS run_id
-        FROM crux_results WHERE status = 'success'
-        GROUP BY site_id, form_factor
-      )
-      SELECT
-        s.hostname, s.url,
-        sr.title, sr.astro_version,
-        MAX(CASE WHEN cr.form_factor='DESKTOP' THEN cr.lcp_p75 END)    as d_lcp,
-        MAX(CASE WHEN cr.form_factor='DESKTOP' THEN cr.inp_p75 END)    as d_inp,
-        MAX(CASE WHEN cr.form_factor='DESKTOP' THEN cr.cls_p75 END)    as d_cls,
-        MAX(CASE WHEN cr.form_factor='DESKTOP' THEN cr.lcp_rating END) as d_lcp_r,
-        MAX(CASE WHEN cr.form_factor='DESKTOP' THEN cr.inp_rating END) as d_inp_r,
-        MAX(CASE WHEN cr.form_factor='DESKTOP' THEN cr.cls_rating END) as d_cls_r,
-        MAX(CASE WHEN cr.form_factor='DESKTOP' THEN cr.cwv_pass END)   as d_cwv,
-        MAX(CASE WHEN cr.form_factor='PHONE' THEN cr.lcp_p75 END)      as p_lcp,
-        MAX(CASE WHEN cr.form_factor='PHONE' THEN cr.inp_p75 END)      as p_inp,
-        MAX(CASE WHEN cr.form_factor='PHONE' THEN cr.cls_p75 END)      as p_cls,
-        MAX(CASE WHEN cr.form_factor='PHONE' THEN cr.lcp_rating END)   as p_lcp_r,
-        MAX(CASE WHEN cr.form_factor='PHONE' THEN cr.inp_rating END)   as p_inp_r,
-        MAX(CASE WHEN cr.form_factor='PHONE' THEN cr.cls_rating END)   as p_cls_r,
-        MAX(CASE WHEN cr.form_factor='PHONE' THEN cr.cwv_pass END)     as p_cwv,
-        MAX(CASE WHEN cr.form_factor='TABLET' THEN cr.lcp_p75 END)     as t_lcp,
-        MAX(CASE WHEN cr.form_factor='TABLET' THEN cr.inp_p75 END)     as t_inp,
-        MAX(CASE WHEN cr.form_factor='TABLET' THEN cr.cls_p75 END)     as t_cls,
-        MAX(CASE WHEN cr.form_factor='TABLET' THEN cr.lcp_rating END)  as t_lcp_r,
-        MAX(CASE WHEN cr.form_factor='TABLET' THEN cr.inp_rating END)  as t_inp_r,
-        MAX(CASE WHEN cr.form_factor='TABLET' THEN cr.cls_rating END)  as t_cls_r,
-        MAX(CASE WHEN cr.form_factor='TABLET' THEN cr.cwv_pass END)    as t_cwv
-      FROM latest_ff lf
-      JOIN crux_results cr ON cr.site_id = lf.site_id
-        AND cr.form_factor = lf.form_factor AND cr.run_id = lf.run_id
-      JOIN sites s ON s.id = cr.site_id
-      JOIN scan_results sr ON sr.site_id = s.id AND sr.scan_id = ?
-        AND sr.astro_detected = 1
-      GROUP BY s.id
-      HAVING d_lcp IS NOT NULL OR p_lcp IS NOT NULL OR t_lcp IS NOT NULL
-      ORDER BY s.hostname`,
-		)
-		// biome-ignore lint/suspicious/noExplicitAny: raw better-sqlite3 rows, shape defined by the SELECT above
-		.all(latestScan.id) as any[];
-
-	totalWithData = sites.length;
-	desktopCount = sites.filter((s) => s.d_lcp !== null).length;
-	phoneCount = sites.filter((s) => s.p_lcp !== null).length;
-	tabletCount = sites.filter((s) => s.t_lcp !== null).length;
-	desktopCwvPass = sites.filter((s) => s.d_cwv === 1).length;
-	phoneCwvPass = sites.filter((s) => s.p_cwv === 1).length;
-
-	db.close();
-} catch (e) {
-	console.warn("CrUX DB not available:", e);
-}
+const PAGE_SIZE = 50;
+const {
+	sites,
+	generatedAt,
+	totalWithData,
+	desktopCount,
+	phoneCount,
+	tabletCount,
+	desktopCwvPass,
+	phoneCwvPass,
+} = loadCrux();
 
 if (desktopCount > 0) {
 	meta.altOG = `Core Web Vitals — ${desktopCount.toLocaleString()} desktop sites, ${desktopCwvPass.toLocaleString()} Desktop CWV pass, ${phoneCwvPass.toLocaleString()} Phone CWV pass`;
-}
-
-function fmtLcp(ms: number | null) {
-	if (ms === null) return null;
-	return `${(ms / 1000).toFixed(1)}s`;
-}
-function fmtInp(ms: number | null) {
-	if (ms === null) return null;
-	return `${ms}ms`;
-}
-function fmtCls(v: number | null) {
-	if (v === null) return null;
-	return v.toFixed(3);
 }
 ---
 
@@ -157,7 +80,7 @@ function fmtCls(v: number | null) {
     </div>
 
     <div class="table-wrap" id="crux-table-wrap">
-      <table class="crux-table data-table" id="crux-table">
+      <table class="crux-table data-table" id="crux-table" data-total={sites.length}>
         <colgroup>
           <col class="col-site" />
           <col class="col-ver" />
@@ -197,55 +120,7 @@ function fmtCls(v: number | null) {
           </tr>
         </thead>
         <tbody id="crux-tbody">
-          {sites.map((s) => (
-            <tr
-              data-title={(s.title ?? s.hostname).toLowerCase()}
-              data-url={s.url.toLowerCase()}
-              data-version={s.astro_version ?? ""}
-              data-d_lcp={s.d_lcp ?? ""}
-              data-d_inp={s.d_inp ?? ""}
-              data-d_cls={s.d_cls ?? ""}
-              data-d_cwv={s.d_cwv ?? ""}
-              data-p_lcp={s.p_lcp ?? ""}
-              data-p_inp={s.p_inp ?? ""}
-              data-p_cls={s.p_cls ?? ""}
-              data-p_cwv={s.p_cwv ?? ""}
-              data-t_lcp={s.t_lcp ?? ""}
-              data-t_inp={s.t_inp ?? ""}
-              data-t_cls={s.t_cls ?? ""}
-              data-t_cwv={s.t_cwv ?? ""}
-            >
-              <td class="col-site">
-                <a href={s.url} target="_blank" rel="noopener noreferrer">
-                  {s.title ?? s.hostname}
-                </a>
-              </td>
-              <td class="col-ver">
-                {s.astro_version ? <span class="ver-badge">v{s.astro_version}</span> : <span class="no-data">—</span>}
-              </td>
-              <!-- Desktop -->
-              <td class={`metric col-lcp ${s.d_lcp_r ?? "none"}`}>{fmtLcp(s.d_lcp) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric col-inp ${s.d_inp_r ?? "none"}`}>{fmtInp(s.d_inp) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric col-cls ${s.d_cls_r ?? "none"}`}>{fmtCls(s.d_cls) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric col-cwv cwv ${s.d_cwv === 1 ? "good" : s.d_cwv === 0 ? "poor" : "none"}`}>
-                {s.d_cwv === 1 ? "✓" : s.d_cwv === 0 ? "✗" : <span class="no-data">—</span>}
-              </td>
-              <!-- Phone -->
-              <td class={`metric col-lcp ${s.p_lcp_r ?? "none"}`}>{fmtLcp(s.p_lcp) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric col-inp ${s.p_inp_r ?? "none"}`}>{fmtInp(s.p_inp) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric col-cls ${s.p_cls_r ?? "none"}`}>{fmtCls(s.p_cls) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric col-cwv cwv ${s.p_cwv === 1 ? "good" : s.p_cwv === 0 ? "poor" : "none"}`}>
-                {s.p_cwv === 1 ? "✓" : s.p_cwv === 0 ? "✗" : <span class="no-data">—</span>}
-              </td>
-              <!-- Tablet -->
-              <td class={`metric col-lcp ${s.t_lcp_r ?? "none"}`}>{fmtLcp(s.t_lcp) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric col-inp ${s.t_inp_r ?? "none"}`}>{fmtInp(s.t_inp) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric col-cls ${s.t_cls_r ?? "none"}`}>{fmtCls(s.t_cls) ?? <span class="no-data">—</span>}</td>
-              <td class={`metric col-cwv cwv ${s.t_cwv === 1 ? "good" : s.t_cwv === 0 ? "poor" : "none"}`}>
-                {s.t_cwv === 1 ? "✓" : s.t_cwv === 0 ? "✗" : <span class="no-data">—</span>}
-              </td>
-            </tr>
-          ))}
+          {sites.slice(0, PAGE_SIZE).map((s) => <CruxRow s={s} />)}
         </tbody>
       </table>
     </div>
@@ -270,7 +145,40 @@ function fmtCls(v: number | null) {
     if (!tbody || !searchEl || !countEl || !paginationEl) return;
 
     const PAGE_SIZE = 50;
-    const allRows = Array.from(tbody.querySelectorAll("tr"));
+    const TOTAL = parseInt(document.getElementById("crux-table")?.dataset.total ?? "0", 10);
+    // Page 1 is in the HTML; the rest comes from /crux-rows/ when idle or on
+    // first interaction. Searching, sorting and paging wait for it.
+    let allRows = Array.from(tbody.querySelectorAll("tr"));
+    let loaded = false;
+    let loading = null;
+
+    function loadRows() {
+      // Dev serves /crux-rows/; the static build writes an extension-less file.
+      loading ??= fetch("/crux-rows/")
+        .then((r) => (r.ok ? r : fetch("/crux-rows")))
+        .then((r) => {
+          if (!r.ok) throw new Error(String(r.status));
+          return r.text();
+        })
+        .then((html) => {
+          const t = document.createElement("template");
+          t.innerHTML = html;
+          const rows = Array.from(t.content.querySelectorAll("tr"));
+          rows.forEach((r) => { r.hidden = true; });
+          tbody.append(...rows);
+          allRows = [...allRows, ...rows];
+          loaded = true;
+        })
+        .catch(() => { loading = null; });
+      return loading;
+    }
+
+    // Run fn now if all rows are present, otherwise after they arrive.
+    function whenLoaded(fn) {
+      if (loaded) return fn();
+      countEl.textContent = "Loading sites…";
+      return loadRows().then(() => { if (loaded) fn(); });
+    }
     let sortCol = null;
     let sortAsc = true;
     let currentPage = 1;
@@ -322,26 +230,30 @@ function fmtCls(v: number | null) {
     }
 
     function applyView() {
-      const filtered = getFiltered();
-      const sorted = sortRows(filtered);
       const start = (currentPage - 1) * PAGE_SIZE;
-      const pageSet = new Set(sorted.slice(start, start + PAGE_SIZE));
+      let count = TOTAL;
+      if (loaded) {
+        const filtered = getFiltered();
+        const sorted = sortRows(filtered);
+        const pageSet = new Set(sorted.slice(start, start + PAGE_SIZE));
 
-      const domOrder = sortCol ? sortRows(allRows) : allRows;
-      for (const row of domOrder) tbody.appendChild(row);
-      for (const row of allRows) row.hidden = !pageSet.has(row);
+        const domOrder = sortCol ? sortRows(allRows) : allRows;
+        for (const row of domOrder) tbody.appendChild(row);
+        for (const row of allRows) row.hidden = !pageSet.has(row);
+        count = filtered.length;
+      }
 
-      const from = Math.min(start + 1, filtered.length);
-      const to = Math.min(start + PAGE_SIZE, filtered.length);
-      countEl.textContent = filtered.length
-        ? `Showing ${from}–${to} of ${filtered.length} site${filtered.length !== 1 ? "s" : ""}`
+      const from = Math.min(start + 1, count);
+      const to = Math.min(start + PAGE_SIZE, count);
+      countEl.textContent = count
+        ? `Showing ${from}–${to} of ${count} site${count !== 1 ? "s" : ""}`
         : "No results";
 
-      renderPagination(paginationEl, filtered.length, currentPage, PAGE_SIZE, (p) => {
+      renderPagination(paginationEl, count, currentPage, PAGE_SIZE, (p) => whenLoaded(() => {
         currentPage = p;
         applyView();
         tableWrap?.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
+      }));
 
       document.querySelectorAll(".sortable").forEach(th => {
         const col = th.dataset.col;
@@ -350,18 +262,28 @@ function fmtCls(v: number | null) {
       });
     }
 
-    searchEl.addEventListener("input", () => { currentPage = 1; applyView(); });
+    searchEl.addEventListener("input", () => whenLoaded(() => { currentPage = 1; applyView(); }));
 
     document.querySelectorAll(".sortable").forEach(th => {
-      th.addEventListener("click", () => {
+      th.addEventListener("click", () => whenLoaded(() => {
         const col = th.dataset.col;
         if (sortCol === col) { sortAsc = !sortAsc; } else { sortCol = col; sortAsc = true; }
         currentPage = 1;
         applyView();
-      });
+      }));
     });
 
     applyView();
+
+    // Fetch the remaining rows once the page has settled, or sooner if the
+    // user reaches for the table.
+    document.querySelector(".toolbar")?.addEventListener("pointerenter", loadRows, { once: true, passive: true });
+    document.querySelector(".toolbar")?.addEventListener("focusin", loadRows, { once: true });
+    tableWrap?.addEventListener("pointerenter", loadRows, { once: true, passive: true });
+    tableWrap?.addEventListener("touchstart", loadRows, { once: true, passive: true });
+    const idleLoad = () => setTimeout(() => (window.requestIdleCallback ?? setTimeout)(loadRows), 3000);
+    if (document.readyState === "complete") idleLoad();
+    else window.addEventListener("load", idleLoad, { once: true });
   }
 
   initCrux();

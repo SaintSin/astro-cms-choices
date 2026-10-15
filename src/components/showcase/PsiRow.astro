@@ -1,0 +1,118 @@
+---
+// src/components/showcase/PsiRow.astro
+// 2026-10-15T00:00:00Z
+
+interface Props {
+	// biome-ignore lint/suspicious/noExplicitAny: raw better-sqlite3 row from loadPsi()
+	s: any;
+}
+const { s } = Astro.props;
+
+function scoreClass(v: number | null): string {
+	if (v === null) return "";
+	if (v >= 90) return "good";
+	if (v >= 50) return "mid";
+	return "poor";
+}
+
+function total400(
+	a: number | null,
+	b: number | null,
+	c: number | null,
+	d: number | null,
+): number | null {
+	if (a === null || b === null || c === null || d === null) return null;
+	return a + b + c + d;
+}
+
+function scoreClass400(v: number | null): string {
+	if (v === null) return "";
+	if (v >= 360) return "good";
+	if (v >= 200) return "mid";
+	return "poor";
+}
+
+function scoreClass800(v: number | null): string {
+	if (v === null) return "";
+	if (v >= 720) return "good";
+	if (v >= 400) return "mid";
+	return "poor";
+}
+
+// Agentic Browsing is shown as "passed/applicable" (PSI's own convention —
+// most of its audits, like WebMCP tools or llms.txt, are notApplicable unless
+// the site implements that feature, so a 0-100 score would be misleading).
+function agenticLabel(
+	passed: number | null,
+	applicable: number | null,
+): string {
+	if (passed === null || applicable === null || applicable === 0) return "—";
+	return `${passed}/${applicable}`;
+}
+
+function agenticClass(
+	passed: number | null,
+	applicable: number | null,
+): string {
+	if (passed === null || applicable === null || applicable === 0) return "";
+	const ratio = passed / applicable;
+	if (ratio === 1) return "good";
+	if (ratio >= 0.5) return "mid";
+	return "poor";
+}
+
+function agenticSortValue(
+	passed: number | null,
+	applicable: number | null,
+): number | null {
+	if (passed === null || applicable === null || applicable === 0) return null;
+	// Ratio alone ties "2/2" and "3/3" at exactly 1 — break ties by applicable
+	// count so a fuller pass (more audits, all passing) ranks higher. The
+	// epsilon is far smaller than the gap between any two distinct ratios
+	// with denominators this small (max applicable is 6), so it only ever
+	// affects genuine ties.
+	return passed / applicable + applicable * 0.0001;
+}
+const mTotal = total400(s.m_perf, s.m_a11y, s.m_bp, s.m_seo);
+const dTotal = total400(s.d_perf, s.d_a11y, s.d_bp, s.d_seo);
+const t800 = mTotal !== null && dTotal !== null ? mTotal + dTotal : null;
+---
+
+<tr
+data-title={(s.title ?? s.hostname).toLowerCase()}
+data-url={s.url.toLowerCase()}
+data-version={s.astro_version ?? ""}
+data-m_perf={s.m_perf ?? ""}
+data-m_a11y={s.m_a11y ?? ""}
+data-m_bp={s.m_bp ?? ""}
+data-m_seo={s.m_seo ?? ""}
+data-m_total={mTotal ?? ""}
+data-m_agentic={agenticSortValue(s.m_agentic_passed, s.m_agentic_applicable) ?? ""}
+data-d_perf={s.d_perf ?? ""}
+data-d_a11y={s.d_a11y ?? ""}
+data-d_bp={s.d_bp ?? ""}
+data-d_seo={s.d_seo ?? ""}
+data-d_total={dTotal ?? ""}
+data-d_agentic={agenticSortValue(s.d_agentic_passed, s.d_agentic_applicable) ?? ""}
+data-total_800={t800 ?? ""}
+            >
+<td class="col-site">
+  <a href={s.url} target="_blank" rel="noopener noreferrer">
+    {s.title ?? s.hostname}
+  </a>
+</td>
+<td class="col-ver">{s.astro_version ? <span class="ver-badge">v{s.astro_version}</span> : <span class="no-data">—</span>}</td>
+<td class={`col-perf score ${scoreClass(s.m_perf)}`}>{s.m_perf ?? "—"}</td>
+<td class={`col-a11y score ${scoreClass(s.m_a11y)}`}>{s.m_a11y ?? "—"}</td>
+<td class={`col-bp   score ${scoreClass(s.m_bp)}`}>{s.m_bp ?? "—"}</td>
+<td class={`col-seo  score ${scoreClass(s.m_seo)}`}>{s.m_seo ?? "—"}</td>
+<td class={`col-total score ${scoreClass400(mTotal)}`}>{mTotal ?? "—"}</td>
+<td class={`col-agentic score ${agenticClass(s.m_agentic_passed, s.m_agentic_applicable)}`}>{agenticLabel(s.m_agentic_passed, s.m_agentic_applicable)}</td>
+<td class={`col-perf score ${scoreClass(s.d_perf)}`}>{s.d_perf ?? "—"}</td>
+<td class={`col-a11y score ${scoreClass(s.d_a11y)}`}>{s.d_a11y ?? "—"}</td>
+<td class={`col-bp   score ${scoreClass(s.d_bp)}`}>{s.d_bp ?? "—"}</td>
+<td class={`col-seo  score ${scoreClass(s.d_seo)}`}>{s.d_seo ?? "—"}</td>
+<td class={`col-total score ${scoreClass400(dTotal)}`}>{dTotal ?? "—"}</td>
+<td class={`col-agentic score ${agenticClass(s.d_agentic_passed, s.d_agentic_applicable)}`}>{agenticLabel(s.d_agentic_passed, s.d_agentic_applicable)}</td>
+<td class={`col-total800 score ${scoreClass800(t800)}`}>{t800 ?? "—"}</td>
+            </tr>

@@ -10,6 +10,11 @@
 - **Cloudflare `cdn-cgi/challenge-platform` no longer marks live sites Blocked.** That script is embedded on normal Cloudflare pages. Only `cf-mitigated: challenge` or real interstitial markers count, and weak markers are checked after CMS rules.
 - Added `pnpm test` (node:test) with tests for the retry helper, DoH agreement and the challenge detection.
 
+### PSI and CrUX rows load from separate files
+
+- Same approach as the homepage: `/psi/` and `/crux/` now render only page 1 of rows (~100 KB HTML each, previously several MB), and the rest come from prerendered `/psi-rows/` and `/crux-rows/` fetched when idle or on first interaction. Sort, search and paging wait for them ("Loading sites…").
+- The queries moved to `src/utils/psiData.ts` / `cruxData.ts` and the row markup to `PsiRow.astro` / `CruxRow.astro`, shared by the page and its rows endpoint.
+
 ### Homepage rows load from a separate file
 
 - The homepage HTML carried every row after page 1 inside a `<template>` (~3.9 MB raw, 267 KB gzipped). Those rows now come from a prerendered `/showcase-rows/` (`src/pages/showcase-rows/index.ts`, rendered with the same `ShowcaseRow` component via the Container API) and the page itself is ~100 KB.
