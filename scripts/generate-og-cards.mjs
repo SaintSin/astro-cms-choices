@@ -72,16 +72,26 @@ function homeStats() {
 	};
 }
 
+// The /crux/ and /psi/ pages only list sites that are Astro-detected in the
+// latest scan, so the cards must count the same set or the numbers drift apart.
+function latestScanId(db) {
+	return db.prepare("SELECT id FROM scans ORDER BY id DESC LIMIT 1").get().id;
+}
+
 function cruxStats(db) {
 	const row = db
 		.prepare(
 			`WITH latest_d AS (
         SELECT site_id, MAX(run_id) rid FROM crux_results
-        WHERE status = 'success' AND form_factor = 'DESKTOP' GROUP BY site_id
+        WHERE status = 'success' AND form_factor = 'DESKTOP'
+          AND site_id IN (SELECT site_id FROM scan_results WHERE scan_id = @scan AND astro_detected = 1)
+        GROUP BY site_id
       ),
       latest_p AS (
         SELECT site_id, MAX(run_id) rid FROM crux_results
-        WHERE status = 'success' AND form_factor = 'PHONE' GROUP BY site_id
+        WHERE status = 'success' AND form_factor = 'PHONE'
+          AND site_id IN (SELECT site_id FROM scan_results WHERE scan_id = @scan AND astro_detected = 1)
+        GROUP BY site_id
       )
       SELECT
         (SELECT COUNT(*) FROM latest_d) AS desktop_sites,
@@ -93,7 +103,7 @@ function cruxStats(db) {
            ON c.site_id = l.site_id AND c.run_id = l.rid AND c.form_factor = 'PHONE'
          WHERE c.cwv_pass = 1) AS phone_pass`,
 		)
-		.get();
+		.get({ scan: latestScanId(db) });
 
 	return {
 		DESKTOP_SITES: row.desktop_sites,
@@ -109,15 +119,23 @@ function psiStats(db) {
 		.prepare(
 			`WITH latest_m AS (
         SELECT site_id, MAX(run_id) rid FROM psi_results
-        WHERE status = 'success' AND strategy = 'mobile' GROUP BY site_id
+        WHERE status = 'success' AND strategy = 'mobile'
+          AND site_id IN (SELECT site_id FROM scan_results WHERE scan_id = @scan AND astro_detected = 1)
+        GROUP BY site_id
       ),
       latest_d AS (
         SELECT site_id, MAX(run_id) rid FROM psi_results
-        WHERE status = 'success' AND strategy = 'desktop' GROUP BY site_id
+        WHERE status = 'success' AND strategy = 'desktop'
+          AND site_id IN (SELECT site_id FROM scan_results WHERE scan_id = @scan AND astro_detected = 1)
+        GROUP BY site_id
       )
       SELECT
-        (SELECT COUNT(*) FROM latest_m) AS mobile_tested,
-        (SELECT COUNT(*) FROM latest_d) AS desktop_tested,
+        (SELECT COUNT(*) FROM latest_m l JOIN psi_results p
+           ON p.site_id = l.site_id AND p.run_id = l.rid AND p.strategy = 'mobile'
+         WHERE p.performance IS NOT NULL) AS mobile_tested,
+        (SELECT COUNT(*) FROM latest_d l JOIN psi_results p
+           ON p.site_id = l.site_id AND p.run_id = l.rid AND p.strategy = 'desktop'
+         WHERE p.performance IS NOT NULL) AS desktop_tested,
         (SELECT COUNT(*) FROM latest_m l JOIN psi_results p
            ON p.site_id = l.site_id AND p.run_id = l.rid AND p.strategy = 'mobile'
          WHERE p.performance >= 90) AS mobile_high,
@@ -125,7 +143,7 @@ function psiStats(db) {
            ON p.site_id = l.site_id AND p.run_id = l.rid AND p.strategy = 'desktop'
          WHERE p.performance >= 90) AS desktop_high`,
 		)
-		.get();
+		.get({ scan: latestScanId(db) });
 
 	// Decorative third segment: desktop-tested sites that didn't hit perf ≥ 90.
 	const barRemainder = row.desktop_tested - row.desktop_high;

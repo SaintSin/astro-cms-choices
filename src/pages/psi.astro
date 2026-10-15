@@ -12,7 +12,7 @@ const meta = {
 		"PageSpeed Insights Lighthouse scores — performance, accessibility, best practices, SEO, and Agentic Browsing — for confirmed Astro showcase sites on mobile and desktop.",
 	imageOG: "og-psi.png",
 	altOG:
-		"Lighthouse Scores — 2,117 mobile tested, 1,004 mobile perf ≥90, 1,708 desktop perf ≥90",
+		"Lighthouse Scores — PageSpeed Insights results for confirmed Astro sites",
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: raw better-sqlite3 rows, shape defined by the SELECT below
@@ -118,6 +118,10 @@ try {
 	db.close();
 } catch (e) {
 	console.warn("PSI DB not available:", e);
+}
+
+if (mobileCount > 0) {
+	meta.altOG = `Lighthouse Scores — ${mobileCount.toLocaleString()} mobile tested, ${mobilePerfHigh.toLocaleString()} mobile perf ≥90, ${desktopPerfHigh.toLocaleString()} desktop perf ≥90`;
 }
 
 function scoreClass(v: number | null): string {

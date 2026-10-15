@@ -22,6 +22,7 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
+import { fetchWithRetry } from "./fetch-retry.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DB_PATH = resolve(__dirname, "../.scan-history.db");
@@ -281,9 +282,9 @@ let jobs;
 if (errorsOnly) {
 	const errored = db
 		.prepare(
-			`SELECT DISTINCT site_id, strategy FROM psi_results WHERE status = 'error'
+			`SELECT DISTINCT site_id, strategy FROM psi_results WHERE status = 'error' OR (status = 'success' AND performance IS NULL)
        EXCEPT
-       SELECT DISTINCT site_id, strategy FROM psi_results WHERE status = 'success'`,
+       SELECT DISTINCT site_id, strategy FROM psi_results WHERE status = 'success' AND performance IS NOT NULL`,
 		)
 		.all();
 	const retry = new Set(errored.map((r) => `${r.site_id}:${r.strategy}`));
@@ -374,13 +375,26 @@ async function runJob({ site, strategy }) {
 		const qs =
 			`url=${encodeURIComponent(site.url)}&strategy=${strategy}&key=${API_KEY}` +
 			`&category=performance&category=accessibility&category=best-practices&category=seo&category=agentic-browsing`;
-		const res = await fetch(
+		const res = await fetchWithRetry(
 			`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${qs}`,
 		);
-		if (!res.ok) throw new Error(`HTTP ${res.status}`);
+		if (!res.ok) {
+			// Google's 400s explain themselves (e.g. "Lighthouse returned error: ...")
+			const body = await res.json().catch(() => null);
+			const why = body?.error?.message ? ` ${body.error.message}` : "";
+			throw new Error(`HTTP ${res.status}${why}`);
+		}
 
 		const json = await res.json();
 		const data = parsePsi(json);
+		// A 200 with no performance score means Lighthouse failed to load the
+		// page — that's an error, not a "success" with nulls.
+		if (data.performance == null) {
+			throw new Error(
+				json.lighthouseResult?.runtimeError?.message ??
+					"No performance score returned",
+			);
+		}
 
 		insertResult.run(
 			runId,
@@ -420,7 +434,7 @@ async function runJob({ site, strategy }) {
 		);
 		success++;
 	} catch (err) {
-		const msg = err.message.slice(0, 80);
+		const msg = err.message.slice(0, 200);
 		console.log(`  ${progress} ${label} ERROR: ${msg}`);
 		insertResult.run(
 			runId,

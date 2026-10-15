@@ -11,8 +11,7 @@ const meta = {
 	description:
 		"Real-user Chrome UX Report field data (LCP, INP, CLS, CWV pass rates) for confirmed Astro showcase sites across desktop, phone, and tablet.",
 	imageOG: "og-crux.png",
-	altOG:
-		"Core Web Vitals — 514 desktop sites, 382 Desktop CWV pass, 253 Phone CWV pass",
+	altOG: "Core Web Vitals — real-user field data for confirmed Astro sites",
 };
 
 // biome-ignore lint/suspicious/noExplicitAny: raw better-sqlite3 rows, shape defined by the SELECT below
@@ -90,6 +89,10 @@ try {
 	db.close();
 } catch (e) {
 	console.warn("CrUX DB not available:", e);
+}
+
+if (desktopCount > 0) {
+	meta.altOG = `Core Web Vitals — ${desktopCount.toLocaleString()} desktop sites, ${desktopCwvPass.toLocaleString()} Desktop CWV pass, ${phoneCwvPass.toLocaleString()} Phone CWV pass`;
 }
 
 function fmtLcp(ms: number | null) {

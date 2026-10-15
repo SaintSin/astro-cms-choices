@@ -23,6 +23,7 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import Database from "better-sqlite3";
+import { dohLookup } from "./doh.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const DB_PATH = resolve(__dirname, "../.scan-history.db");
@@ -71,32 +72,6 @@ async function pool(tasks, limit) {
 }
 
 // ── DNS over HTTPS ────────────────────────────────────────────────────────────
-
-const DOH_PROVIDERS = [
-	"https://cloudflare-dns.com/dns-query",
-	"https://dns.google/resolve",
-];
-
-// Returns: 'nxdomain' | 'found' | 'error'
-async function dohLookup(hostname) {
-	for (const base of DOH_PROVIDERS) {
-		try {
-			const res = await fetch(`${base}?name=${hostname}&type=A`, {
-				headers: { Accept: "application/dns-json" },
-				signal: AbortSignal.timeout(5000),
-			});
-			if (!res.ok) continue;
-			const { Status, Answer } = await res.json();
-			// Status 3 = NXDOMAIN
-			if (Status === 3) return "nxdomain";
-			// Status 0 = NOERROR — check for actual A/CNAME records
-			if (Status === 0 && Answer?.length) return "found";
-			// Status 0 but no Answer = domain exists, no A records
-			if (Status === 0) return "found";
-		} catch {}
-	}
-	return "error";
-}
 
 // ── HTTP HEAD ─────────────────────────────────────────────────────────────────
 

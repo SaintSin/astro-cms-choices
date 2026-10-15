@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-10-15
+
+### Four high-severity review fixes
+
+- **Partial detect runs no longer overwrite the real dataset.** `--limit` (without `--resume`/`--errors-only`/`--forwarded-only`) or a non-default `--source` now skips both the `cms-results.json` write and the scan-history DB write, with a warning. Previously a `--limit 5` test run replaced the full results and became the "latest scan" every page reads from.
+- **PSI retries and no longer records empty runs as success.** New `scripts/fetch-retry.mjs` (exponential backoff, honours `Retry-After`) handles 429/5xx/network errors. A 200 with no performance score is now an error, Google's 400 message is kept, and `--errors-only` also retries null-score rows.
+- **DNS check needs both resolvers to agree on NXDOMAIN.** New `scripts/doh.mjs` queries Cloudflare and Google in parallel (one retry each); disagreement or a failed resolver is "inconclusive", matching what the removal PRs claim.
+- **Cloudflare `cdn-cgi/challenge-platform` no longer marks live sites Blocked.** That script is embedded on normal Cloudflare pages. Only `cf-mitigated: challenge` or real interstitial markers count, and weak markers are checked after CMS rules.
+- Added `pnpm test` (node:test) with tests for the retry helper, DoH agreement and the challenge detection.
+
+### HTTP 401/403/429 no longer recorded as a confident "not Astro"
+
+- Cross-checked the ~240 sites on speedlify's `astro-showcase` group against our results: 224 were Astro in our data, 18 weren't. Checking those 18 live turned up a scanner bug rather than 18 migrations — `mrbeast.salesforce.com` is clearly Astro (hundreds of `data-astro-cid` attributes, `/_astro/` assets) but we had it as "Unknown, no Astro found". Its WAF answers our `cms-detector/1.0` User-Agent with a 403 and a 374-byte body, and a browser-style UA with the full page
+- Root cause: `attemptFetch()` never looked at the HTTP status. A refusal page was fingerprinted like any other response, found nothing, and was filed as `cms: "Unknown"` — which the table renders as a confident ✗ ("No Astro fingerprint found") for a site we never actually saw. `capitalone.com/cars` and `unilever.com` had the same problem
+- `fetchSite()` now retries **once** with a Safari-style User-Agent after a 401/403 and keeps the retry only if it got past the refusal. The honest bot UA stays the default; the retry is noted in `evidence` ("Scanner User-Agent was refused … fetched with a browser-style User-Agent") so it's visible when it was what got through. 429 isn't retried — a rate limit isn't UA-based
+- If the response is still a 401/403/429 and nothing identified a CMS or Astro in it, `processSite()` now records `cms: "Blocked"` (the existing "reachable but unverifiable" bucket, shown as "Bot-protected", which also resets `consecutive_errors`) with `HTTP <status> — server refused the request` as evidence. If a refusal page happens to contain Astro markers, Astro still wins
+- Verified from a scratch working directory so the scan row went to a throwaway DB, not `.scan-history.db`, on six sites: `mrbeast.salesforce.com` and `unilever.com` → Astro detected via the retry; `capitalone.com/cars` → Blocked (403 on both attempts); `nordvpn.com` → Blocked (Cloudflare challenge, unchanged); `agilepainrelief.com` and `roadmap.sh` controls unchanged. Real history unaffected (still scan #178, 3,219 sites)
+- Worth knowing: `unilever.com` returned 403 to a plain `curl` with the same Safari UA but works from Node, so `curl` alone isn't a reliable check for these sites. Takes effect on the next full `pnpm detect` — not rerun yet
+
+### PSI / CrUX OG cards now count the same sites as their pages
+
+- The `/psi/` card said 2,848 mobile / 2,845 desktop tested while the page said 2,608 / 2,624. `psiStats()` in `scripts/generate-og-cards.mjs` counted every site that ever had a successful PSI result, including ones that have since left Astro; the pages only list sites still Astro-detected in the latest scan. A second, smaller gap: ~31 "success" rows have a NULL performance score, which the page excludes but the card counted
+- `psiStats()` and `cruxStats()` now restrict to sites Astro-detected in the latest scan (new `latestScanId()` helper) and `psiStats()` ignores NULL-performance rows, so card and page agree (2,608 / 2,624 / 1,290 / 2,098 for PSI; 709 desktop for CrUX). The hardcoded `altOG` strings in `psi.astro` and `crux.astro` ("2,117 mobile tested", "514 desktop sites") were stale too — now built from the live counts
+- Not renamed: `og-psi.png` / `og-crux.png` keep their filenames, so social platforms that cached the old cards won't refresh until they're given a new URL (as was done for the notes card)
+
 ## 2026-10-11
 
 ### Fewer fonts: dropped Exo 2, trimmed unused weights

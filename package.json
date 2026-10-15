@@ -19,6 +19,7 @@
 		"check": "biome check --write .",
 		"fmt": "oxfmt",
 		"fmt:check": "oxfmt --check",
+		"test": "node --experimental-strip-types --no-warnings --test scripts/__tests__/*.test.*",
 		"detect": "node --experimental-strip-types scripts/detect-cms.ts",
 		"db:init": "node --experimental-strip-types scripts/db-init.ts",
 		"db:report": "node --experimental-strip-types scripts/db-report.ts",

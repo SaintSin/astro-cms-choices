@@ -729,12 +729,24 @@ export function detectAstro(html: string): {
 	};
 }
 
-function isBotChallenge(
+// A challenge *header* means this response IS the challenge, not the site —
+// definitive on its own.
+function isChallengeResponse(headers: Record<string, string>): boolean {
+	return (
+		headers["cf-mitigated"] === "challenge" ||
+		headers["x-vercel-mitigated"] === "challenge"
+	);
+}
+
+// Body markers are weaker: real pages can embed challenge-adjacent scripts, so
+// these are only trusted when nothing else (a CMS rule, Astro) identified the
+// page — see fingerprint(). Deliberately NOT here: `cdn-cgi/challenge-platform`,
+// which Cloudflare injects into ordinary 200 pages (JS Detections) — that
+// marker alone mislabelled real sites like discord.com as "Blocked".
+function looksLikeBotChallenge(
 	html: string,
 	headers: Record<string, string>,
 ): boolean {
-	// Cloudflare JS/CAPTCHA challenge pages — fetch can't solve these
-	if (headers["cf-mitigated"] === "challenge") return true;
 	if (
 		headers["cf-ray"] &&
 		/<title>\s*(Just a moment|Attention Required)/i.test(html)
@@ -746,10 +758,9 @@ function isBotChallenge(
 		)
 	)
 		return true;
-	// Cloudflare challenge platform assets
-	if (/cdn-cgi\/challenge-platform/i.test(html)) return true;
 	if (/_cf_chl_opt/i.test(html)) return true;
 	if (/cf-spinner/i.test(html)) return true;
+	if (/Vercel Security Checkpoint/i.test(html)) return true;
 	// CAPTCHA / verification redirects via meta-refresh
 	if (/\.well-known\/sgcaptcha/i.test(html)) return true;
 	if (/<meta[^>]+refresh[^>]+(?:sgcaptcha|challenge|verify)/i.test(html))
@@ -769,15 +780,14 @@ export function fingerprint(
 	evidence: string[];
 	framework: string | null;
 } | null {
-	if (isBotChallenge(html, headers)) {
-		return {
-			cms: "Blocked",
-			cmsType: "unknown",
-			confidence: "high",
-			evidence: ["Cloudflare challenge page"],
-			framework: null,
-		};
-	}
+	const blocked = (evidence: string) => ({
+		cms: "Blocked",
+		cmsType: "unknown" as CmsType,
+		confidence: "high" as Confidence,
+		evidence: [evidence],
+		framework: null,
+	});
+	if (isChallengeResponse(headers)) return blocked("Cloudflare challenge page");
 	// Prefer high-confidence matches; collect best CMS hit and best framework hit separately
 	let cmsHit: (typeof RULES)[number] | null = null;
 	let frameworkHit: (typeof RULES)[number] | null = null;
@@ -814,6 +824,10 @@ export function fingerprint(
 			framework: frameworkHit?.cms ?? null,
 		};
 	}
+	// Nothing identified the page. Only now do the weaker body markers count as
+	// "this is a challenge interstitial, not the real site".
+	if (looksLikeBotChallenge(html, headers))
+		return blocked("Cloudflare challenge page");
 	// Cloudflare Access SSO login wall — the site itself may still be live and
 	// genuinely Astro, we just can't see past the login page as an
 	// unauthenticated scanner. Not evidence of the site being parked,
@@ -865,6 +879,21 @@ const baseHeaders = {
 	"Accept-Language": "en-US,en;q=0.5",
 };
 
+// Some WAFs 403 any self-identified bot UA but serve a normal page to a
+// browser-like one (mrbeast.salesforce.com: 403 for `cms-detector`, full
+// Astro page for Safari). Only used as a single retry after a 401/403 —
+// the honest bot UA stays the default.
+const browserHeaders = {
+	"User-Agent":
+		"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15",
+	Accept: "text/html,application/xhtml+xml",
+	"Accept-Language": "en-US,en;q=0.5",
+};
+
+// A refusal (auth wall, WAF, rate limit) says nothing about what the site is
+// built with, so it must never be recorded as a confident "no Astro found".
+const REFUSAL_STATUSES = new Set([401, 403, 429]);
+
 async function fetchSite(
 	url: string,
 	timeoutMs = 10_000,
@@ -872,11 +901,26 @@ async function fetchSite(
 	html: string;
 	headers: Record<string, string>;
 	finalUrl: string;
+	status: number;
+	usedBrowserUA: boolean;
 	viaHttpFallback: boolean;
 }> {
 	try {
-		const result = await attemptFetch(url, timeoutMs);
-		return { ...result, viaHttpFallback: false };
+		let result = await attemptFetch(url, timeoutMs);
+		let usedBrowserUA = false;
+		if (result.status === 401 || result.status === 403) {
+			try {
+				const retry = await attemptFetch(url, timeoutMs, browserHeaders);
+				// Keep the retry only if it actually got past the refusal.
+				if (!REFUSAL_STATUSES.has(retry.status)) {
+					result = retry;
+					usedBrowserUA = true;
+				}
+			} catch {
+				/* retry failed — keep the original refusal */
+			}
+		}
+		return { ...result, usedBrowserUA, viaHttpFallback: false };
 	} catch (err) {
 		// Some sites reject HTTPS at the TLS layer for non-browser clients (a
 		// WAF fingerprinting Node's TLS ClientHello — no header/UA change fixes
@@ -897,7 +941,7 @@ async function fetchSite(
 					url.replace(/^https:/, "http:"),
 					timeoutMs,
 				);
-				return { ...result, viaHttpFallback: true };
+				return { ...result, usedBrowserUA: false, viaHttpFallback: true };
 			} catch {
 				throw err; // the original https failure is more informative
 			}
@@ -909,10 +953,12 @@ async function fetchSite(
 async function attemptFetch(
 	url: string,
 	timeoutMs: number,
+	reqHeaders: Record<string, string> = baseHeaders,
 ): Promise<{
 	html: string;
 	headers: Record<string, string>;
 	finalUrl: string;
+	status: number;
 }> {
 	const controller = new AbortController();
 	const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -921,7 +967,7 @@ async function attemptFetch(
 		// First pass: manual redirect to collect cookies (handles cookie-gated redirects)
 		let res = await fetch(url, {
 			signal: controller.signal,
-			headers: baseHeaders,
+			headers: reqHeaders,
 			redirect: "manual",
 		});
 
@@ -939,7 +985,7 @@ async function attemptFetch(
 			res = await fetch(url, {
 				signal: controller.signal,
 				headers: {
-					...baseHeaders,
+					...reqHeaders,
 					...(cookies.length ? { Cookie: cookies.join("; ") } : {}),
 				},
 				redirect: "follow",
@@ -948,6 +994,7 @@ async function attemptFetch(
 
 		let html = await res.text();
 		let finalUrl = res.url;
+		let status = res.status;
 		const headers: Record<string, string> = {};
 		res.headers.forEach((v, k) => {
 			headers[k.toLowerCase()] = v;
@@ -967,11 +1014,12 @@ async function attemptFetch(
 			try {
 				const res2 = await fetch(redirectTarget, {
 					signal: controller.signal,
-					headers: baseHeaders,
+					headers: reqHeaders,
 					redirect: "follow",
 				});
 				html = await res2.text();
 				finalUrl = res2.url;
+				status = res2.status;
 				res2.headers.forEach((v, k) => {
 					headers[k.toLowerCase()] = v;
 				});
@@ -980,7 +1028,7 @@ async function attemptFetch(
 			}
 		}
 
-		return { html, headers, finalUrl };
+		return { html, headers, finalUrl, status };
 	} finally {
 		clearTimeout(timer);
 	}
@@ -1089,10 +1137,8 @@ async function processSite(
 	timeoutMs: number,
 ): Promise<CmsResult> {
 	try {
-		const { html, headers, finalUrl, viaHttpFallback } = await fetchSite(
-			entry.url,
-			timeoutMs,
-		);
+		const { html, headers, finalUrl, status, usedBrowserUA, viaHttpFallback } =
+			await fetchSite(entry.url, timeoutMs);
 
 		// The HTTPS fetch failed (TLS-level block, expired cert, etc.) and we
 		// only got here via the plain-HTTP fallback. Its content isn't
@@ -1162,13 +1208,46 @@ async function processSite(
 			astro.detected
 				? null
 				: hit;
+		// The server refused us (401/403/429) and nothing in the refusal page
+		// identified a CMS or Astro — that's "couldn't look", not "no Astro
+		// here". Filing it as Unknown renders a confident ✗ in the table.
+		if (REFUSAL_STATUSES.has(status) && !astro.detected && !effectiveHit) {
+			return {
+				title: entry.title,
+				url: entry.url,
+				cms: "Blocked",
+				cmsType: "unknown",
+				confidence: "high",
+				evidence: [
+					`HTTP ${status} — server refused the request (bot protection or auth wall); content unverified`,
+				],
+				astroDetected: false,
+				astroVersion: null,
+				starlightVersion: null,
+				astroSignals: [],
+				framework: null,
+				finalUrl: resolvedUrl,
+				categories: entry.categories ?? [],
+				dateAdded: entry.dateAdded,
+				fetchedAt: new Date().toISOString(),
+			};
+		}
+		const uaNote = usedBrowserUA
+			? [
+					"Scanner User-Agent was refused (HTTP 401/403); content fetched with a browser-style User-Agent",
+				]
+			: [];
 		return {
 			title: entry.title,
 			url: entry.url,
 			cms: effectiveHit?.cms ?? "Unknown",
 			cmsType: effectiveHit?.cmsType ?? "unknown",
 			confidence: effectiveHit?.confidence ?? null,
-			evidence: [...(effectiveHit?.evidence ?? []), ...serverSignals],
+			evidence: [
+				...(effectiveHit?.evidence ?? []),
+				...serverSignals,
+				...uaNote,
+			],
 			astroDetected: astro.detected,
 			astroVersion: astro.version,
 			starlightVersion: astro.starlightVersion,
@@ -1201,7 +1280,10 @@ async function processSite(
 	}
 }
 
-function printSummary(allResults: CmsResult[], outputFile: string): void {
+function printSummary(
+	allResults: CmsResult[],
+	outputFile: string | null,
+): void {
 	const cmsCounts = new Map<string, number>();
 	for (const r of allResults) {
 		cmsCounts.set(r.cms, (cmsCounts.get(r.cms) ?? 0) + 1);
@@ -1215,7 +1297,11 @@ function printSummary(allResults: CmsResult[], outputFile: string): void {
 			`  ${cms.padEnd(20)} ${count.toString().padStart(4)}  (${pct}%)`,
 		);
 	}
-	console.log(`\nWrote ${allResults.length} results → ${outputFile}`);
+	console.log(
+		outputFile
+			? `\nWrote ${allResults.length} results → ${outputFile}`
+			: `\n${allResults.length} results (not written)`,
+	);
 }
 
 function printSection(label: string, items: string[]): void {
@@ -1411,6 +1497,15 @@ async function main() {
 	const cacheRoot = resolve(".showcase-cache");
 	const isDefaultSource =
 		sourceDir === resolve(".showcase-cache/src/content/showcase");
+	// A run is only authoritative if it covers the whole showcase. `--limit` on
+	// its own, or any non-default `--source`, yields a *subset* — writing that
+	// over cms-results.json or recording it as the "latest scan" silently
+	// replaces the full dataset (every page, PSI/CrUX/dns-check reads "latest").
+	// The merge flags rebuild the full set from existing results, so they're fine.
+	const mergesExisting = resume || errorsOnly || forwardedOnly;
+	const isPartialRun =
+		!isDefaultSource || (limit !== undefined && !mergesExisting);
+	const isDefaultOutput = outputFile === resolve("src/data/cms-results.json");
 	await ensureShowcaseCache(sourceDir, cacheRoot, isDefaultSource);
 
 	console.log(`Source: ${sourceDir}`);
@@ -1496,18 +1591,33 @@ async function main() {
 		results: allResults,
 	};
 
-	await writeFile(outputFile, JSON.stringify(output, null, "\t"), "utf8");
+	// Partial runs never overwrite the real results file; they can still write
+	// to an explicit scratch `--output`.
+	const skipJsonWrite = isPartialRun && isDefaultOutput;
+	if (skipJsonWrite) {
+		console.warn(
+			`\n⚠ Partial run (${!isDefaultSource ? "non-default --source" : "--limit without a merge flag"}) — NOT overwriting ${outputFile}. Pass --output <scratch file> to keep these results.`,
+		);
+	} else {
+		await writeFile(outputFile, JSON.stringify(output, null, "\t"), "utf8");
+	}
 
-	printSummary(allResults, outputFile);
+	printSummary(allResults, skipJsonWrite ? null : outputFile);
 
 	// ── Write scan to local history DB ───────────────────────────────────────
-	try {
-		const scanId = writeScanToDb(allResults, output, Date.now() - startMs);
-		console.log(`DB: scan #${scanId} saved → .scan-history.db`);
-	} catch (err) {
+	if (isPartialRun) {
 		console.warn(
-			`DB write skipped (non-fatal): ${err instanceof Error ? err.message : err}`,
+			'⚠ Partial run — NOT saved to scan history (it would become the "latest scan" every page reads from).',
 		);
+	} else {
+		try {
+			const scanId = writeScanToDb(allResults, output, Date.now() - startMs);
+			console.log(`DB: scan #${scanId} saved → .scan-history.db`);
+		} catch (err) {
+			console.warn(
+				`DB write skipped (non-fatal): ${err instanceof Error ? err.message : err}`,
+			);
+		}
 	}
 
 	printChanges(allResults, previousResults);
