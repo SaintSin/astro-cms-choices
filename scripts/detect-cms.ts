@@ -1250,6 +1250,29 @@ async function processSite(
 				fetchedAt: new Date().toISOString(),
 			};
 		}
+		// Any other error status (404, 5xx, …) with nothing identifiable in the
+		// body is an outage or a dead root path, not evidence the site isn't
+		// Astro. Record it as Error (retried by --errors-only), not Unknown.
+		if (status >= 400 && !astro.detected && !effectiveHit) {
+			return {
+				title: entry.title,
+				url: entry.url,
+				cms: "Error",
+				cmsType: "unknown",
+				confidence: null,
+				evidence: [],
+				astroDetected: false,
+				astroVersion: null,
+				starlightVersion: null,
+				astroSignals: [],
+				framework: null,
+				finalUrl: resolvedUrl,
+				categories: entry.categories ?? [],
+				dateAdded: entry.dateAdded,
+				fetchedAt: new Date().toISOString(),
+				error: `HTTP ${status} — error page with no identifiable content`,
+			};
+		}
 		const uaNote = usedBrowserUA
 			? [
 					"Scanner User-Agent was refused (HTTP 401/403); content fetched with a browser-style User-Agent",

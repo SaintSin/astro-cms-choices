@@ -20,6 +20,7 @@
 - **Pandalytics**: the edge `x-country` header now wins over the client-supplied `country_code`.
 - **Meta**: Twitter tags use `name=` rather than `property=`; JSON-LD logo points at an existing file (`/icon-512.png`).
 - Removed dead `astro:page-load` listeners (crux, psi, insights, Analytics); `make-removal-prs.mjs` passes the commit message via `execFileSync` instead of shell interpolation.
+- **Detect**: a 4xx/5xx response (404, 503, …) with no Astro or CMS signal in the body is now recorded as `Error` (with `HTTP <status>` in `error`, retried by `--errors-only`) instead of `Unknown`, which rendered a confident "not Astro". Astro/CMS signals on an error page still count.
 
 ### HTTP 401/403/429 no longer recorded as a confident "not Astro"
 
