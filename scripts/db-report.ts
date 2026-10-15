@@ -299,7 +299,7 @@ function reportLostAstro(db: ReturnType<typeof openDb>): void {
       JOIN sites s ON s.id = latest.site_id
       JOIN scans sc ON sc.id = latest.scan_id
       WHERE latest.astro_detected = 0
-        AND latest.cms NOT IN ('Error', 'Blocked')
+        AND latest.cms NOT IN ('Error', 'Blocked', 'AccessGated')
       ORDER BY sc.scanned_at DESC`,
 		)
 		.all();

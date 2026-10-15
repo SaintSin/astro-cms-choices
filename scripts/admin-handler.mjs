@@ -102,7 +102,7 @@ function handleQueue(res) {
       JOIN latest_scan ls ON sr.scan_id = ls.id
       LEFT JOIN latest_review lr ON lr.site_id = s.id AND lr.rn = 1
       WHERE sr.astro_detected = 0
-        AND sr.cms NOT IN ('Unknown', 'Error', 'Blocked')
+        AND sr.cms NOT IN ('Unknown', 'Error', 'Blocked', 'AccessGated')
       ORDER BY
         CASE sr.cms_type
           WHEN 'full-site'    THEN 1

@@ -71,7 +71,7 @@ const siteId = Astro.site ? new URL(Astro.site).hostname : "localhost";
         return;
       }
 
-      // Mark immediately so concurrent calls (e.g. astro:page-load + initial load) are deduplicated
+      // Mark immediately so concurrent calls are deduplicated
       sessionStorage.setItem(lastSentKey, now.toString());
 
       // Browser detection
@@ -198,12 +198,7 @@ const siteId = Astro.site ? new URL(Astro.site).hostname : "localhost";
       }, 1500);
     }
 
-    // Listen to astro:page-load (fires for all Astro navigation)
-    document.addEventListener('astro:page-load', () => {
-      trackPageCWV();
-    });
-
-    // Also track initial page load in case astro:page-load doesn't fire
+    // Every navigation is a full page load, so track once per load
     if (document.readyState === 'complete') {
       trackPageCWV();
     } else {

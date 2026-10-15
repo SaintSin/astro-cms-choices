@@ -25,12 +25,12 @@ export const siteMetadata: SiteMetadata = {
 	name: "Astro Showcase — What CMS? How Fast?",
 	description:
 		"CMS detection, Core Web Vitals, and Lighthouse scores for every site in the Astro showcase.",
-	logo: "/logo.svg",
+	logo: "/icon-512.png",
 	menu: [
 		{ label: "Home", href: "/" },
 		{ label: "Version Insights", href: "/insights/" },
-		{ label: "CrUX CWV", href: "/crux/" },
 		{ label: "Lighthouse PSI", href: "/psi/" },
+		{ label: "CrUX CWV", href: "/crux/" },
 		{ label: "Notes", href: "/notes/" },
 	],
 	showcasePageSize: 50,

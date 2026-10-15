@@ -48,8 +48,13 @@ const sorted = [...cmsCounts.entries()].sort((a, b) => b[1] - a[1]);
 const detected = results.filter((r) => CMS_TYPES.has(r.cmsType)).length;
 const errors = results.filter((r) => r.cms === "Error").length;
 const astroConfirmed = results.filter((r) => r.astroDetected).length;
+meta.altOG = `Astro Showcase — What CMS? How Fast? — ${results.length.toLocaleString("en-US")} sites scanned, ${astroConfirmed.toLocaleString("en-US")} Astro confirmed`;
 const noLongerAstro = results.filter(
-	(r) => !r.astroDetected && r.cms !== "Error" && r.cms !== "Blocked",
+	(r) =>
+		!r.astroDetected &&
+		r.cms !== "Error" &&
+		r.cms !== "Blocked" &&
+		r.cms !== "AccessGated",
 ).length;
 const starlightCount = results.filter((r) => r.cms === "Starlight").length;
 const frameworkCount = results.filter(
@@ -346,8 +351,9 @@ const parkedCount = results.filter(
     if (starlightFilterBtn) starlightFilterBtn.addEventListener("click", () => setCmsFilter("Starlight"));
     if (frameworkFilterBtn) frameworkFilterBtn.addEventListener("click", () => setCmsTypeFilter("framework", frameworkFilterBtn));
     if (forwardedFilterBtn) forwardedFilterBtn.addEventListener("click", () => {
+      const next = !forwardedOnly; // clearTypeFilters() resets it
       clearTypeFilters();
-      forwardedOnly = !forwardedOnly;
+      forwardedOnly = next;
       activeCmsFilter = null;
       activeCmsTypeFilter = null;
       currentPage = 1;
@@ -355,8 +361,9 @@ const parkedCount = results.filter(
       applyView();
     });
     if (parkedFilterBtn) parkedFilterBtn.addEventListener("click", () => {
+      const next = !parkedOnly;
       clearTypeFilters();
-      parkedOnly = !parkedOnly;
+      parkedOnly = next;
       activeCmsFilter = null;
       activeCmsTypeFilter = null;
       currentPage = 1;

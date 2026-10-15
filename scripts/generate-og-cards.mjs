@@ -41,7 +41,11 @@ function homeStats() {
 	const total = results.length;
 	const astroConfirmed = results.filter((r) => r.astroDetected).length;
 	const migratedAway = results.filter(
-		(r) => !r.astroDetected && r.cms !== "Error" && r.cms !== "Blocked",
+		(r) =>
+			!r.astroDetected &&
+			r.cms !== "Error" &&
+			r.cms !== "Blocked" &&
+			r.cms !== "AccessGated",
 	).length;
 	const parkedExpired = results.filter((r) => r.cmsType === "parked").length;
 

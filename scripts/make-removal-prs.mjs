@@ -38,7 +38,7 @@
 //   node scripts/make-removal-prs.mjs --input=batch.json       # reason-tagged batch instead of dns-check gone
 //   node scripts/make-removal-prs.mjs --input=batch.json --dry-run
 
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -384,7 +384,9 @@ ${tableRows}`;
 	const commitMsg = batchMeta
 		? `chore(showcase): ${batchMeta.prTitle}${batchSuffix}`
 		: `chore(showcase): remove ${batch.length} sites with expired/deleted domains${batchSuffix}`;
-	run(`git -C "${CACHE_DIR}" commit -m "${commitMsg}"`);
+	execFileSync("git", ["-C", CACHE_DIR, "commit", "-m", commitMsg], {
+		stdio: "pipe",
+	});
 
 	// ── Push to fork ──────────────────────────────────────────────────────────
 

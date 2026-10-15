@@ -10,6 +10,17 @@
 - **Cloudflare `cdn-cgi/challenge-platform` no longer marks live sites Blocked.** That script is embedded on normal Cloudflare pages. Only `cf-mitigated: challenge` or real interstitial markers count, and weak markers are checked after CMS rules.
 - Added `pnpm test` (node:test) with tests for the retry helper, DoH agreement and the challenge detection.
 
+### Medium-severity review fixes
+
+- **AccessGated** is no longer counted as "no longer Astro" on the homepage, OG home card, admin review queue or `db:report`.
+- **CrUX**: a missing INP rating (common on low-traffic sites) no longer fails the CWV assessment; LCP and CLS are required, INP is judged only when present.
+- **Homepage filters**: the Forwarded and Parked buttons can be toggled off again (`clearTypeFilters()` was resetting the state before the toggle).
+- **Homepage OG alt text** is computed from live counts instead of hardcoded numbers.
+- **Detect**: response bodies are read up to 3 MB instead of unbounded.
+- **Pandalytics**: the edge `x-country` header now wins over the client-supplied `country_code`.
+- **Meta**: Twitter tags use `name=` rather than `property=`; JSON-LD logo points at an existing file (`/icon-512.png`).
+- Removed dead `astro:page-load` listeners (crux, psi, insights, Analytics); `make-removal-prs.mjs` passes the commit message via `execFileSync` instead of shell interpolation.
+
 ### HTTP 401/403/429 no longer recorded as a confident "not Astro"
 
 - Cross-checked the ~240 sites on speedlify's `astro-showcase` group against our results: 224 were Astro in our data, 18 weren't. Checking those 18 live turned up a scanner bug rather than 18 migrations — `mrbeast.salesforce.com` is clearly Astro (hundreds of `data-astro-cid` attributes, `/_astro/` assets) but we had it as "Unknown, no Astro found". Its WAF answers our `cms-detector/1.0` User-Agent with a 403 and a 374-byte body, and a browser-style UA with the full page

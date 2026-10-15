@@ -234,7 +234,7 @@ export const handler: Handler = async (event: HandlerEvent) => {
 		};
 	}
 
-	const countryCode = data.country_code || (event.headers["x-country"] ?? null);
+	const countryCode = (event.headers["x-country"] || data.country_code) ?? null;
 	const statements = buildStatements(data, countryCode, Date.now());
 
 	try {

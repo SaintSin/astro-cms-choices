@@ -950,6 +950,24 @@ async function fetchSite(
 	}
 }
 
+// Bound memory/time on huge or endless responses; fingerprints live in the first few MB.
+const MAX_BODY_BYTES = 3_000_000;
+async function readCapped(res: Response): Promise<string> {
+	if (!res.body) return res.text();
+	const reader = res.body.getReader();
+	const decoder = new TextDecoder();
+	let out = "";
+	let bytes = 0;
+	while (bytes < MAX_BODY_BYTES) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		bytes += value.length;
+		out += decoder.decode(value, { stream: true });
+	}
+	await reader.cancel().catch(() => {});
+	return out + decoder.decode();
+}
+
 async function attemptFetch(
 	url: string,
 	timeoutMs: number,
@@ -992,7 +1010,7 @@ async function attemptFetch(
 			});
 		}
 
-		let html = await res.text();
+		let html = await readCapped(res);
 		let finalUrl = res.url;
 		let status = res.status;
 		const headers: Record<string, string> = {};
@@ -1017,7 +1035,7 @@ async function attemptFetch(
 					headers: reqHeaders,
 					redirect: "follow",
 				});
-				html = await res2.text();
+				html = await readCapped(res2);
 				finalUrl = res2.url;
 				status = res2.status;
 				res2.headers.forEach((v, k) => {

@@ -228,7 +228,11 @@ function parseCrux(json) {
 		fcp_rating: fcpRating,
 		ttfb_rating: ttfbRating,
 		cwv_pass:
-			lcpRating === "good" && clsRating === "good" && inpRating === "good"
+			// Google assesses CWV on whichever metrics have field data; low-traffic
+			// sites often lack INP, which must not read as a failure.
+			lcpRating &&
+			clsRating &&
+			[lcpRating, clsRating, inpRating].every((r) => !r || r === "good")
 				? 1
 				: 0,
 	};
