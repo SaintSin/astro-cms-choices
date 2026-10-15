@@ -94,10 +94,11 @@
 	--color-brand: var(--color-primary);
 
 	/* Rating / score colours (CrUX, PSI, legend chips) */
-	--rating-good: var(--green-7);
+	/* Foregrounds are ≥4.5:1 on their tint and on the page/surface greys */
+	--rating-good: #1f7a33;
 	--rating-good-bg: var(--green-1);
-	--rating-mid: var(--orange-7);
+	--rating-mid: #a14a06;
 	--rating-mid-bg: var(--orange-1);
-	--rating-poor: var(--red-7);
+	--rating-poor: #a61e1e;
 	--rating-poor-bg: var(--red-1);
 }

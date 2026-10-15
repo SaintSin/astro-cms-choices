@@ -10,6 +10,11 @@
 - **Cloudflare `cdn-cgi/challenge-platform` no longer marks live sites Blocked.** That script is embedded on normal Cloudflare pages. Only `cf-mitigated: challenge` or real interstitial markers count, and weak markers are checked after CMS rules.
 - Added `pnpm test` (node:test) with tests for the retry helper, DoH agreement and the challenge detection.
 
+### Accessibility: contrast and landmarks
+
+- Rating colours (`--rating-good/mid/poor`) darkened to ≥4.5:1 on their tint and on the page greys (PSI/CrUX score cells and legend chips were 2.4–3.2:1). Insights stat values reuse them.
+- `/insights/` and individual note pages now wrap content in `<main>` (Lighthouse "document has no main landmark").
+
 ### Medium-severity review fixes
 
 - **AccessGated** is no longer counted as "no longer Astro" on the homepage, OG home card, admin review queue or `db:report`.
