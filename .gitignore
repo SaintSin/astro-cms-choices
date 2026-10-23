@@ -39,3 +39,6 @@ src/data/cms-results.json
 .netlify
 pr-body-batch-*.md
 blocked-recheck-report.partial.json
+
+# Generated OG cards (regenerate with pnpm generate:og-cards)
+public/images/social/og-*.png
