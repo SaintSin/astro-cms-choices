@@ -10,12 +10,18 @@ const meta = {
 };
 
 const fmt = (d: Date) =>
-	d.toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" });
+	d.toLocaleDateString("en-GB", {
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+	});
 
 // Newest activity first: a recently updated note rises above newer-published ones.
 const latest = (n: { data: { date: Date; updated?: Date } }) =>
 	(n.data.updated ?? n.data.date).valueOf();
-const notes = (await getCollection("notes")).sort((a, b) => latest(b) - latest(a));
+const notes = (await getCollection("notes")).sort(
+	(a, b) => latest(b) - latest(a),
+);
 ---
 
 <Layout metaData={meta}>

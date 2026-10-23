@@ -15,7 +15,11 @@ export async function getStaticPaths() {
 const { note } = Astro.props;
 const { Content } = await render(note);
 const fmt = (d: Date) =>
-	d.toLocaleDateString("en-GB", { year: "numeric", month: "long", day: "numeric" });
+	d.toLocaleDateString("en-GB", {
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+	});
 
 const meta = {
 	title: `${note.data.title} — Astro Showcase | What CMS? How Fast?`,
