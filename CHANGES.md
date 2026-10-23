@@ -657,7 +657,6 @@
 ### Astro detection signals
 
 Five independent signals used to confirm Astro:
-
 1. Generator meta tag (`<meta name="generator" content="Astro ...">`)
 2. Starlight generator tag (Starlight is Astro-native)
 3. `data-astro-cid-*` scoped CSS attributes
