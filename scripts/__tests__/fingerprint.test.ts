@@ -59,3 +59,8 @@ test("prose mention of /_emdash/ is not EmDash", () => {
 test("plain page is not EmDash", () => {
 	assert.notEqual(fingerprint(page("x"), {}, "https://a.test/")?.cms, "EmDash");
 });
+
+test("microCMS asset host is microCMS", () => {
+	const html = page('<img src="https://images.microcms-assets.io/a/b.png">');
+	assert.equal(fingerprint(html, {}, "https://a.test/")?.cms, "microCMS");
+});

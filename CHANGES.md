@@ -2,6 +2,7 @@
 
 ## 2026-10-24
 
+- **microCMS detection** — new `headless-cms` rule matching `images.microcms-assets.io` and `files.microcms-assets.io`. Found by fetching the 2,224 Astro sites with no CMS detected and searching their HTML for the other CMSs in Astro's CMS guide. microCMS was the only one with real evidence (4 sites). Hashnode (profile links only) and Optimizely (a bare "Episerver" string) had no usable signal, and the rest had no matches, so none of those got a rule.
 - **EmDash detection** — new `headless-cms` rule in `scripts/detect-cms.ts` (high confidence): matches the CMS's own `/_emdash/` route prefix (admin, API, media files) in the HTML, or `rt.seedcheck` in the `server-timing` header. Checked by hand against `emdashcms.com`; three tests added to `scripts/__tests__/fingerprint.test.ts`. Sites that load all media from another CDN and don't expose the header would still be missed.
 
 ## 2026-10-17

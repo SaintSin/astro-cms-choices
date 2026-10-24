@@ -289,6 +289,12 @@ const RULES: Rule[] = [
 			/\brt\.seedcheck\b/.test(headers["server-timing"] ?? ""),
 	},
 	{
+		cms: "microCMS",
+		cmsType: "headless-cms",
+		confidence: "high",
+		match: (html) => /(?:images|files)\.microcms-assets\.io/i.test(html),
+	},
+	{
 		cms: "Caisy",
 		cmsType: "headless-cms",
 		confidence: "high",

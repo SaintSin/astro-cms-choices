@@ -16,13 +16,13 @@ Scans every site in the [Astro showcase](https://astro.build/showcase/) and fing
 
 ## Detection coverage
 
-| Category              | Examples                                                                                                                            |
-| :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------- |
-| Headless CMS          | Contentful, Sanity, Storyblok, Prismic, DatoCMS, Hygraph, Strapi, Keystatic, EmDash, Builder.io, Tina CMS, Payload, Decap, and more |
-| Page builder / hosted | Webflow, Squarespace, Wix, Framer, Shopify, HubSpot, Notion                                                                         |
-| Full-site CMS         | WordPress, Ghost, Drupal, Joomla, Craft CMS, Kirby, Statamic, TYPO3, Umbraco                                                        |
-| JS framework          | Next.js, Nuxt, SvelteKit, Remix                                                                                                     |
-| Static-site generator | Starlight, Hugo, Eleventy, Jekyll, Gatsby, Hexo                                                                                     |
+| Category              | Examples                                                                                                                                      |
+| :-------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| Headless CMS          | Contentful, Sanity, Storyblok, Prismic, DatoCMS, Hygraph, Strapi, Keystatic, EmDash, microCMS, Builder.io, Tina CMS, Payload, Decap, and more |
+| Page builder / hosted | Webflow, Squarespace, Wix, Framer, Shopify, HubSpot, Notion                                                                                   |
+| Full-site CMS         | WordPress, Ghost, Drupal, Joomla, Craft CMS, Kirby, Statamic, TYPO3, Umbraco                                                                  |
+| JS framework          | Next.js, Nuxt, SvelteKit, Remix                                                                                                               |
+| Static-site generator | Starlight, Hugo, Eleventy, Jekyll, Gatsby, Hexo                                                                                               |
 
 Astro detection uses nine independent signals: generator meta tag, Starlight generator tag, `data-astro-*` attributes, `/_astro/` asset paths, `<astro-island>` elements, `:where(.astro-*)` CSS selectors, `data-astro` CSS selectors, `astro-` scoped class names, and legacy `hoisted.js` (pre-2.x). Detection logic is informed by [isAstro](https://github.com/OliverSpeir/isAstro) by Oliver Speir.
 
