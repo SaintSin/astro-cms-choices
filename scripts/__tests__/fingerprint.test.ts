@@ -51,6 +51,11 @@ test("EmDash server-timing header is EmDash", () => {
 	);
 });
 
+test("prose mention of /_emdash/ is not EmDash", () => {
+	const html = page("<p>Open <code>localhost:4321/_emdash/admin/</code></p>");
+	assert.notEqual(fingerprint(html, {}, "https://a.test/")?.cms, "EmDash");
+});
+
 test("plain page is not EmDash", () => {
 	assert.notEqual(fingerprint(page("x"), {}, "https://a.test/")?.cms, "EmDash");
 });

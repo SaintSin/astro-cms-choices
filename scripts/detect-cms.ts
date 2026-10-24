@@ -282,9 +282,10 @@ const RULES: Rule[] = [
 		cms: "EmDash",
 		cmsType: "headless-cms",
 		confidence: "high",
-		// /_emdash/ is the CMS's own route prefix (admin, API, media files).
+		// /_emdash/ is the CMS's own route prefix (admin, API, media files). Only
+		// count it inside an attribute: EmDash's docs mention it in prose.
 		match: (html, headers) =>
-			/\/_emdash\//i.test(html) ||
+			/[\w-]+=["'][^"']*\/_emdash\//i.test(html) ||
 			/\brt\.seedcheck\b/.test(headers["server-timing"] ?? ""),
 	},
 	{
