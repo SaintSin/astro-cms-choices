@@ -1,5 +1,5 @@
 // netlify/functions/pandalytics.ts
-// 2026-09-18T00:00:00Z
+// 2026-10-24T00:00:00Z
 
 import type { Handler, HandlerEvent } from "@netlify/functions";
 
@@ -81,6 +81,91 @@ function parseBrowser(userAgent: string | null | undefined): string {
 	return "Other";
 }
 
+/**
+ * Hosts this site records analytics for; the first is the canonical site id. The
+ * endpoint is public and writes to a database shared by every Pandalytics site, so it
+ * must not trust a client-supplied `site_id` (a copied snippet or a deploy-preview
+ * hostname would otherwise file its traffic under whatever it claims). Override with
+ * PANDALYTICS_ALLOWED_HOSTS (comma-separated); an empty list means unrestricted.
+ * Reference copy and notes: pandalytics-2/docs/review-2026-10-24.md
+ */
+const DEFAULT_ALLOWED_HOSTS: string[] = ["astro-what-cms.netlify.app"];
+
+function allowedHosts(): string[] {
+	const fromEnv = (process.env.PANDALYTICS_ALLOWED_HOSTS ?? "")
+		.split(",")
+		.map((h) => h.trim().toLowerCase())
+		.filter(Boolean);
+	return fromEnv.length > 0 ? fromEnv : DEFAULT_ALLOWED_HOSTS;
+}
+
+type RequestHeaders = Record<string, string | undefined>;
+
+function hostOf(value: string | undefined): string | null {
+	if (!value) return null;
+	const first = value.split(",")[0].trim().toLowerCase();
+	try {
+		return new URL(first.includes("://") ? first : `https://${first}`).hostname;
+	} catch {
+		return null;
+	}
+}
+
+/**
+ * True when the request came from an allowed host. The browser's Origin (else Referer)
+ * is the most reliable signal, since the page itself is making the request; the Host
+ * the function was reached on is the fallback when neither is sent.
+ */
+function isAllowedRequest(headers: RequestHeaders, allowed: string[]): boolean {
+	if (allowed.length === 0) return true;
+	const origin = hostOf(headers.origin ?? headers.referer);
+	if (origin) return allowed.includes(origin);
+	const host = hostOf(headers["x-forwarded-host"] ?? headers.host);
+	return host !== null && allowed.includes(host);
+}
+
+/** The site id to store: the client's value if it is an allowed host, else the canonical host. */
+function resolveSiteId(
+	clientSiteId: unknown,
+	allowed: string[],
+): string | null {
+	if (allowed.length === 0)
+		return typeof clientSiteId === "string" && clientSiteId
+			? clientSiteId
+			: null;
+	return typeof clientSiteId === "string" &&
+		allowed.includes(clientSiteId.toLowerCase())
+		? clientSiteId.toLowerCase()
+		: allowed[0];
+}
+
+/** A page left open longer than this is treated as an unknown arrival time. */
+const MAX_DWELL_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * The client reports once, when the visitor LEAVES a page, so the time we receive the
+ * beacon is the leave time. Timestamps mean "arrival" (the session triggers and the
+ * dashboard date windows assume it), so subtract the reported dwell time.
+ */
+function arrivalTimestamp(receivedAt: number, durationMs: unknown): number {
+	const d = safeNumber(durationMs);
+	return d !== null && d > 0 && d <= MAX_DWELL_MS
+		? receivedAt - Math.round(d)
+		: receivedAt;
+}
+
+/**
+ * Turso returns HTTP 200 even when a statement fails, with an `{ error }` entry in the
+ * response array in place of `{ results }`. Checking only the HTTP status let failed
+ * writes vanish silently.
+ */
+function statementErrors(body: unknown): string[] {
+	if (!Array.isArray(body)) return [];
+	return body
+		.filter((r) => r && typeof r === "object" && "error" in r)
+		.map((r) => String((r as { error: unknown }).error));
+}
+
 function parseBody(raw: string | null): MetricData | null {
 	if (raw && raw.length > MAX_BODY_LENGTH) return null;
 	try {
@@ -103,6 +188,7 @@ function buildStatements(
       screen_width, screen_height, user_agent, browser, visitor_id
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     ON CONFLICT(session_id) DO UPDATE SET
+      start_time = MIN(start_time, EXCLUDED.start_time),
       country_code = COALESCE(country_code, EXCLUDED.country_code),
       timezone = COALESCE(timezone, EXCLUDED.timezone),
       screen_width = COALESCE(screen_width, EXCLUDED.screen_width),
@@ -184,6 +270,15 @@ async function writeTurso(
 			body: JSON.stringify({ error: "Database error" }),
 		};
 	}
+	const errors = statementErrors(await response.json().catch(() => null));
+	if (errors.length > 0) {
+		console.error("Database statement error:", errors.join(" | "));
+		return {
+			statusCode: 500,
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ error: "Database error" }),
+		};
+	}
 	return null;
 }
 
@@ -196,6 +291,16 @@ export const handler: Handler = async (event: HandlerEvent) => {
 		};
 	}
 
+	const allowed = allowedHosts();
+	if (!isAllowedRequest(event.headers, allowed)) {
+		console.log("Ignored request for an unlisted host");
+		return {
+			statusCode: 202,
+			headers: JSON_HEADERS,
+			body: JSON.stringify({ ok: true, ignored: true }),
+		};
+	}
+
 	const data = parseBody(event.body);
 	if (!data) {
 		return {
@@ -204,6 +309,10 @@ export const handler: Handler = async (event: HandlerEvent) => {
 			body: JSON.stringify({ error: "Invalid JSON" }),
 		};
 	}
+
+	// Never trust the client's site id: pin it to an allowed host.
+	const resolvedSite = resolveSiteId(data.site_id, allowed);
+	if (resolvedSite) data.site_id = resolvedSite;
 
 	const { session_id, site_id, url, path } = data;
 	if (
@@ -234,8 +343,13 @@ export const handler: Handler = async (event: HandlerEvent) => {
 		};
 	}
 
-	const countryCode = (event.headers["x-country"] || data.country_code) ?? null;
-	const statements = buildStatements(data, countryCode, Date.now());
+	// Country comes from the platform header only; a client-supplied value is ignored.
+	const countryCode = event.headers["x-country"] ?? null;
+	const statements = buildStatements(
+		data,
+		countryCode,
+		arrivalTimestamp(Date.now(), data.duration_ms),
+	);
 
 	try {
 		const dbError = await writeTurso(endpoint, token, statements);
