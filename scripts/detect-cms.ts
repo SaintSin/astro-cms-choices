@@ -279,6 +279,15 @@ const RULES: Rule[] = [
 			/\/keystatic\/|keystatic-app\.pages\.dev|"keystatic"\s*:/i.test(html),
 	},
 	{
+		cms: "EmDash",
+		cmsType: "headless-cms",
+		confidence: "high",
+		// /_emdash/ is the CMS's own route prefix (admin, API, media files).
+		match: (html, headers) =>
+			/\/_emdash\//i.test(html) ||
+			/\brt\.seedcheck\b/.test(headers["server-timing"] ?? ""),
+	},
+	{
 		cms: "Caisy",
 		cmsType: "headless-cms",
 		confidence: "high",

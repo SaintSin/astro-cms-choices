@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-24
+
+- **EmDash detection** — new `headless-cms` rule in `scripts/detect-cms.ts` (high confidence): matches the CMS's own `/_emdash/` route prefix (admin, API, media files) in the HTML, or `rt.seedcheck` in the `server-timing` header. Checked by hand against `emdashcms.com`; three tests added to `scripts/__tests__/fingerprint.test.ts`. Sites that load all media from another CDN and don't expose the header would still be missed.
+
 ## 2026-10-17
 
 - **Pandalytics client sends on page hide, skips headless browsers, sets up when idle** — `src/components/page/Analytics.astro` now matches the reference copy in `pandalytics-2`, proven on `pythonresources.com` and `historyofphuket.com`. It sends once when the page is hidden or closed (`visibilitychange`, `pagehide`, and `astro:before-swap` if view transitions are ever added), so LCP, CLS and INP are final values and `duration_ms` is real time on the page. The old 1.5s timer and the unused `fid` field are gone (the server function never stored it). It skips `navigator.webdriver` and `Headless` user agents (so Lighthouse and PageSpeed runs stop counting as visitors), sets up its observers in `requestIdleCallback` so they never count toward Total Blocking Time, and fixes two latent bugs (a deduplicated call no longer disconnects the live observers; INP keeps its max). The `site_id` still comes from `Astro.site` via `define:vars`. Tested with the real script in a harness page: one beacon on hide carrying the injected site ID, none on repeats, a second beacon after a simulated page change, and none from headless Chrome. Not verified against production. Side effects for the shared data: a pageview's `timestamp` is set by the server on receipt, so it is now when the visitor left, and per-page durations are not comparable with data from before this change. A page left within the idle window (up to 3s) before tracking starts is not counted. Not committed yet.
@@ -657,6 +661,7 @@
 ### Astro detection signals
 
 Five independent signals used to confirm Astro:
+
 1. Generator meta tag (`<meta name="generator" content="Astro ...">`)
 2. Starlight generator tag (Starlight is Astro-native)
 3. `data-astro-cid-*` scoped CSS attributes

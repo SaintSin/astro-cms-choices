@@ -37,3 +37,20 @@ test("cf-mitigated: challenge header is Blocked", () => {
 	);
 	assert.equal(r?.cms, "Blocked");
 });
+
+test("/_emdash/ media path is EmDash", () => {
+	const html = page('<img src="/_emdash/api/media/file/abc.png">');
+	assert.equal(fingerprint(html, {}, "https://a.test/")?.cms, "EmDash");
+});
+
+test("EmDash server-timing header is EmDash", () => {
+	const headers = { "server-timing": 'rt.seedcheck;dur=41;desc="Auto-seed"' };
+	assert.equal(
+		fingerprint(page("x"), headers, "https://a.test/")?.cms,
+		"EmDash",
+	);
+});
+
+test("plain page is not EmDash", () => {
+	assert.notEqual(fingerprint(page("x"), {}, "https://a.test/")?.cms, "EmDash");
+});
