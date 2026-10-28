@@ -173,13 +173,13 @@ pnpm merge-recheck -- --report blocked-recheck-report.partial.json --apply  # fr
 
 ### `pnpm generate:og-cards` — regenerate social-share images
 
-Renders the OG card templates (`scripts/og-templates/og-card.html`, `og-card-crux.html`, `og-card-psi.html`, `og-card-note-astro-vs-nextjs.html`) with live stats from `cms-results.json` and `.scan-history.db`, using Playwright to screenshot each at 1200×630 and write the PNG to `public/images/social/`. Templates live outside `public/` so they're never shipped in the build output — the script reads them directly, they're never served over HTTP. Each template has `{{TOKEN}}` placeholders — the script is the only thing that should edit the numbers; edit the surrounding markup/CSS by hand.
+Renders the OG card templates (`scripts/og-templates/og-card.html`, `og-card-crux.html`, `og-card-psi.html`, `og-card-themes.html`, `og-card-note-astro-vs-nextjs.html`) with live stats from `cms-results.json` and `.scan-history.db`, using Playwright to screenshot each at 1200×630 and write the PNG to `public/images/social/`. Templates live outside `public/` so they're never shipped in the build output — the script reads them directly, they're never served over HTTP. Each template has `{{TOKEN}}` placeholders — the script is the only thing that should edit the numbers; edit the surrounding markup/CSS by hand.
 
 Requires the Playwright Chromium browser (`npx playwright install chromium`, one-time).
 
 ```bash
-pnpm generate:og-cards               # regenerate all 4 cards
-pnpm generate:og-cards -- --card=psi # home | crux | psi | note-astro-vs-nextjs
+pnpm generate:og-cards               # regenerate all 5 cards
+pnpm generate:og-cards -- --card=psi # home | crux | psi | themes | note-astro-vs-nextjs
 ```
 
 ### `pnpm dns-check` — triage error sites

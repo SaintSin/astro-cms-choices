@@ -12,7 +12,7 @@
 //
 // Usage:
 //   pnpm generate:og-cards                # regenerate all cards
-//   pnpm generate:og-cards -- --card=psi  # home | crux | psi | note-astro-vs-nextjs
+//   pnpm generate:og-cards -- --card=psi  # home | crux | psi | themes | note-astro-vs-nextjs
 
 import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
@@ -161,6 +161,32 @@ function psiStats(db) {
 	};
 }
 
+function themesStats(db) {
+	// Latest successful mobile performance per theme, averaged by price.
+	const avg = (paid) =>
+		Math.round(
+			db
+				.prepare(
+					`SELECT AVG(p.performance) a FROM themes t
+					 JOIN theme_psi p ON p.id = (SELECT MAX(id) FROM theme_psi
+					   WHERE slug = t.slug AND strategy = 'mobile' AND status = 'success')
+					 WHERE t.paid = ?`,
+				)
+				.get(paid).a ?? 0,
+		);
+	const count = (paid) =>
+		db.prepare("SELECT COUNT(*) n FROM themes WHERE paid = ?").get(paid).n;
+	const free = count(0);
+	const paid = count(1);
+	return {
+		THEMES_TOTAL: free + paid,
+		THEMES_FREE: free,
+		THEMES_PAID: paid,
+		FREE_MOBILE_AVG: avg(0),
+		PAID_MOBILE_AVG: avg(1),
+	};
+}
+
 // ── Render ────────────────────────────────────────────────────────────────────
 
 function substitute(html, tokens) {
@@ -219,6 +245,12 @@ const cards = [
 		tokens: cruxStats(db),
 	},
 	{
+		name: "themes",
+		file: "og-card-themes.html",
+		outFile: "og-themes.png",
+		tokens: themesStats(db),
+	},
+	{
 		name: "psi",
 		file: "og-card-psi.html",
 		outFile: "og-psi.png",
@@ -236,7 +268,7 @@ db.close();
 
 if (cards.length === 0) {
 	console.error(
-		`No card matches --card=${cardFilter} (expected: home, crux, psi, note-astro-vs-nextjs)`,
+		`No card matches --card=${cardFilter} (expected: home, crux, psi, themes, note-astro-vs-nextjs)`,
 	);
 	process.exit(1);
 }
