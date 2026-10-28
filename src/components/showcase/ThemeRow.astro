@@ -1,0 +1,78 @@
+---
+// src/components/showcase/ThemeRow.astro
+// 2026-10-28T00:00:00Z
+import type { ThemeRow } from "../../utils/themesData";
+
+interface Props {
+	t: ThemeRow;
+	hidden?: boolean;
+}
+const { t, hidden = false } = Astro.props;
+
+function scoreClass(v: number | null): string {
+	if (v === null) return "";
+	if (v >= 90) return "good";
+	if (v >= 50) return "mid";
+	return "poor";
+}
+const scores = [
+	t.m_perf,
+	t.m_a11y,
+	t.m_bp,
+	t.m_seo,
+	t.d_perf,
+	t.d_a11y,
+	t.d_bp,
+	t.d_seo,
+];
+const complete = scores.every((v) => v !== null);
+const total800 = complete
+	? scores.reduce((a, b) => (a ?? 0) + (b ?? 0), 0)
+	: null;
+function scoreClass800(v: number | null): string {
+	if (v === null) return "";
+	if (v >= 720) return "good";
+	if (v >= 400) return "mid";
+	return "poor";
+}
+const added = t.publish_date?.slice(0, 10) ?? "";
+const themeUrl = `https://astro.build/themes/details/${t.slug}/`;
+---
+
+<tr
+  data-hidden={hidden ? "" : undefined}
+  data-title={t.title.toLowerCase()}
+  data-author={(t.author ?? "").toLowerCase()}
+  data-paid={t.paid ? "paid" : "free"}
+  data-added={added}
+  data-version={t.astro_version ?? ""}
+  data-m_perf={t.m_perf ?? ""}
+  data-m_a11y={t.m_a11y ?? ""}
+  data-m_bp={t.m_bp ?? ""}
+  data-m_seo={t.m_seo ?? ""}
+  data-d_perf={t.d_perf ?? ""}
+  data-d_a11y={t.d_a11y ?? ""}
+  data-d_bp={t.d_bp ?? ""}
+  data-d_seo={t.d_seo ?? ""}
+  data-total_800={total800 ?? ""}
+>
+  <td class="col-theme">
+    <a href={themeUrl} target="_blank" rel="noopener noreferrer">{t.title}</a>
+    {t.author && <span class="muted author">{t.author}</span>}
+  </td>
+  <td class="col-demo">
+    {t.demo_url ? <a href={t.demo_url} target="_blank" rel="noopener noreferrer">Demo</a> : <span class="no-data">—</span>}
+  </td>
+  <td class="col-price"><span class={`price ${t.paid ? "paid" : "free"}`}>{t.paid ? "Paid" : "Free"}</span></td>
+  <td class="col-added">{added || <span class="no-data">—</span>}</td>
+  <td class="col-ver">
+    {t.astro_version ? <span class="ver-badge">v{t.astro_version}</span> : t.astro_detected === 1 ? <span class="muted">Astro</span> : <span class="no-data">—</span>}
+  </td>
+  {scores.map((v) => <td class={`score ${scoreClass(v)}`}>{v ?? "—"}</td>)}
+  <td class={`score ${scoreClass800(total800)}`}>{total800 ?? "—"}</td>
+</tr>
+
+<style>
+  .author { display: block; font-size: var(--step--1); }
+  .price.paid { font-weight: 600; }
+</style>

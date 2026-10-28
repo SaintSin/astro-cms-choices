@@ -41,28 +41,29 @@ pnpm dev      # start dev server
 
 ## Commands
 
-| Command                  | Action                                                          |
-| :----------------------- | :-------------------------------------------------------------- |
-| `pnpm dev`               | Start dev server at `localhost:4321`                            |
-| `pnpm test`              | Run the unit tests (`node:test`, in `scripts/__tests__/`)       |
-| `pnpm detect`            | Scan all showcase sites and write `src/data/cms-results.json`   |
-| `pnpm crux`              | Fetch CrUX field data for all confirmed Astro sites             |
-| `pnpm psi`               | Fetch PageSpeed Insights scores for all confirmed Astro sites   |
-| `pnpm dns-check`         | Triage persistently-erroring sites via DoH + HTTP HEAD          |
-| `pnpm make-prs`          | Prepare batched showcase removal PR branches                    |
-| `pnpm recheck-blocked`   | Re-check `Blocked` sites via real Chromium (headless or headed) |
-| `pnpm merge-recheck`     | Apply `recheck-blocked` findings to `cms-results.json` + the DB |
-| `pnpm generate:og-cards` | Regenerate social-share OG card PNGs with live stats            |
-| `pnpm db:init`           | Create `.scan-history.db` and all tables (idempotent)           |
-| `pnpm db:report`         | Query scan history for trends and anomalies                     |
-| `pnpm build`             | Build production site                                           |
-| `pnpm preview`           | Preview the production build locally                            |
-| `pnpm check`             | Lint and format with Biome (`.astro`/`.ts`/`.js`)               |
-| `pnpm fmt`               | Format Markdown/MDX with oxfmt (Biome doesn't cover these)      |
-| `pnpm deploy`            | Deploy to Netlify production                                    |
-| `pnpm deploy:draft`      | Deploy a draft URL (no prod traffic)                            |
-| `pnpm clean`             | Remove `dist` and `.astro` cache                                |
-| `pnpm purge`             | Remove `dist`, `.astro`, `.netlify`, and `node_modules`         |
+| Command                  | Action                                                           |
+| :----------------------- | :--------------------------------------------------------------- |
+| `pnpm dev`               | Start dev server at `localhost:4321`                             |
+| `pnpm test`              | Run the unit tests (`node:test`, in `scripts/__tests__/`)        |
+| `pnpm detect`            | Scan all showcase sites and write `src/data/cms-results.json`    |
+| `pnpm crux`              | Fetch CrUX field data for all confirmed Astro sites              |
+| `pnpm psi`               | Fetch PageSpeed Insights scores for all confirmed Astro sites    |
+| `pnpm themes`            | Astro themes catalogue: free/paid, demo Astro version, host, PSI |
+| `pnpm dns-check`         | Triage persistently-erroring sites via DoH + HTTP HEAD           |
+| `pnpm make-prs`          | Prepare batched showcase removal PR branches                     |
+| `pnpm recheck-blocked`   | Re-check `Blocked` sites via real Chromium (headless or headed)  |
+| `pnpm merge-recheck`     | Apply `recheck-blocked` findings to `cms-results.json` + the DB  |
+| `pnpm generate:og-cards` | Regenerate social-share OG card PNGs with live stats             |
+| `pnpm db:init`           | Create `.scan-history.db` and all tables (idempotent)            |
+| `pnpm db:report`         | Query scan history for trends and anomalies                      |
+| `pnpm build`             | Build production site                                            |
+| `pnpm preview`           | Preview the production build locally                             |
+| `pnpm check`             | Lint and format with Biome (`.astro`/`.ts`/`.js`)                |
+| `pnpm fmt`               | Format Markdown/MDX with oxfmt (Biome doesn't cover these)       |
+| `pnpm deploy`            | Deploy to Netlify production                                     |
+| `pnpm deploy:draft`      | Deploy a draft URL (no prod traffic)                             |
+| `pnpm clean`             | Remove `dist` and `.astro` cache                                 |
+| `pnpm purge`             | Remove `dist`, `.astro`, `.netlify`, and `node_modules`          |
 
 ### `pnpm detect` — CMS scanner
 
@@ -86,6 +87,19 @@ After running, clear the Astro cache to pick up new data:
 
 ```bash
 rm -rf .astro && pnpm dev
+```
+
+### `pnpm themes` — Astro themes catalogue
+
+Feeds the `/themes/` page. Reads the theme catalogue from `portal.astro.build` (the API behind astro.build/themes; the list endpoint has no demo URLs, so it walks the per-month endpoint, which does), then probes each theme's demo for the Astro version and the web host (from response headers). Stored in `themes` and `theme_psi` in `.scan-history.db`, separate from the showcase tables.
+
+```bash
+pnpm themes                          # sync catalogue, probe demos not yet probed
+pnpm themes --probe-all              # re-probe every demo
+pnpm themes --psi                    # PSI (mobile + desktop) for demos with no result yet
+pnpm themes --psi --errors-only      # retry failed PSI runs
+pnpm themes --psi --limit=20         # cap themes (testing)
+pnpm themes --psi --concurrency=4    # workers per strategy (default: 2)
 ```
 
 ### `pnpm crux` — Chrome UX Report

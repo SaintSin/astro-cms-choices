@@ -1,5 +1,9 @@
 # Changelog
 
+## 2026-10-28
+
+- **Astro themes page** — new `/themes/` page and `pnpm themes` (`scripts/themes.ts`). Reads every theme in the Astro catalogue from `portal.astro.build` (1,392 themes: 568 free, 824 paid), probes each demo for the Astro version and web host, and runs PageSpeed Insights on the demo (mobile and desktop). Own tables (`themes`, `theme_psi`), not mixed with the showcase PSI data. Each row links to the theme's astro.build page and to its demo, and shows free/paid, the date added (the catalogue's `publishDate`; the 149 oldest share backfilled March 2024 dates), the demo's Astro version, the mobile and desktop Perf/A11y/BP/SEO scores and the combined / 800 (blank until all eight scores exist). Filters by free/paid and search; sorts by every column. The table scrolls horizontally on narrow screens instead of squeezing its 14 columns. Web host is collected but not shown: it comes from response headers, so a demo behind Cloudflare's proxy reads as Cloudflare. The page notes that a demo is a theme at its best. Probe result: 1,283 demos run Astro, 96 don't, 31 return 404. All 1,392 rows are in the page HTML (50 shown at a time); if that gets heavy, move to the lazy `/psi-rows/` pattern.
+
 ## 2026-10-24
 
 - **microCMS detection** — new `headless-cms` rule matching `images.microcms-assets.io` and `files.microcms-assets.io`. Found by fetching the 2,224 Astro sites with no CMS detected and searching their HTML for the other CMSs in Astro's CMS guide. microCMS was the only one with real evidence (4 sites). Hashnode (profile links only) and Optimizely (a bare "Episerver" string) had no usable signal, and the rest had no matches, so none of those got a rule.
