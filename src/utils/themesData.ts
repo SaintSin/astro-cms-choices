@@ -20,10 +20,14 @@ export interface ThemeRow {
 	m_a11y: number | null;
 	m_bp: number | null;
 	m_seo: number | null;
+	m_agentic_passed: number | null;
+	m_agentic_applicable: number | null;
 	d_perf: number | null;
 	d_a11y: number | null;
 	d_bp: number | null;
 	d_seo: number | null;
+	d_agentic_passed: number | null;
+	d_agentic_applicable: number | null;
 }
 
 export function loadThemes() {
@@ -49,10 +53,14 @@ export function loadThemes() {
 				        ${latest("mobile", "accessibility")} AS m_a11y,
 				        ${latest("mobile", "best_practices")} AS m_bp,
 				        ${latest("mobile", "seo")} AS m_seo,
+				        ${latest("mobile", "agentic_passed")} AS m_agentic_passed,
+				        ${latest("mobile", "agentic_applicable")} AS m_agentic_applicable,
 				        ${latest("desktop", "performance")} AS d_perf,
 				        ${latest("desktop", "accessibility")} AS d_a11y,
 				        ${latest("desktop", "best_practices")} AS d_bp,
-				        ${latest("desktop", "seo")} AS d_seo
+				        ${latest("desktop", "seo")} AS d_seo,
+				        ${latest("desktop", "agentic_passed")} AS d_agentic_passed,
+				        ${latest("desktop", "agentic_applicable")} AS d_agentic_applicable
 				 FROM themes t ORDER BY t.title COLLATE NOCASE`,
 			)
 			.all() as ThemeRow[];

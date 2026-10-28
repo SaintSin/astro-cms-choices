@@ -35,6 +35,20 @@ function scoreClass800(v: number | null): string {
 	if (v >= 400) return "mid";
 	return "poor";
 }
+// Agentic Browsing as passed/applicable, like /psi/. Not part of the / 800.
+function agenticLabel(p: number | null, a: number | null): string {
+	return p === null || a === null || a === 0 ? "—" : `${p}/${a}`;
+}
+function agenticClass(p: number | null, a: number | null): string {
+	if (p === null || a === null || a === 0) return "";
+	return p === a ? "good" : p / a >= 0.5 ? "mid" : "poor";
+}
+// Ratio ties 2/2 with 3/3, so break ties by applicable count.
+function agenticSort(p: number | null, a: number | null): number | "" {
+	return p === null || a === null || a === 0 ? "" : p / a + a * 0.0001;
+}
+const mAgentic = [t.m_agentic_passed, t.m_agentic_applicable] as const;
+const dAgentic = [t.d_agentic_passed, t.d_agentic_applicable] as const;
 const added = t.publish_date?.slice(0, 10) ?? "";
 const themeUrl = `https://astro.build/themes/details/${t.slug}/`;
 ---
@@ -50,10 +64,12 @@ const themeUrl = `https://astro.build/themes/details/${t.slug}/`;
   data-m_a11y={t.m_a11y ?? ""}
   data-m_bp={t.m_bp ?? ""}
   data-m_seo={t.m_seo ?? ""}
+  data-m_agentic={agenticSort(...mAgentic)}
   data-d_perf={t.d_perf ?? ""}
   data-d_a11y={t.d_a11y ?? ""}
   data-d_bp={t.d_bp ?? ""}
   data-d_seo={t.d_seo ?? ""}
+  data-d_agentic={agenticSort(...dAgentic)}
   data-total_800={total800 ?? ""}
 >
   <td class="col-theme">
@@ -68,7 +84,10 @@ const themeUrl = `https://astro.build/themes/details/${t.slug}/`;
   <td class="col-ver">
     {t.astro_version ? <span class="ver-badge">v{t.astro_version}</span> : t.astro_detected === 1 ? <span class="muted">Astro</span> : <span class="no-data">—</span>}
   </td>
-  {scores.map((v) => <td class={`score ${scoreClass(v)}`}>{v ?? "—"}</td>)}
+  {scores.slice(0, 4).map((v) => <td class={`score ${scoreClass(v)}`}>{v ?? "—"}</td>)}
+  <td class={`score ${agenticClass(...mAgentic)}`}>{agenticLabel(...mAgentic)}</td>
+  {scores.slice(4).map((v) => <td class={`score ${scoreClass(v)}`}>{v ?? "—"}</td>)}
+  <td class={`score ${agenticClass(...dAgentic)}`}>{agenticLabel(...dAgentic)}</td>
   <td class={`score ${scoreClass800(total800)}`}>{total800 ?? "—"}</td>
 </tr>
 

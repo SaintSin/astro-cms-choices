@@ -12,6 +12,7 @@
 //   pnpm themes                    # sync catalogue, then probe unprobed demos
 //   pnpm themes --probe-all        # re-probe every demo (Astro version + host)
 //   pnpm themes --psi              # PSI for themes with no result yet
+//   pnpm themes --psi --all        # re-score every theme (adds a new row each; the page shows the latest)
 //   pnpm themes --psi --errors-only
 //   pnpm themes --psi --limit=20   # cap themes (testing)
 //   pnpm themes --psi --concurrency=2   # workers per strategy (default 2)
@@ -65,10 +66,20 @@ db.exec(`
 		lab_lcp        TEXT,
 		lab_cls        TEXT,
 		lab_tbt        TEXT,
-		error          TEXT
+		error          TEXT,
+		agentic_passed     INTEGER,
+		agentic_applicable INTEGER
 	);
 	CREATE INDEX IF NOT EXISTS idx_theme_psi_slug ON theme_psi(slug);
 `);
+// Agentic columns were added after the first PSI run
+for (const col of ["agentic_passed INTEGER", "agentic_applicable INTEGER"]) {
+	try {
+		db.exec(`ALTER TABLE theme_psi ADD COLUMN ${col}`);
+	} catch {
+		/* already exists */
+	}
+}
 
 // ── Catalogue ────────────────────────────────────────────────────────────────
 
@@ -98,7 +109,7 @@ async function syncCatalogue() {
 	const now = new Date();
 	const stamp = now.toISOString();
 	let total = 0;
-	for (let y = 2021, m = 0; y < now.getFullYear() || m <= now.getMonth(); ) {
+	for (let y = 2021, m = 0; y < now.getFullYear() || m <= now.getMonth();) {
 		const month = new Date(Date.UTC(y, m, 1)).toISOString();
 		const res = await fetchWithRetry(
 			`https://portal.astro.build/api/themes/monthly?month=${month}`,
@@ -246,6 +257,23 @@ const pct = (
 	id: string,
 ) => (cats?.[id]?.score != null ? Math.round(cats[id].score * 100) : null);
 
+// Agentic Browsing is shown as audits passed / applicable, as on /psi/: a
+// percentage would mislead since most audits are notApplicable unless the page
+// implements the feature. "Passed" follows Lighthouse's green threshold (>= 0.9).
+function agenticBrowsing(cats: any, audits: any) {
+	const cat = cats?.["agentic-browsing"];
+	if (!cat) return { agentic_passed: null, agentic_applicable: null };
+	let passed = 0;
+	let applicable = 0;
+	for (const ref of cat.auditRefs) {
+		const a = audits?.[ref.id];
+		if (!a || a.scoreDisplayMode === "notApplicable") continue;
+		applicable++;
+		if (a.score != null && a.score >= 0.9) passed++;
+	}
+	return { agentic_passed: passed, agentic_applicable: applicable };
+}
+
 async function runPsi() {
 	const key = process.env.PAGESPEED_API_KEY;
 	if (!key) throw new Error("PAGESPEED_API_KEY not set in .env");
@@ -262,13 +290,15 @@ async function runPsi() {
 	// A slug:strategy combo is done once it has a success; with --errors-only
 	// that is the only thing that counts, otherwise any row (even an error) does.
 	const done = new Set(
-		(
-			db
-				.prepare(
-					`SELECT slug, strategy FROM theme_psi ${errorsOnly ? "WHERE status = 'success'" : ""}`,
-				)
-				.all() as { slug: string; strategy: string }[]
-		).map((r) => `${r.slug}:${r.strategy}`),
+		args.includes("--all")
+			? []
+			: (
+					db
+						.prepare(
+							`SELECT slug, strategy FROM theme_psi ${errorsOnly ? "WHERE status = 'success'" : ""}`,
+						)
+						.all() as { slug: string; strategy: string }[]
+				).map((r) => `${r.slug}:${r.strategy}`),
 	);
 	let pending = themes.filter((t) =>
 		strategies.some((s) => !done.has(`${t.slug}:${s}`)),
@@ -277,9 +307,22 @@ async function runPsi() {
 
 	const insert = db.prepare(`
 		INSERT INTO theme_psi (slug, fetched_at, strategy, status, performance, accessibility,
-			best_practices, seo, lab_lcp, lab_cls, lab_tbt, error)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			best_practices, seo, lab_lcp, lab_cls, lab_tbt, error, agentic_passed, agentic_applicable)
+		VALUES (@slug, @at, @strategy, @status, @performance, @accessibility,
+			@best_practices, @seo, @lab_lcp, @lab_cls, @lab_tbt, @error, @agentic_passed, @agentic_applicable)
 	`);
+	const blank = {
+		performance: null,
+		accessibility: null,
+		best_practices: null,
+		seo: null,
+		lab_lcp: null,
+		lab_cls: null,
+		lab_tbt: null,
+		error: null,
+		agentic_passed: null,
+		agentic_applicable: null,
+	};
 	let n = 0;
 	const total = pending.length * strategies.length;
 	console.log(
@@ -293,7 +336,7 @@ async function runPsi() {
 				try {
 					const qs =
 						`url=${encodeURIComponent(t.demo_url)}&strategy=${strategy}&key=${key}` +
-						"&category=performance&category=accessibility&category=best-practices&category=seo";
+						"&category=performance&category=accessibility&category=best-practices&category=seo&category=agentic-browsing";
 					const res = await fetchWithRetry(
 						`https://www.googleapis.com/pagespeedonline/v5/runPagespeed?${qs}`,
 					);
@@ -311,39 +354,35 @@ async function runPsi() {
 							lh?.runtimeError?.message ?? "No performance score returned",
 						);
 					const a = lh.audits;
-					insert.run(
-						t.slug,
+					const agentic = agenticBrowsing(lh.categories, a);
+					insert.run({
+						...blank,
+						slug: t.slug,
 						at,
 						strategy,
-						"success",
-						perf,
-						pct(lh.categories, "accessibility"),
-						pct(lh.categories, "best-practices"),
-						pct(lh.categories, "seo"),
-						a["largest-contentful-paint"]?.displayValue ?? null,
-						a["cumulative-layout-shift"]?.displayValue ?? null,
-						a["total-blocking-time"]?.displayValue ?? null,
-						null,
-					);
+						status: "success",
+						performance: perf,
+						accessibility: pct(lh.categories, "accessibility"),
+						best_practices: pct(lh.categories, "best-practices"),
+						seo: pct(lh.categories, "seo"),
+						lab_lcp: a["largest-contentful-paint"]?.displayValue ?? null,
+						lab_cls: a["cumulative-layout-shift"]?.displayValue ?? null,
+						lab_tbt: a["total-blocking-time"]?.displayValue ?? null,
+						...agentic,
+					});
 					console.log(
 						`  [${++n}/${total}] ${t.slug.slice(0, 40).padEnd(40)} ${strategy.padEnd(7)} ${perf}`,
 					);
 				} catch (e) {
 					const msg = (e as Error).message.slice(0, 200);
-					insert.run(
-						t.slug,
+					insert.run({
+						...blank,
+						slug: t.slug,
 						at,
 						strategy,
-						"error",
-						null,
-						null,
-						null,
-						null,
-						null,
-						null,
-						null,
-						msg,
-					);
+						status: "error",
+						error: msg,
+					});
 					console.log(
 						`  [${++n}/${total}] ${t.slug.slice(0, 40).padEnd(40)} ${strategy.padEnd(7)} ERROR ${msg.slice(0, 60)}`,
 					);

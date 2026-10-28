@@ -66,8 +66,8 @@ const {
       <table class="themes-table data-table" id="themes-table">
         <colgroup>
           <col class="col-theme" /><col class="col-demo" /><col class="col-price" /><col class="col-added" /><col class="col-ver" />
-          <col class="col-score" /><col class="col-score" /><col class="col-score" /><col class="col-score" />
-          <col class="col-score" /><col class="col-score" /><col class="col-score" /><col class="col-score" />
+          <col class="col-score" /><col class="col-score" /><col class="col-score" /><col class="col-score" /><col class="col-agentic" />
+          <col class="col-score" /><col class="col-score" /><col class="col-score" /><col class="col-score" /><col class="col-agentic" />
           <col class="col-total" />
         </colgroup>
         <thead>
@@ -77,8 +77,8 @@ const {
             <th class="sortable col-price" data-col="paid">Price</th>
             <th class="sortable col-added" data-col="added">Added</th>
             <th class="sortable col-ver" data-col="version">Astro</th>
-            <th class="col-group-header" colspan="4">Mobile</th>
-            <th class="col-group-header" colspan="4">Desktop</th>
+            <th class="col-group-header" colspan="5">Mobile</th>
+            <th class="col-group-header" colspan="5">Desktop</th>
             <th class="col-group-header">/ 800</th>
           </tr>
           <tr class="subheader">
@@ -87,10 +87,12 @@ const {
             <th class="sortable metric-th" data-col="m_a11y">A11y</th>
             <th class="sortable metric-th" data-col="m_bp">BP</th>
             <th class="sortable metric-th" data-col="m_seo">SEO</th>
+            <th class="sortable metric-th" data-col="m_agentic" title="Agentic Browsing — audits passed / applicable">Agentic</th>
             <th class="sortable metric-th" data-col="d_perf">Perf</th>
             <th class="sortable metric-th" data-col="d_a11y">A11y</th>
             <th class="sortable metric-th" data-col="d_bp">BP</th>
             <th class="sortable metric-th" data-col="d_seo">SEO</th>
+            <th class="sortable metric-th" data-col="d_agentic" title="Agentic Browsing — audits passed / applicable">Agentic</th>
             <th class="sortable metric-th" data-col="total_800">/ 800</th>
           </tr>
         </thead>
@@ -106,21 +108,22 @@ const {
 
 <style>
   /* Fixed layout would squash 14 columns on a phone; scroll instead. */
-  .themes-table { min-inline-size: 150ch; }
+  .themes-table { min-inline-size: 170ch; }
   .col-theme { width: 30ch; }
   .col-demo, .col-price { width: 8ch; }
   .col-ver { width: 9ch; }
   .col-added { width: 12ch; }
   .col-total { width: 7ch; }
+  .col-agentic { width: 9ch; } /* fits "Agentic ⇅" */
   .col-score { width: 7ch; }
   .metric-th { text-align: right; }
-  /* Mobile group starts at col 6, desktop at col 10, total at col 14 */
+  /* Mobile group starts at col 6, desktop at col 11, total at col 16 */
   .themes-table td:nth-child(6),
   .themes-table th:nth-child(6),
-  .themes-table td:nth-child(10),
-  .themes-table th:nth-child(10),
-  .themes-table td:nth-child(14),
-  .themes-table th:nth-child(14) {
+  .themes-table td:nth-child(11),
+  .themes-table th:nth-child(11),
+  .themes-table td:nth-child(16),
+  .themes-table th:nth-child(16) {
     border-inline-start: 2px solid var(--color-keyline);
   }
 </style>

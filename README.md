@@ -97,6 +97,7 @@ Feeds the `/themes/` page. Reads the theme catalogue from `portal.astro.build` (
 pnpm themes                          # sync catalogue, probe demos not yet probed
 pnpm themes --probe-all              # re-probe every demo
 pnpm themes --psi                    # PSI (mobile + desktop) for demos with no result yet
+pnpm themes --psi --all              # re-score every theme (adds a row per run; the page shows the latest)
 pnpm themes --psi --errors-only      # retry failed PSI runs
 pnpm themes --psi --limit=20         # cap themes (testing)
 pnpm themes --psi --concurrency=4    # workers per strategy (default: 2)
