@@ -109,7 +109,7 @@ async function syncCatalogue() {
 	const now = new Date();
 	const stamp = now.toISOString();
 	let total = 0;
-	for (let y = 2021, m = 0; y < now.getFullYear() || m <= now.getMonth(); ) {
+	for (let y = 2021, m = 0; y < now.getFullYear() || m <= now.getMonth();) {
 		const month = new Date(Date.UTC(y, m, 1)).toISOString();
 		const res = await fetchWithRetry(
 			`https://portal.astro.build/api/themes/monthly?month=${month}`,
