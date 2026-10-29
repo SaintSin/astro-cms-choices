@@ -28,7 +28,13 @@ export interface ThemeRow {
 	d_seo: number | null;
 	d_agentic_passed: number | null;
 	d_agentic_applicable: number | null;
+	psi_blocked: number;
 }
+
+// A run whose page returned an error status (dead demo) scores like a blank
+// page, so it must not feed the best-of-runs scores.
+const VALID_RUN =
+	"COALESCE(p.failed_audits, '') NOT LIKE '%seo:http-status-code%'";
 
 export function loadThemes() {
 	let themes: ThemeRow[] = [];
@@ -47,9 +53,9 @@ export function loadThemes() {
 			col.startsWith("agentic")
 				? // keep passed/applicable from the same run: the one that passed most
 					`(SELECT ${col} FROM theme_psi p WHERE p.slug = t.slug AND p.strategy = '${strategy}'
-					   AND p.status = 'success' ORDER BY p.agentic_passed DESC, p.id DESC LIMIT 1)`
+					   AND p.status = 'success' AND ${VALID_RUN} ORDER BY p.agentic_passed DESC, p.id DESC LIMIT 1)`
 				: `(SELECT MAX(${col}) FROM theme_psi p WHERE p.slug = t.slug AND p.strategy = '${strategy}'
-					   AND p.status = 'success')`;
+					   AND p.status = 'success' AND ${VALID_RUN})`;
 		themes = db
 			.prepare(
 				`SELECT t.slug, t.title, t.author, t.paid, t.demo_url, t.publish_date,
@@ -65,7 +71,8 @@ export function loadThemes() {
 				        ${latest("desktop", "best_practices")} AS d_bp,
 				        ${latest("desktop", "seo")} AS d_seo,
 				        ${latest("desktop", "agentic_passed")} AS d_agentic_passed,
-				        ${latest("desktop", "agentic_applicable")} AS d_agentic_applicable
+				        ${latest("desktop", "agentic_applicable")} AS d_agentic_applicable,
+				        EXISTS (SELECT 1 FROM theme_psi p WHERE p.slug = t.slug AND NOT ${VALID_RUN}) AS psi_blocked
 				 FROM themes t ORDER BY t.title COLLATE NOCASE`,
 			)
 			.all() as ThemeRow[];

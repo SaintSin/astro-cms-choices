@@ -78,6 +78,7 @@ const themeUrl = `https://astro.build/themes/details/${t.slug}/`;
   </td>
   <td class="col-demo">
     {t.demo_url ? <a href={t.demo_url} target="_blank" rel="noopener noreferrer">Demo</a> : <span class="no-data">—</span>}
+    {t.psi_blocked === 1 && <span class="muted" title="This demo's host returned an error status to PageSpeed Insights on some runs (often bot protection). Those runs are left out of the scores.">*</span>}
   </td>
   <td class="col-price"><span class={`price ${t.paid ? "paid" : "free"}`}>{t.paid ? "Paid" : "Free"}</span></td>
   <td class="col-added">{added || <span class="no-data">—</span>}</td>

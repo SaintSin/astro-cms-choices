@@ -169,6 +169,7 @@ function themesStats(db) {
 				.prepare(
 					`SELECT AVG(b) a FROM (SELECT MAX(p.performance) b, t.paid FROM themes t
 					 JOIN theme_psi p ON p.slug = t.slug AND p.strategy = '${strategy}' AND p.status = 'success'
+					 AND COALESCE(p.failed_audits, '') NOT LIKE '%seo:http-status-code%'
 					 GROUP BY t.slug) WHERE paid = ?`,
 				)
 				.get(paid).a ?? 0,
