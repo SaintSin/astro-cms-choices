@@ -68,12 +68,17 @@ db.exec(`
 		lab_tbt        TEXT,
 		error          TEXT,
 		agentic_passed     INTEGER,
-		agentic_applicable INTEGER
+		agentic_applicable INTEGER,
+		failed_audits      TEXT
 	);
 	CREATE INDEX IF NOT EXISTS idx_theme_psi_slug ON theme_psi(slug);
 `);
-// Agentic columns were added after the first PSI run
-for (const col of ["agentic_passed INTEGER", "agentic_applicable INTEGER"]) {
+// Agentic and failed_audits columns were added after the first PSI run
+for (const col of [
+	"agentic_passed INTEGER",
+	"agentic_applicable INTEGER",
+	"failed_audits TEXT",
+]) {
 	try {
 		db.exec(`ALTER TABLE theme_psi ADD COLUMN ${col}`);
 	} catch {
@@ -109,7 +114,7 @@ async function syncCatalogue() {
 	const now = new Date();
 	const stamp = now.toISOString();
 	let total = 0;
-	for (let y = 2021, m = 0; y < now.getFullYear() || m <= now.getMonth();) {
+	for (let y = 2021, m = 0; y < now.getFullYear() || m <= now.getMonth(); ) {
 		const month = new Date(Date.UTC(y, m, 1)).toISOString();
 		const res = await fetchWithRetry(
 			`https://portal.astro.build/api/themes/monthly?month=${month}`,
@@ -260,6 +265,25 @@ const pct = (
 // Agentic Browsing is shown as audits passed / applicable, as on /psi/: a
 // percentage would mislead since most audits are notApplicable unless the page
 // implements the feature. "Passed" follows Lighthouse's green threshold (>= 0.9).
+// Failed audits in the three stable categories, as "category:audit-id" joined by
+// commas, so a score that differs between runs can be explained afterwards.
+function failedAudits(cats: any, audits: any) {
+	const out: string[] = [];
+	for (const id of ["accessibility", "best-practices", "seo"]) {
+		for (const ref of cats?.[id]?.auditRefs ?? []) {
+			const a = audits?.[ref.id];
+			if (
+				a &&
+				(a.scoreDisplayMode === "binary" || a.scoreDisplayMode === "numeric") &&
+				a.score != null &&
+				a.score < 0.9
+			)
+				out.push(`${id}:${ref.id}`);
+		}
+	}
+	return out.join(",");
+}
+
 function agenticBrowsing(cats: any, audits: any) {
 	const cat = cats?.["agentic-browsing"];
 	if (!cat) return { agentic_passed: null, agentic_applicable: null };
@@ -307,9 +331,9 @@ async function runPsi() {
 
 	const insert = db.prepare(`
 		INSERT INTO theme_psi (slug, fetched_at, strategy, status, performance, accessibility,
-			best_practices, seo, lab_lcp, lab_cls, lab_tbt, error, agentic_passed, agentic_applicable)
+			best_practices, seo, lab_lcp, lab_cls, lab_tbt, error, agentic_passed, agentic_applicable, failed_audits)
 		VALUES (@slug, @at, @strategy, @status, @performance, @accessibility,
-			@best_practices, @seo, @lab_lcp, @lab_cls, @lab_tbt, @error, @agentic_passed, @agentic_applicable)
+			@best_practices, @seo, @lab_lcp, @lab_cls, @lab_tbt, @error, @agentic_passed, @agentic_applicable, @failed_audits)
 	`);
 	const blank = {
 		performance: null,
@@ -322,6 +346,7 @@ async function runPsi() {
 		error: null,
 		agentic_passed: null,
 		agentic_applicable: null,
+		failed_audits: null,
 	};
 	let n = 0;
 	const total = pending.length * strategies.length;
@@ -369,6 +394,7 @@ async function runPsi() {
 						lab_cls: a["cumulative-layout-shift"]?.displayValue ?? null,
 						lab_tbt: a["total-blocking-time"]?.displayValue ?? null,
 						...agentic,
+						failed_audits: failedAudits(lh.categories, a),
 					});
 					console.log(
 						`  [${++n}/${total}] ${t.slug.slice(0, 40).padEnd(40)} ${strategy.padEnd(7)} ${perf}`,
