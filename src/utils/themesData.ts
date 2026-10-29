@@ -41,10 +41,15 @@ export function loadThemes() {
 					t: string | null;
 				}
 			).t ?? "";
-		// Latest successful result per theme × strategy
+		// Best successful score per theme × strategy across all runs: PSI varies
+		// run to run, so a single bad run shouldn't mark a theme down.
 		const latest = (strategy: string, col: string) =>
-			`(SELECT ${col} FROM theme_psi p WHERE p.slug = t.slug AND p.strategy = '${strategy}'
-			   AND p.status = 'success' ORDER BY p.id DESC LIMIT 1)`;
+			col.startsWith("agentic")
+				? // keep passed/applicable from the same run: the one that passed most
+					`(SELECT ${col} FROM theme_psi p WHERE p.slug = t.slug AND p.strategy = '${strategy}'
+					   AND p.status = 'success' ORDER BY p.agentic_passed DESC, p.id DESC LIMIT 1)`
+				: `(SELECT MAX(${col}) FROM theme_psi p WHERE p.slug = t.slug AND p.strategy = '${strategy}'
+					   AND p.status = 'success')`;
 		themes = db
 			.prepare(
 				`SELECT t.slug, t.title, t.author, t.paid, t.demo_url, t.publish_date,
@@ -86,6 +91,8 @@ export function loadThemes() {
 		astroCount: themes.filter((t) => t.astro_detected === 1).length,
 		freeMobileAvg: avg(free, "m_perf"),
 		paidMobileAvg: avg(paid, "m_perf"),
+		freeDesktopAvg: avg(free, "d_perf"),
+		paidDesktopAvg: avg(paid, "d_perf"),
 		hosts: [
 			...new Set(themes.map((t) => t.host).filter(Boolean)),
 		].sort() as string[],

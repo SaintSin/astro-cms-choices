@@ -162,15 +162,14 @@ function psiStats(db) {
 }
 
 function themesStats(db) {
-	// Latest successful mobile performance per theme, averaged by price.
-	const avg = (paid) =>
+	// Best successful performance (mobile/desktop) per theme, averaged by price.
+	const avg = (paid, strategy = "mobile") =>
 		Math.round(
 			db
 				.prepare(
-					`SELECT AVG(p.performance) a FROM themes t
-					 JOIN theme_psi p ON p.id = (SELECT MAX(id) FROM theme_psi
-					   WHERE slug = t.slug AND strategy = 'mobile' AND status = 'success')
-					 WHERE t.paid = ?`,
+					`SELECT AVG(b) a FROM (SELECT MAX(p.performance) b, t.paid FROM themes t
+					 JOIN theme_psi p ON p.slug = t.slug AND p.strategy = '${strategy}' AND p.status = 'success'
+					 GROUP BY t.slug) WHERE paid = ?`,
 				)
 				.get(paid).a ?? 0,
 		);
@@ -184,6 +183,8 @@ function themesStats(db) {
 		THEMES_PAID: paid,
 		FREE_MOBILE_AVG: avg(0),
 		PAID_MOBILE_AVG: avg(1),
+		FREE_DESKTOP_AVG: avg(0, "desktop"),
+		PAID_DESKTOP_AVG: avg(1, "desktop"),
 	};
 }
 

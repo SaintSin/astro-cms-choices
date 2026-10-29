@@ -8,7 +8,7 @@ import Layout from "@layouts/BaseLayout.astro";
 import { loadThemes } from "../utils/themesData";
 
 const meta = {
-	title: "Astro Themes — Free vs Paid and Lighthouse | What CMS? How Fast?",
+	title: "Astro Themes — PageSpeed Inight Scores",
 	description:
 		"Every theme in the Astro themes catalogue: free or paid, when it was added, the Astro version its demo runs on, and PageSpeed Insights Lighthouse scores for the demo.",
 	imageOG: "og-themes.png",
@@ -25,17 +25,19 @@ const {
 	astroCount,
 	freeMobileAvg,
 	paidMobileAvg,
+	freeDesktopAvg,
+	paidDesktopAvg,
 } = loadThemes();
 ---
 
 <Layout metaData={meta}>
   <main class="wrapper flow">
     <header class="page-header flow">
-      <h1>Astro Themes <span class="muted">free, paid, speed</span></h1>
+      <h1>Astro Themes <span class="muted">PageSpeed Insights</span></h1>
       <p class="page-lead">
         Themes from the <a href="https://astro.build/themes/" target="_blank" rel="noopener noreferrer">Astro themes catalogue</a>,
         with the Astro version each <strong>demo</strong> runs on and its
-        PageSpeed Insights Lighthouse scores.{" "}
+        PageSpeed Insights Lighthouse scores, the best of three or more runs.{" "}
         {generatedAt && <>Scored {new Date(generatedAt).toLocaleDateString("en-GB", { dateStyle: "medium" })}. </>}
         A demo should be a theme at its best: it shows how a theme can perform, not how your site will.
         Scores: <span class="legend good">≥ 90</span> <span class="legend mid">50–89</span> <span class="legend poor">&lt; 50</span>
@@ -50,15 +52,14 @@ const {
       <div class="stat-card"><span class="stat-value">{testedCount.toLocaleString()}</span><span class="stat-label">Scored</span></div>
       <div class="stat-card"><span class="stat-value">{freeMobileAvg ?? "—"}</span><span class="stat-label">Free, mobile perf avg</span></div>
       <div class="stat-card"><span class="stat-value">{paidMobileAvg ?? "—"}</span><span class="stat-label">Paid, mobile perf avg</span></div>
+      <div class="stat-card"><span class="stat-value">{freeDesktopAvg ?? "—"}</span><span class="stat-label">Free, desktop perf avg</span></div>
+      <div class="stat-card"><span class="stat-value">{paidDesktopAvg ?? "—"}</span><span class="stat-label">Paid, desktop perf avg</span></div>
     </div>
 
     <div class="toolbar">
       <input type="search" id="themes-search" class="search-input" placeholder="Filter by theme or author…" autocomplete="off" />
-      <select id="themes-paid" aria-label="Free or paid">
-        <option value="">Free and paid</option>
-        <option value="free">Free</option>
-        <option value="paid">Paid</option>
-      </select>
+      <label class="check"><input type="checkbox" id="themes-free" checked /> Free</label>
+      <label class="check"><input type="checkbox" id="themes-paid" checked /> Paid</label>
       <span class="result-count" id="result-count">{themes.length} themes</span>
     </div>
 
@@ -79,7 +80,7 @@ const {
             <th class="sortable col-ver" data-col="version">Astro</th>
             <th class="col-group-header" colspan="5">Mobile</th>
             <th class="col-group-header" colspan="5">Desktop</th>
-            <th class="col-group-header">/ 800</th>
+            <th class="col-group-header col-group-total">/ 800</th>
           </tr>
           <tr class="subheader">
             <th></th><th></th><th></th><th></th><th></th>
@@ -111,12 +112,15 @@ const {
   .themes-table { min-inline-size: 170ch; }
   .col-theme { width: 30ch; }
   .col-demo, .col-price { width: 8ch; }
-  .col-ver { width: 9ch; }
+  .col-ver { width: 7ch; }
   .col-added { width: 12ch; }
-  .col-total { width: 7ch; }
+  .col-total { width: 8ch; }
   .col-agentic { width: 9ch; } /* fits "Agentic ⇅" */
-  .col-score { width: 7ch; }
+  .col-score { width: 6ch; }
+  .col-group-total { font-weight: 700; }
   .metric-th { text-align: right; }
+  .check { display: inline-flex; align-items: center; gap: 0.4ch; }
+  .check input { accent-color: var(--color-success); }
   /* Mobile group starts at col 6, desktop at col 11, total at col 16 */
   .themes-table td:nth-child(6),
   .themes-table th:nth-child(6),
@@ -133,6 +137,7 @@ const {
     const PAGE_SIZE = 50;
     const tbody = document.getElementById("themes-tbody");
     const searchEl = document.getElementById("themes-search");
+    const freeEl = document.getElementById("themes-free");
     const paidEl = document.getElementById("themes-paid");
     const countEl = document.getElementById("result-count");
     const tableWrap = document.getElementById("themes-table-wrap");
@@ -174,18 +179,17 @@ const {
 
     function applyFilters() {
       const q = searchEl.value.trim().toLowerCase();
-      const paid = paidEl.value;
       filtered = allRows.filter(
         (r) =>
           (!q || r.dataset.title.includes(q) || r.dataset.author.includes(q)) &&
-          (!paid || r.dataset.paid === paid),
+          (r.dataset.paid === "paid" ? paidEl.checked : freeEl.checked),
       );
       sortRows();
       page = 1;
       applyView();
     }
 
-    [searchEl, paidEl].forEach((el) => el?.addEventListener("input", applyFilters));
+    [searchEl, freeEl, paidEl].forEach((el) => el?.addEventListener("input", applyFilters));
 
     document.querySelectorAll(".themes-table .sortable").forEach((th) => {
       th.addEventListener("click", () => {

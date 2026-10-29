@@ -31,7 +31,7 @@ export const siteMetadata: SiteMetadata = {
 		{ label: "Version Insights", href: "/insights/" },
 		{ label: "Lighthouse PSI", href: "/psi/" },
 		{ label: "CrUX CWV", href: "/crux/" },
-		{ label: "Themes", href: "/themes/" },
+		{ label: "Themes PSI", href: "/themes/" },
 		{ label: "Notes", href: "/notes/" },
 	],
 	showcasePageSize: 50,
