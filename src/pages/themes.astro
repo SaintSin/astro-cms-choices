@@ -59,6 +59,18 @@ const cmsOptions = [
       <div class="stat-card"><span class="stat-value">{paidDesktopAvg ?? "—"}</span><span class="stat-label">Paid, desktop perf avg</span></div>
     </div>
 
+    <ul class="table-notes">
+      <li>
+        <strong>Astro</strong> is the version the <em>demo</em> is running on, read from the demo's own page. Some
+        themes are listed as an "Astro 7 theme" but their demos run an earlier version. A dash means the demo doesn't
+        publish its version.
+      </li>
+      <li>
+        <strong>CMS</strong> names are declared by the theme developer in the theme's catalogue listing. We haven't
+        checked them, and a theme with no CMS shown may still work with one.
+      </li>
+    </ul>
+
     <div class="toolbar">
       <input type="search" id="themes-search" class="search-input" placeholder="Filter by theme, author or CMS…" autocomplete="off" />
       <label class="check"><input type="checkbox" id="themes-free" checked /> Free</label>
@@ -83,7 +95,7 @@ const cmsOptions = [
             <th class="sortable col-theme" data-col="title">Theme</th>
             <th class="sortable col-price" data-col="paid">Price</th>
             <th class="sortable col-added" data-col="added">Added</th>
-            <th class="sortable col-ver" data-col="version">Astro</th>
+            <th class="sortable col-ver" data-col="version" title="The Astro version the demo is running on, not necessarily the version the theme is listed for">Astro</th>
             <th class="col-group-header" colspan="5">Mobile</th>
             <th class="col-group-header" colspan="5">Desktop</th>
             <th class="col-group-header col-group-total">/ 800</th>
@@ -114,15 +126,13 @@ const cmsOptions = [
 </Layout>
 
 <style>
-  /* Fixed layout would squash 15 columns on a phone; scroll instead. */
-  .themes-table { min-inline-size: calc(112ch + 30 * var(--space-2xs)); } /* column widths + side padding */
-  .col-theme { width: 30ch; }
-  .col-price { width: 6ch; }
-  .col-ver { width: 8ch; }
-  .col-added { width: 9ch; }
-  .col-total { width: 6ch; }
-  .col-agentic { width: 6ch; } /* fits "Agt ⇅" and "3/3" */
-  .col-score { width: 5ch; }
+  /* Fixed layout would squash 15 columns on a phone; scroll instead. Every column
+     but Theme is sized to its content (padding included); Theme takes the rest. */
+  .themes-table { min-inline-size: 75rem; }
+  .col-price, .col-ver { width: 4.5rem; }
+  .col-added { width: 5.75rem; }
+  .col-score, .col-total { width: 4.25rem; }
+  .col-agentic { width: 3.75rem; }
   .col-group-total { font-weight: 700; }
   .metric-th { text-align: right; }
   /* Customizable select where supported (Chromium, Safari 27+); other browsers
@@ -184,6 +194,13 @@ const cmsOptions = [
     .cms-select option:is(:hover, :focus-visible) { background: var(--color-surface); }
     .cms-select option:checked { font-weight: 600; }
     .cms-select option::checkmark { color: var(--color-success); }
+  }
+  .table-notes {
+    margin: 0;
+    padding-inline-start: var(--space-s);
+    font-size: var(--step--1);
+    color: var(--color-mid);
+    max-inline-size: 80ch;
   }
   .check { display: inline-flex; align-items: center; gap: 0.4ch; }
   .check input { accent-color: var(--color-success); }
