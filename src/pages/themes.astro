@@ -28,6 +28,9 @@ const {
 	freeDesktopAvg,
 	paidDesktopAvg,
 } = loadThemes();
+const cmsOptions = [
+	...new Set(themes.flatMap((t) => (t.cms ? t.cms.split(",") : []))),
+].sort((a, b) => a.localeCompare(b));
 ---
 
 <Layout metaData={meta}>
@@ -57,16 +60,20 @@ const {
     </div>
 
     <div class="toolbar">
-      <input type="search" id="themes-search" class="search-input" placeholder="Filter by theme or author…" autocomplete="off" />
+      <input type="search" id="themes-search" class="search-input" placeholder="Filter by theme, author or CMS…" autocomplete="off" />
       <label class="check"><input type="checkbox" id="themes-free" checked /> Free</label>
       <label class="check"><input type="checkbox" id="themes-paid" checked /> Paid</label>
+      <select id="themes-cms" class="cms-select" aria-label="CMS">
+        <option value="">Any CMS</option>
+        {cmsOptions.map((c) => <option value={c.toLowerCase()}>{c}</option>)}
+      </select>
       <span class="result-count" id="result-count">{themes.length} themes</span>
     </div>
 
     <div class="table-wrap" id="themes-table-wrap">
       <table class="themes-table data-table" id="themes-table">
         <colgroup>
-          <col class="col-theme" /><col class="col-demo" /><col class="col-price" /><col class="col-added" /><col class="col-ver" />
+          <col class="col-theme" /><col class="col-price" /><col class="col-added" /><col class="col-ver" />
           <col class="col-score" /><col class="col-score" /><col class="col-score" /><col class="col-score" /><col class="col-agentic" />
           <col class="col-score" /><col class="col-score" /><col class="col-score" /><col class="col-score" /><col class="col-agentic" />
           <col class="col-total" />
@@ -74,7 +81,6 @@ const {
         <thead>
           <tr>
             <th class="sortable col-theme" data-col="title">Theme</th>
-            <th class="col-demo">Demo</th>
             <th class="sortable col-price" data-col="paid">Price</th>
             <th class="sortable col-added" data-col="added">Added</th>
             <th class="sortable col-ver" data-col="version">Astro</th>
@@ -83,17 +89,17 @@ const {
             <th class="col-group-header col-group-total">/ 800</th>
           </tr>
           <tr class="subheader">
-            <th></th><th></th><th></th><th></th><th></th>
+            <th></th><th></th><th></th><th></th>
             <th class="sortable metric-th" data-col="m_perf">Perf</th>
             <th class="sortable metric-th" data-col="m_a11y">A11y</th>
             <th class="sortable metric-th" data-col="m_bp">BP</th>
             <th class="sortable metric-th" data-col="m_seo">SEO</th>
-            <th class="sortable metric-th" data-col="m_agentic" title="Agentic Browsing — audits passed / applicable">Agentic</th>
+            <th class="sortable metric-th" data-col="m_agentic" title="Agentic Browsing — audits passed / applicable">Agt</th>
             <th class="sortable metric-th" data-col="d_perf">Perf</th>
             <th class="sortable metric-th" data-col="d_a11y">A11y</th>
             <th class="sortable metric-th" data-col="d_bp">BP</th>
             <th class="sortable metric-th" data-col="d_seo">SEO</th>
-            <th class="sortable metric-th" data-col="d_agentic" title="Agentic Browsing — audits passed / applicable">Agentic</th>
+            <th class="sortable metric-th" data-col="d_agentic" title="Agentic Browsing — audits passed / applicable">Agt</th>
             <th class="sortable metric-th" data-col="total_800">/ 800</th>
           </tr>
         </thead>
@@ -108,26 +114,84 @@ const {
 </Layout>
 
 <style>
-  /* Fixed layout would squash 14 columns on a phone; scroll instead. */
-  .themes-table { min-inline-size: 170ch; }
+  /* Fixed layout would squash 15 columns on a phone; scroll instead. */
+  .themes-table { min-inline-size: calc(112ch + 30 * var(--space-2xs)); } /* column widths + side padding */
   .col-theme { width: 30ch; }
-  .col-demo, .col-price { width: 8ch; }
-  .col-ver { width: 7ch; }
-  .col-added { width: 12ch; }
-  .col-total { width: 8ch; }
-  .col-agentic { width: 9ch; } /* fits "Agentic ⇅" */
-  .col-score { width: 6ch; }
+  .col-price { width: 6ch; }
+  .col-ver { width: 8ch; }
+  .col-added { width: 9ch; }
+  .col-total { width: 6ch; }
+  .col-agentic { width: 6ch; } /* fits "Agt ⇅" and "3/3" */
+  .col-score { width: 5ch; }
   .col-group-total { font-weight: 700; }
   .metric-th { text-align: right; }
+  /* Customizable select where supported (Chromium, Safari 27+); other browsers
+     keep the native dropdown. */
+  @supports (appearance: base-select) {
+    .cms-select,
+    .cms-select::picker(select) {
+      appearance: base-select;
+    }
+    .cms-select {
+      inline-size: 12rem;
+      padding: var(--space-2xs) var(--space-xs);
+      border: 1px solid var(--color-keyline);
+      border-radius: var(--space-3xs);
+      background: var(--color-light);
+      color: var(--color-text);
+      font-size: var(--step--1);
+      cursor: pointer;
+    }
+    .cms-select:is(:hover, :open) { border-color: var(--color-keyline-strong); }
+    .cms-select:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+    .cms-select::picker-icon {
+      color: var(--color-text-subtle);
+      transition: rotate 0.2s;
+    }
+    .cms-select:open::picker-icon { rotate: 180deg; }
+    .cms-select::picker(select) {
+      margin-block: var(--space-3xs);
+      padding: var(--space-3xs);
+      max-block-size: 24rem;
+      border: 1px solid var(--color-keyline);
+      border-radius: var(--space-3xs);
+      background: var(--color-light);
+      box-shadow: 0 8px 24px oklch(20% 0.02 265 / 0.14);
+      opacity: 0;
+      transform: translateY(-0.25rem);
+      transition: opacity 0.15s, transform 0.15s, overlay 0.15s allow-discrete,
+        display 0.15s allow-discrete;
+    }
+    .cms-select:open::picker(select) {
+      opacity: 1;
+      transform: none;
+    }
+    @starting-style {
+      .cms-select:open::picker(select) {
+        opacity: 0;
+        transform: translateY(-0.25rem);
+      }
+    }
+    .cms-select option {
+      padding: var(--space-3xs) var(--space-xs);
+      border-radius: var(--space-3xs);
+      font-size: var(--step--1);
+      cursor: pointer;
+    }
+    .cms-select option:is(:hover, :focus-visible) { background: var(--color-surface); }
+    .cms-select option:checked { font-weight: 600; }
+    .cms-select option::checkmark { color: var(--color-success); }
+  }
   .check { display: inline-flex; align-items: center; gap: 0.4ch; }
   .check input { accent-color: var(--color-success); }
-  /* Mobile group starts at col 6, desktop at col 11, total at col 16 */
-  .themes-table td:nth-child(6),
-  .themes-table th:nth-child(6),
-  .themes-table td:nth-child(11),
-  .themes-table th:nth-child(11),
-  .themes-table td:nth-child(16),
-  .themes-table th:nth-child(16) {
+  /* Cells live in ThemeRow, so reach them with :global. Tighter side padding
+     keeps the whole table on screen. */
+  .themes-table :global(:is(td, th)) { padding-inline: var(--space-2xs); }
+  /* Mobile group starts at col 5, desktop at col 10, total at col 15 */
+  .themes-table :global(:is(td, th):is(:nth-child(5), :nth-child(10), :nth-child(15))) {
     border-inline-start: 2px solid var(--color-keyline);
   }
 </style>
@@ -139,6 +203,7 @@ const {
     const searchEl = document.getElementById("themes-search");
     const freeEl = document.getElementById("themes-free");
     const paidEl = document.getElementById("themes-paid");
+    const cmsEl = document.getElementById("themes-cms");
     const countEl = document.getElementById("result-count");
     const tableWrap = document.getElementById("themes-table-wrap");
     const paginationEl = document.getElementById("themes-pagination");
@@ -181,15 +246,16 @@ const {
       const q = searchEl.value.trim().toLowerCase();
       filtered = allRows.filter(
         (r) =>
-          (!q || r.dataset.title.includes(q) || r.dataset.author.includes(q)) &&
-          (r.dataset.paid === "paid" ? paidEl.checked : freeEl.checked),
+          (!q || r.dataset.title.includes(q) || r.dataset.author.includes(q) || r.dataset.cms.includes(q)) &&
+          (r.dataset.paid === "paid" ? paidEl.checked : freeEl.checked) &&
+          (!cmsEl.value || r.dataset.cms.split(",").includes(cmsEl.value)),
       );
       sortRows();
       page = 1;
       applyView();
     }
 
-    [searchEl, freeEl, paidEl].forEach((el) => el?.addEventListener("input", applyFilters));
+    [searchEl, freeEl, paidEl, cmsEl].forEach((el) => el?.addEventListener("input", applyFilters));
 
     document.querySelectorAll(".themes-table .sortable").forEach((th) => {
       th.addEventListener("click", () => {

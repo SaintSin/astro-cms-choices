@@ -50,6 +50,11 @@ function agenticSort(p: number | null, a: number | null): number | "" {
 const mAgentic = [t.m_agentic_passed, t.m_agentic_applicable] as const;
 const dAgentic = [t.d_agentic_passed, t.d_agentic_applicable] as const;
 const added = t.publish_date?.slice(0, 10) ?? "";
+const addedShort = added.slice(2); // 2-digit year
+// Author | CMSs the theme says it supports
+const byline = [t.author, t.cms?.split(",").join(", ")]
+	.filter(Boolean)
+	.join(" | ");
 const themeUrl = `https://astro.build/themes/details/${t.slug}/`;
 ---
 
@@ -60,6 +65,7 @@ const themeUrl = `https://astro.build/themes/details/${t.slug}/`;
   data-paid={t.paid ? "paid" : "free"}
   data-added={added}
   data-version={t.astro_version ?? ""}
+  data-cms={(t.cms ?? "").toLowerCase()}
   data-m_perf={t.m_perf ?? ""}
   data-m_a11y={t.m_a11y ?? ""}
   data-m_bp={t.m_bp ?? ""}
@@ -73,17 +79,16 @@ const themeUrl = `https://astro.build/themes/details/${t.slug}/`;
   data-total_800={total800 ?? ""}
 >
   <td class="col-theme">
-    <a href={themeUrl} target="_blank" rel="noopener noreferrer">{t.title}</a>
-    {t.author && <span class="muted author">{t.author}</span>}
-  </td>
-  <td class="col-demo">
-    {t.demo_url ? <a href={t.demo_url} target="_blank" rel="noopener noreferrer">Demo</a> : <span class="no-data">—</span>}
-    {t.psi_blocked === 1 && <span class="muted" title="This demo's host returned an error status to PageSpeed Insights on some runs (often bot protection). Those runs are left out of the scores.">*</span>}
+    <span class="title-line">
+      <a class="title" href={themeUrl} target="_blank" rel="noopener noreferrer">{t.title}</a>
+      {t.psi_blocked === 1 && <span class="muted note" title="This demo's host returned an error status to PageSpeed Insights on some runs (often bot protection). Those runs are left out of the scores.">*</span>}
+    </span>
+    {byline && <span class="muted author">{byline}</span>}
   </td>
   <td class="col-price"><span class={`price ${t.paid ? "paid" : "free"}`}>{t.paid ? "Paid" : "Free"}</span></td>
-  <td class="col-added">{added || <span class="no-data">—</span>}</td>
+  <td class="col-added">{addedShort || <span class="no-data">—</span>}</td>
   <td class="col-ver">
-    {t.astro_version ? <span class="ver-badge">v{t.astro_version}</span> : t.astro_detected === 1 ? <span class="muted" title="Astro detected; this site doesn't publish its version">Astro</span> : <span class="no-data">—</span>}
+    {t.astro_version ? <span class="ver-badge">v{t.astro_version}</span> : t.astro_detected === 1 ? <span class="no-data" title="Astro detected; this site doesn't publish its version">—</span> : <span class="no-data">—</span>}
   </td>
   {scores.slice(0, 4).map((v) => <td class={`score ${scoreClass(v)}`}>{v ?? "—"}</td>)}
   <td class={`score ${agenticClass(...mAgentic)}`}>{agenticLabel(...mAgentic)}</td>
@@ -94,4 +99,7 @@ const themeUrl = `https://astro.build/themes/details/${t.slug}/`;
 
 <style>
   .author { display: block; font-size: var(--step--1); }
+  .title-line { display: flex; gap: 1ch; align-items: baseline; }
+  .note { flex: none; }
+  .title { min-inline-size: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 </style>

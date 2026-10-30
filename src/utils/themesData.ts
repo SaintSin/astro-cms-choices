@@ -29,6 +29,7 @@ export interface ThemeRow {
 	d_agentic_passed: number | null;
 	d_agentic_applicable: number | null;
 	psi_blocked: number;
+	cms: string | null;
 }
 
 // A run whose page returned an error status (dead demo) scores like a blank
@@ -59,7 +60,7 @@ export function loadThemes() {
 		themes = db
 			.prepare(
 				`SELECT t.slug, t.title, t.author, t.paid, t.demo_url, t.publish_date,
-				        t.probe_status, t.astro_detected, t.astro_version, t.host,
+				        t.probe_status, t.astro_detected, t.astro_version, t.host, t.cms,
 				        ${latest("mobile", "performance")} AS m_perf,
 				        ${latest("mobile", "accessibility")} AS m_a11y,
 				        ${latest("mobile", "best_practices")} AS m_bp,

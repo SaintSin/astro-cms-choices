@@ -22,6 +22,7 @@
 import Database from "better-sqlite3";
 import { detectAstro } from "./detect-cms.ts";
 import { fetchWithRetry } from "./fetch-retry.mjs";
+import { themeCms } from "./theme-cms.ts";
 
 const args = process.argv.slice(2);
 const arg = (name: string) =>
@@ -51,7 +52,8 @@ db.exec(`
 		probe_status   TEXT,
 		astro_detected INTEGER,
 		astro_version  TEXT,
-		host           TEXT
+		host           TEXT,
+		cms            TEXT
 	);
 	CREATE TABLE IF NOT EXISTS theme_psi (
 		id             INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -86,6 +88,12 @@ for (const col of [
 	}
 }
 
+try {
+	db.exec("ALTER TABLE themes ADD COLUMN cms TEXT");
+} catch {
+	/* already exists */
+}
+
 // ── Catalogue ────────────────────────────────────────────────────────────────
 
 interface PortalTheme {
@@ -96,17 +104,20 @@ interface PortalTheme {
 		demoUrl: string | null;
 		repoUrl: string | null;
 		publishDate: string;
+		description: string | null;
+		fullDescription: string | null;
+		body: string | null;
 	};
 	Author: { name: string } | null;
 }
 
 async function syncCatalogue() {
 	const upsert = db.prepare(`
-		INSERT INTO themes (slug, title, author, paid, demo_url, repo_url, publish_date, synced_at)
-		VALUES (@slug, @title, @author, @paid, @demo, @repo, @date, @now)
+		INSERT INTO themes (slug, title, author, paid, demo_url, repo_url, publish_date, synced_at, cms)
+		VALUES (@slug, @title, @author, @paid, @demo, @repo, @date, @now, @cms)
 		ON CONFLICT(slug) DO UPDATE SET
 			title = @title, author = @author, paid = @paid, repo_url = @repo,
-			publish_date = @date, synced_at = @now,
+			publish_date = @date, synced_at = @now, cms = @cms,
 			-- a changed demo URL invalidates the old probe
 			probed_at = CASE WHEN demo_url IS @demo THEN probed_at ELSE NULL END,
 			demo_url = @demo
@@ -131,6 +142,11 @@ async function syncCatalogue() {
 					repo: t.repoUrl || null,
 					date: t.publishDate,
 					now: stamp,
+					cms: themeCms(
+						[t.title, t.description, t.fullDescription, t.body]
+							.filter(Boolean)
+							.join(" "),
+					),
 				});
 			}
 		})();
