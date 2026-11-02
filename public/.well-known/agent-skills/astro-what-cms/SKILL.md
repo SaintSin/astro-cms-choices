@@ -1,5 +1,4 @@
 ---
-
 name: astro-what-cms
 description: "Look up which CMS or platform powers sites in the Astro showcase, which Astro or Starlight version they run, and their Core Web Vitals and Lighthouse scores. Use when asked what CMS an Astro site uses, how many showcase sites run Astro, which Astro versions are in use, or how fast Astro sites are."
 license: Free to read. No account or key needed.
