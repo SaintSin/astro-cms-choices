@@ -26,6 +26,7 @@ import "@styles/style.css";
 <Head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width" />
+  <meta name="text-scale" content="scale" />
   <title>{title}</title>
   <meta name="description" content={description} />
   <link rel="canonical" href={canonicalURL} />
@@ -72,3 +73,7 @@ import "@styles/style.css";
   <SiteNavigationJsonLD />
   <BreadcrumbJsonLD />
 </Head>
+
+<script>
+  import "@scripts/sortable-headers";
+</script>
