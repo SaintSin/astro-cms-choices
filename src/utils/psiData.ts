@@ -23,8 +23,15 @@ export function loadPsi() {
 			.prepare("SELECT id FROM scans ORDER BY id DESC LIMIT 1")
 			.get() as { id: number };
 
+		// Date of the latest full scan: small retry/single-site/weekly runs
+		// (under half the size of the biggest run) don't count.
 		const latestRun = db
-			.prepare("SELECT id, started_at FROM psi_runs ORDER BY id DESC LIMIT 1")
+			.prepare(
+				`SELECT r.id, r.started_at FROM psi_runs r
+				 WHERE (SELECT COUNT(*) FROM psi_results p WHERE p.run_id = r.id)
+				   >= 0.5 * (SELECT MAX(c) FROM (SELECT COUNT(*) c FROM psi_results GROUP BY run_id))
+				 ORDER BY r.id DESC LIMIT 1`,
+			)
 			.get() as { id: number; started_at: string };
 
 		generatedAt = latestRun.started_at;

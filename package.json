@@ -26,6 +26,7 @@
 		"psi": "node scripts/psi.mjs",
 		"themes": "node --experimental-strip-types --no-warnings scripts/themes.ts",
 		"crux": "node scripts/crux.mjs",
+		"weekly": "pnpm detect && node scripts/psi.mjs --new-only && node scripts/crux.mjs --new-only && pnpm themes && pnpm themes --psi",
 		"dns-check": "node scripts/dns-check.mjs",
 		"make-prs": "node scripts/make-removal-prs.mjs",
 		"recheck-blocked": "node --experimental-strip-types scripts/recheck-blocked.ts",
