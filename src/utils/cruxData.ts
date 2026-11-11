@@ -18,14 +18,9 @@ export function loadCrux() {
 
 	try {
 		const db = new Database(".scan-history.db", { readonly: true });
-		const run = db
-			.prepare("SELECT id, started_at FROM crux_runs ORDER BY id DESC LIMIT 1")
-			.get() as { id: number; started_at: string };
 		const latestScan = db
 			.prepare("SELECT id FROM scans ORDER BY id DESC LIMIT 1")
 			.get() as { id: number };
-
-		generatedAt = run.started_at;
 
 		sites = db
 			.prepare(
@@ -72,6 +67,17 @@ export function loadCrux() {
 			.all(latestScan.id) as any[];
 
 		totalWithData = sites.length;
+
+		// Date of the latest full scan: a run that fetched at least one result
+		// per listed site. Small retry/single-site/weekly runs don't count.
+		const run = db
+			.prepare(
+				`SELECT r.started_at FROM crux_runs r
+				 WHERE (SELECT COUNT(*) FROM crux_results c WHERE c.run_id = r.id) >= ?
+				 ORDER BY r.id DESC LIMIT 1`,
+			)
+			.get(totalWithData) as { started_at: string } | undefined;
+		generatedAt = run?.started_at ?? "";
 		desktopCount = sites.filter((s) => s.d_lcp !== null).length;
 		phoneCount = sites.filter((s) => s.p_lcp !== null).length;
 		tabletCount = sites.filter((s) => s.t_lcp !== null).length;
